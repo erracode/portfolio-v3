@@ -1,0 +1,11 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://erracode.pages.dev/sitemap.xml
+
+# Block common sensitive paths
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/chunks/

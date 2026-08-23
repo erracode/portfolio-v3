@@ -1,8 +1,12 @@
-import { Button } from "@/components/ui/button"
+import { BuffBar } from "@/components/wow/buff-bar"
+import { MicroBar } from "@/components/wow/micro-bar"
+import { Button } from "@/components/ui/8bit/button"
 
 export function App() {
   return (
     <div className="flex min-h-svh p-6">
+      <BuffBar />
+      <MicroBar />
       <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
         <div>
           <h1 className="font-medium">Project ready!</h1>
