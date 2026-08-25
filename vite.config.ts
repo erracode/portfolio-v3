@@ -10,5 +10,8 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Prevents a second copy of React from being bundled into optimized deps
+    // (zustand's react/shallow etc.), which breaks hooks with "Invalid hook call".
+    dedupe: ["react", "react-dom"],
   },
 })
