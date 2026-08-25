@@ -1,10 +1,12 @@
 import { BuffBar } from "@/components/wow/buff-bar"
 import { MicroBar } from "@/components/wow/micro-bar"
+import { PlayerUnitFrame } from "@/components/wow/player-unit-frame"
 import { Button } from "@/components/ui/8bit/button"
 
 export function App() {
   return (
     <div className="flex min-h-svh p-6">
+      <PlayerUnitFrame />
       <BuffBar />
       <MicroBar />
       <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">

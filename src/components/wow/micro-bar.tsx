@@ -4,6 +4,7 @@ import { SECTIONS } from "@/data/sections"
 import { playClick } from "@/lib/sfx"
 import { useOpenWindowIds, useWindowsStore } from "@/lib/windows-store"
 
+import { Toggle } from "@/components/ui/8bit/toggle"
 import {
   Tooltip,
   TooltipContent,
@@ -11,15 +12,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/8bit/tooltip"
 import { WowWindow } from "@/components/wow/wow-window"
-
-const MICRO_ITEM_CLASS = [
-  // Square metallic button with a gold "pressed" active state.
-  "inline-flex size-9 items-center justify-center rounded-none border border-zinc-400 px-0",
-  "bg-linear-to-b from-zinc-100 to-zinc-300 text-zinc-700",
-  "dark:border-zinc-600 dark:from-zinc-800 dark:to-zinc-900 dark:text-zinc-400",
-  "aria-pressed:border-yellow-700 aria-pressed:text-yellow-950",
-  "aria-pressed:bg-linear-to-b aria-pressed:from-yellow-300 aria-pressed:to-yellow-500",
-].join(" ")
 
 function isEditableElement(element: EventTarget | null): boolean {
   if (!(element instanceof HTMLElement)) return false
@@ -79,18 +71,17 @@ export function MicroBar() {
             return (
               <Tooltip key={section.id}>
                 <TooltipTrigger asChild>
-                  <button
-                    type="button"
+                  <Toggle
+                    variant="outline"
                     aria-label={hint}
-                    aria-pressed={openIds.includes(section.id)}
-                    onClick={() => {
+                    pressed={openIds.includes(section.id)}
+                    onPressedChange={() => {
                       playClick()
                       toggleWindow(section.id)
                     }}
-                    className={MICRO_ITEM_CLASS}
                   >
-                    <Icon className="size-4" aria-hidden="true" />
-                  </button>
+                    <Icon aria-hidden="true" />
+                  </Toggle>
                 </TooltipTrigger>
                 <TooltipContent side="top">{hint}</TooltipContent>
               </Tooltip>
