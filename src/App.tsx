@@ -1,4 +1,6 @@
+import { ActionBar } from "@/components/wow/action-bar"
 import { BuffBar } from "@/components/wow/buff-bar"
+import { ChatBox } from "@/components/wow/chat-box"
 import { MicroBar } from "@/components/wow/micro-bar"
 import { PlayerUnitFrame } from "@/components/wow/player-unit-frame"
 import { Button } from "@/components/ui/8bit/button"
@@ -9,6 +11,8 @@ export function App() {
       <PlayerUnitFrame />
       <BuffBar />
       <MicroBar />
+      <ChatBox />
+      <ActionBar />
       <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
         <div>
           <h1 className="font-medium">Project ready!</h1>

@@ -38,15 +38,15 @@ interface StatBarProps {
 
 function StatBar({ label, stat, progressBg }: StatBarProps) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="group relative">
       <Progress
         variant="retro"
         value={percentOf(stat)}
         progressBg={progressBg}
-        className="h-3"
+        className="h-4"
         aria-label={label}
       />
-      <span className="text-right text-[10px] leading-tight tabular-nums text-muted-foreground">
+      <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] leading-none font-semibold tabular-nums text-white opacity-0 transition-opacity group-hover:opacity-100 [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
         {formatStat(stat)}
       </span>
     </div>
@@ -90,12 +90,14 @@ export function PlayerUnitFrame() {
           </span>
         </h3>
 
-        <StatBar label="Vida" stat={player.health} progressBg="bg-green-500" />
-        <StatBar
-          label={RESOURCE_LABEL[player.resource.type]}
-          stat={player.resource}
-          progressBg={RESOURCE_BAR_BG[player.resource.type]}
-        />
+        <div className="flex flex-col gap-0">
+          <StatBar label="Vida" stat={player.health} progressBg="bg-green-500" />
+          <StatBar
+            label={RESOURCE_LABEL[player.resource.type]}
+            stat={player.resource}
+            progressBg={RESOURCE_BAR_BG[player.resource.type]}
+          />
+        </div>
       </div>
 
       {/* Pixel-frame recipe: side borders step outward past the top/bottom ones. */}

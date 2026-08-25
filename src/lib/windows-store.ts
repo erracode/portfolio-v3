@@ -3,6 +3,8 @@ import { useShallow } from "zustand/react/shallow"
 
 import { SECTION_IDS, SECTIONS, type SectionId } from "@/data/sections"
 
+import { useLogStore } from "@/lib/log-store"
+
 export interface WindowPosition {
   x: number
   y: number
@@ -79,27 +81,37 @@ export const useWindowsStore = create<WindowsState>()((set, get) => ({
   focusedId: null,
   nextZIndex: BASE_Z_INDEX,
 
-  openWindow: (id) =>
-    set((state) => {
-      const current = state.windows[id]
-      const zIndex = state.nextZIndex
-      // First open gets a cascading default position; reopen keeps the last one.
-      const position = current.isOpen ? current.position : defaultPosition()
-      return {
-        windows: {
-          ...state.windows,
-          [id]: { ...current, isOpen: true, zIndex, position },
+  openWindow: (id) => {
+    const current = get().windows[id]
+    const wasOpen = current.isOpen
+
+    set((state) => ({
+      windows: {
+        ...state.windows,
+        [id]: {
+          ...state.windows[id],
+          isOpen: true,
+          zIndex: state.nextZIndex,
+          // First open gets a cascading default position; reopen keeps the last one.
+          position: state.windows[id].isOpen
+            ? state.windows[id].position
+            : defaultPosition(),
         },
-        focusedId: id,
-        nextZIndex: zIndex + 1,
-      }
-    }),
+      },
+      focusedId: id,
+      nextZIndex: state.nextZIndex + 1,
+    }))
 
-  closeWindow: (id) =>
+    if (!wasOpen) {
+      useLogStore.getState().addLog("quest", `Opened window: ${current.title}`)
+    }
+  },
+
+  closeWindow: (id) => {
+    const current = get().windows[id]
+    if (!current.isOpen) return
+
     set((state) => {
-      const current = state.windows[id]
-      if (!current.isOpen) return state
-
       const remaining = Object.values(state.windows).filter(
         (win) => win.isOpen && win.id !== id
       )
@@ -109,11 +121,14 @@ export const useWindowsStore = create<WindowsState>()((set, get) => ({
       )
 
       return {
-        windows: { ...state.windows, [id]: { ...current, isOpen: false } },
+        windows: { ...state.windows, [id]: { ...state.windows[id], isOpen: false } },
         focusedId:
           state.focusedId === id ? (topRemaining?.id ?? null) : state.focusedId,
       }
-    }),
+    })
+
+    useLogStore.getState().addLog("quest", `Closed window: ${current.title}`)
+  },
 
   toggleWindow: (id) => {
     if (get().windows[id].isOpen) get().closeWindow(id)
