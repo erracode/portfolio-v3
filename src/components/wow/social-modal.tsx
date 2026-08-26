@@ -66,7 +66,7 @@ export function SocialModal({ isOpen, onClose }: SocialModalProps) {
         data-window-drag-handle
         className="cursor-move touch-none border-b-4 border-border px-4 py-3 pr-12 select-none"
       >
-        <h2 className="retro text-xs leading-snug">SOCIAL & CONTACTO</h2>
+        <h2 className="retro text-xs leading-snug">CONTACTO & REDES</h2>
         <p className="mt-0.5 font-sans text-[10px] text-muted-foreground">
           Canales de comunicación y presencia profesional
         </p>

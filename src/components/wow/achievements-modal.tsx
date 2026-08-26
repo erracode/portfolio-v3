@@ -1,16 +1,16 @@
 import { useEffect } from "react"
 import { play } from "cuelume"
 import {
-  Cpu,
-  Globe,
+  Crown,
   GraduationCap,
-  PartyPopper,
-  Rocket,
-  Trophy,
+  Landmark,
+  Mic,
+  Server,
   Wrench,
   type LucideIcon,
 } from "lucide-react"
 
+import { Badge } from "@/components/ui/8bit/badge"
 import { WowDraggableWindow } from "@/components/wow/wow-draggable-window"
 
 interface AchievementsModalProps {
@@ -22,9 +22,7 @@ interface Achievement {
   id: string
   title: string
   description: string
-  /** Flavor points, WoW-achievement-style — not a real-world credential or
-   * metric, just a game score for a career milestone. */
-  points: number
+  category: string
   icon: LucideIcon
 }
 
@@ -34,66 +32,46 @@ const ACHIEVEMENTS: Achievement[] = [
   {
     id: "degree",
     title: "Ingeniería en Computación",
-    description:
-      "Título de Ingeniero — Universidad Rafael Belloso Chacín (2015–2020).",
-    points: 50,
+    description: "Título de Ingeniero — Universidad Rafael Belloso Chacín (URBE).",
+    category: "TITULACIÓN",
     icon: GraduationCap,
   },
   {
-    id: "sundevs-promotion",
-    title: "Software Engineer II",
-    description:
-      "Ascenso en SunDevs, liderando features críticas para el ecosistema Cinemark.",
-    points: 30,
-    icon: Trophy,
-  },
-  {
-    id: "studio73-promotion",
-    title: "De Junior a Coordinador Web",
-    description: "Ascenso en Studio73, al frente del departamento web.",
-    points: 25,
-    icon: Trophy,
-  },
-  {
-    id: "point-party",
-    title: "Point Party",
-    description:
-      "Herramienta de estimación ágil adoptada por múltiples equipos en SunDevs.",
-    points: 25,
-    icon: Rocket,
+    id: "sundevs-leadership",
+    title: "Senior Full-Stack Engineer en SunDevs",
+    description: "Rol de liderazgo técnico en el ecosistema Cinemark LATAM.",
+    category: "LIDERAZGO",
+    icon: Crown,
   },
   {
     id: "antd-migration",
     title: "Migración Ant Design v3 → v5",
-    description: "Modernización de sistemas legacy sin interrumpir el negocio.",
-    points: 20,
+    description: "Modernización de sistemas legacy sin interrumpir la operación del negocio.",
+    category: "ARQUITECTURA",
     icon: Wrench,
   },
   {
-    id: "cinemark-onboarding",
-    title: "Multi-country Onboarding — Cinemark",
-    description:
-      "Incorporación de nuevas operaciones de Cinemark a la plataforma regional, ampliando cobertura a 12 países.",
-    points: 20,
-    icon: Globe,
+    id: "hb-reconciler",
+    title: "Motor Financiero HB Reconciler",
+    description: "Sistema de conciliación financiera desarrollado en Awsh.",
+    category: "FINTECH",
+    icon: Landmark,
   },
   {
-    id: "scraper-scale",
-    title: "+20.000 Dominios Procesados",
-    description: "Sistema de web scraping a gran escala con Agenda.js.",
-    points: 20,
-    icon: Cpu,
+    id: "hui",
+    title: "Sistema HUI de Aprovisionamiento Automatizado",
+    description: "Gestión de instancias de WordPress vía cPanel API/SSH.",
+    category: "INFRAESTRUCTURA",
+    icon: Server,
   },
   {
-    id: "santa",
-    title: "Dad SunDevs — Community Lead",
-    description: "Santa honorario en los eventos comunitarios del equipo.",
-    points: 10,
-    icon: PartyPopper,
+    id: "community-lead",
+    title: "Lead de Comunidad / Speaker en SunDevs",
+    description: "Organización y participación activa en la comunidad técnica interna.",
+    category: "COMUNIDAD",
+    icon: Mic,
   },
 ]
-
-const TOTAL_POINTS = ACHIEVEMENTS.reduce((sum, item) => sum + item.points, 0)
 
 function AchievementCard({ achievement }: { achievement: Achievement }) {
   const Icon = achievement.icon
@@ -113,14 +91,15 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-start justify-between gap-2">
           <p className="text-xs font-bold">{achievement.title}</p>
-          <span
-            className="shrink-0 text-[10px] font-bold"
-            style={{ color: "#ffd100" }}
+          <Badge
+            variant="outline"
+            font="normal"
+            className="shrink-0 px-1.5 py-0.5 text-[8px]"
           >
-            +{achievement.points}
-          </span>
+            {achievement.category}
+          </Badge>
         </div>
         <p className="mt-0.5 font-sans text-[10px] leading-relaxed text-muted-foreground">
           {achievement.description}
@@ -137,8 +116,8 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
 
 /**
  * WoW-style Achievements window — bound to the 'Y' hotkey / Logros
- * micro-menu icon. A points-totaled grid of career milestones; no
- * fabricated certifications, only what's grounded in the resume.
+ * micro-menu icon. A grid of real career milestones tagged by category;
+ * no fabricated certifications, only what's grounded in the resume.
  */
 export function AchievementsModal({ isOpen, onClose }: AchievementsModalProps) {
   useEffect(() => {
@@ -154,16 +133,9 @@ export function AchievementsModal({ isOpen, onClose }: AchievementsModalProps) {
     >
       <header
         data-window-drag-handle
-        className="flex cursor-move touch-none items-center justify-between gap-2 border-b-4 border-border px-4 py-3 pr-12 select-none"
+        className="flex cursor-move touch-none items-center border-b-4 border-border px-4 py-3 pr-12 select-none"
       >
         <h2 className="retro text-xs leading-snug">Logros & Hitos</h2>
-        <span
-          className="flex shrink-0 items-center gap-1.5 text-[10px] font-bold"
-          style={{ color: "#ffd100" }}
-        >
-          <Trophy className="size-3.5" aria-hidden="true" />
-          {TOTAL_POINTS} PTS
-        </span>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-4">

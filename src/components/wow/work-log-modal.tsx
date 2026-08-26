@@ -1,7 +1,8 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { play } from "cuelume"
 import {
   Building2,
+  ExternalLink,
   Layers,
   MapPin,
   Search,
@@ -11,6 +12,21 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/8bit/badge"
+import { Button } from "@/components/ui/8bit/button"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/8bit/carousel"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/8bit/dialog"
+import { SaveSlots, type SaveSlot } from "@/components/ui/8bit/blocks/save-slots"
 import {
   Tabs,
   TabsContent,
@@ -24,23 +40,31 @@ interface WorkLogModalProps {
   onClose: () => void
 }
 
-interface ProductEntry {
+interface ProjectEntry {
   id: string
   name: string
   domain: string
-  description: string
+  liveUrl?: string
+  category: string
+  summary: string
+  architecture: string
   stack: string[]
+  images: string[]
   icon: LucideIcon
 }
 
 /** Personal products and apps — sourced directly from the user. */
-const PERSONAL_PRODUCTS: ProductEntry[] = [
+const PROJECTS: ProjectEntry[] = [
   {
     id: "aquetienda",
     name: "aquetienda.com",
     domain: "app.aquetienda.com",
-    description:
-      "Sheet-to-Store Engine. Monorepo con dashboard de gestión y módulo linktree (paugurumi.aquetienda.com/links).",
+    liveUrl: "https://app.aquetienda.com",
+    category: "Producto SaaS",
+    summary:
+      "Sheet-to-Store Engine — motor de tiendas online generadas a partir de hojas de cálculo.",
+    architecture:
+      "Monorepo desplegado en Cloudflare Workers, con backend en Hono sobre runtime Bun y frontend en React 19 + Tailwind CSS v4. Persistencia y autenticación vía Supabase. Incluye un dashboard de gestión de catálogo y un módulo linktree independiente (paugurumi.aquetienda.com/links) que comparte el mismo monorepo y pipeline de despliegue.",
     stack: [
       "Cloudflare Workers",
       "Hono",
@@ -50,45 +74,69 @@ const PERSONAL_PRODUCTS: ProductEntry[] = [
       "shadcn/ui",
       "Supabase",
     ],
+    images: ["/placeholder.svg"],
     icon: Store,
   },
   {
     id: "petsosciety",
     name: "petsosciety.app",
     domain: "petsosciety.app",
-    description:
-      "Plataforma comunitaria para reporte de mascotas perdidas, con mapa interactivo en tiempo real.",
+    liveUrl: "https://petsosciety.app",
+    category: "Plataforma Comunitaria",
+    summary: "Red comunitaria para reporte y búsqueda de mascotas perdidas.",
+    architecture:
+      "Aplicación Next.js con Supabase como backend (Postgres + Realtime), usada para sincronizar en vivo un mapa interactivo de reportes. Estado de UI manejado con Zustand, animaciones con GSAP y contenido editorial servido como MDX.",
     stack: ["Next.js", "Supabase", "Zustand", "GSAP", "MDX", "shadcn/ui"],
+    images: ["/placeholder.svg"],
     icon: MapPin,
   },
   {
     id: "aquetasa",
     name: "aquetasa.app",
     domain: "aquetasa.app",
-    description:
-      "Monitor de tasas de cambio. Landing site en Astro y aplicación móvil en React Native.",
+    liveUrl: "https://aquetasa.app",
+    category: "App + Landing",
+    summary: "Monitor de tasas de cambio con landing informativa y app móvil.",
+    architecture:
+      "Landing site construido en Astro para maximizar el rendimiento de la primera carga, desacoplado de una aplicación móvil independiente en React Native que consume la misma fuente de tasas.",
     stack: ["Astro", "React Native"],
+    images: ["/placeholder.svg"],
     icon: TrendingUp,
   },
   {
     id: "story-point-poker",
     name: "Story Point Poker",
     domain: "story-point-poker-react.pages.dev",
-    description:
-      "Herramienta de estimación ágil adoptada por equipos de ingeniería.",
+    liveUrl: "https://story-point-poker-react.pages.dev",
+    category: "Herramienta Interna",
+    summary:
+      "Herramienta de estimación ágil (planning poker) adoptada internamente por equipos de ingeniería.",
+    architecture:
+      "SPA en React + TypeScript con componentes de Radix UI, sin backend propio: la sincronización de sesiones se resuelve completamente en el cliente. Adoptada como herramienta de facto en ceremonias de estimación de varios equipos.",
     stack: ["React", "TypeScript", "Radix UI"],
+    images: ["/placeholder.svg"],
     icon: Layers,
   },
   {
     id: "opencode-obsidian",
     name: "opencode-obsidian",
     domain: "Servidor MCP",
-    description:
-      "Servidor MCP con búsqueda semántica (RAG) para integración entre Obsidian y Azure DevOps.",
+    category: "Servidor MCP",
+    summary: "Servidor MCP con búsqueda semántica sobre notas de Obsidian.",
+    architecture:
+      "Servidor que implementa el Model Context Protocol (MCP), exponiendo búsqueda semántica (RAG) sobre un vault de Obsidian e integrándola con work items de Azure DevOps, para consultar contexto de notas técnicas directamente durante el flujo de trabajo.",
     stack: ["MCP", "RAG", "Azure DevOps"],
+    images: ["/placeholder.svg"],
     icon: Search,
   },
 ]
+
+const PROJECT_SLOTS: SaveSlot[] = PROJECTS.map((project) => ({
+  id: project.id,
+  isEmpty: false,
+  name: project.name,
+  description: project.category,
+}))
 
 interface WorkItem {
   id: string
@@ -181,7 +229,7 @@ const WORK_HISTORY: EmployerEntry[] = [
         id: "studio73-clients",
         title: "Infraestructura Cloud & Desarrollo de Clientes",
         description:
-          "Panamá Leagues, LPK, Gran Fondo (granfondo.probidsida.org), Grupo Romarin (gruporomarin.com) y Legal Food Panama (legalfoodpa.com).",
+          "Gran Fondo (granfondo.probidsida.org), Grupo Romarin (gruporomarin.com) y Legal Food Panama (legalfoodpa.com).",
         image: "/projects/studio73-1.png",
       },
     ],
@@ -192,6 +240,11 @@ const WORK_HISTORY: EmployerEntry[] = [
     role: "Ingeniero de Software Freelance",
     period: "",
     items: [
+      {
+        id: "kaironyx",
+        title: "Kaironyx Labs",
+        description: "kaironyx-labs-landing.pages.dev.",
+      },
       {
         id: "catatumbo",
         title: "Catatumbo Technology",
@@ -213,55 +266,105 @@ const WORK_HISTORY: EmployerEntry[] = [
   },
 ]
 
-function ProductCard({ product }: { product: ProductEntry }) {
-  const Icon = product.icon
-
+function ProjectDetailModal({
+  project,
+  onClose,
+}: {
+  project: ProjectEntry | null
+  onClose: () => void
+}) {
   return (
-    <div className="relative flex flex-col gap-2 border-y-6 border-foreground bg-card p-3 dark:border-ring">
-      <div className="flex items-center gap-2 border-b-4 border-border pb-2">
-        <Icon className="size-5 shrink-0 text-primary" aria-hidden="true" />
-        <div className="min-w-0">
-          <p className="truncate text-[10px] font-bold tracking-wide uppercase">
-            {product.name}
-          </p>
-          <p className="truncate font-sans text-[9px] text-muted-foreground">
-            {product.domain}
-          </p>
-        </div>
-      </div>
+    <Dialog
+      open={project !== null}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+    >
+      <DialogContent className="max-h-[85svh] w-[min(640px,calc(100svw-2rem))] overflow-y-auto">
+        {project && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 pr-6 text-xs leading-snug">
+                <project.icon
+                  className="size-4 shrink-0 text-primary"
+                  aria-hidden="true"
+                />
+                {project.name}
+              </DialogTitle>
+            </DialogHeader>
 
-      <p className="font-sans text-[10px] leading-relaxed text-muted-foreground">
-        {product.description}
-      </p>
+            <Carousel className="px-8">
+              <CarouselContent>
+                {project.images.map((image, index) => (
+                  <CarouselItem key={image + index}>
+                    <img
+                      src={image}
+                      alt=""
+                      loading="lazy"
+                      className="aspect-video w-full border-y-4 border-foreground bg-background object-cover dark:border-ring"
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {project.images.length > 1 && (
+                <>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </>
+              )}
+            </Carousel>
 
-      <div className="flex flex-wrap gap-1">
-        {product.stack.map((tech) => (
-          <Badge
-            key={tech}
-            variant="outline"
-            font="normal"
-            className="px-1.5 py-0.5 text-[9px]"
-          >
-            {tech}
-          </Badge>
-        ))}
-      </div>
+            <p className="font-sans text-[10px] leading-relaxed text-muted-foreground">
+              {project.architecture}
+            </p>
 
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -mx-1.5 border-x-6 border-inherit"
-      />
-    </div>
+            <div className="flex flex-wrap gap-1.5">
+              {project.stack.map((tech) => (
+                <Badge
+                  key={tech}
+                  variant="outline"
+                  font="normal"
+                  className="px-1.5 py-0.5 text-[9px]"
+                >
+                  {tech}
+                </Badge>
+              ))}
+            </div>
+
+            {project.liveUrl && (
+              <Button asChild size="sm" className="w-fit">
+                <a href={project.liveUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="size-3.5" aria-hidden="true" />
+                  Visitar Proyecto
+                </a>
+              </Button>
+            )}
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }
 
-function ProductsTab() {
+function ProjectsTab({
+  onSelectProject,
+}: {
+  onSelectProject: (project: ProjectEntry) => void
+}) {
+  const handleSlotClick = (slot: SaveSlot) => {
+    const project = PROJECTS.find((entry) => entry.id === slot.id)
+    if (project) onSelectProject(project)
+  }
+
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-      {PERSONAL_PRODUCTS.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </div>
+    <SaveSlots
+      slots={PROJECT_SLOTS}
+      onSlotClick={handleSlotClick}
+      title=""
+      maxVisibleSlots={5}
+      showTimestamp={false}
+      layout="vertical"
+    />
   )
 }
 
@@ -356,9 +459,12 @@ function TrajectoryTab() {
 
 /**
  * Work Log — bound to the 'L' hotkey / micro-menu icon. Two tabs: personal
- * products/apps, and professional trajectory grouped by employer/client.
+ * projects rendered as Save Slots (drilling into ProjectDetailModal), and
+ * professional trajectory grouped by employer/client.
  */
 export function WorkLogModal({ isOpen, onClose }: WorkLogModalProps) {
+  const [detailProject, setDetailProject] = useState<ProjectEntry | null>(null)
+
   useEffect(() => {
     if (isOpen) play("ready")
   }, [isOpen])
@@ -382,7 +488,7 @@ export function WorkLogModal({ isOpen, onClose }: WorkLogModalProps) {
       <Tabs defaultValue="products" className="min-h-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <TabsContent value="products" className="mt-0">
-            <ProductsTab />
+            <ProjectsTab onSelectProject={setDetailProject} />
           </TabsContent>
           <TabsContent value="trajectory" className="mt-0">
             <TrajectoryTab />
@@ -392,13 +498,18 @@ export function WorkLogModal({ isOpen, onClose }: WorkLogModalProps) {
         {/* Same hanging-flap recipe as the other micro-menu windows. */}
         <TabsList className="absolute -bottom-9 left-3 w-fit">
           <TabsTrigger value="products" data-cuelume-toggle="page">
-            Productos & Apps Personales
+            PROYECTOS
           </TabsTrigger>
           <TabsTrigger value="trajectory" data-cuelume-toggle="page">
-            Trayectoria Laboral & Clientes
+            EXPERIENCIA
           </TabsTrigger>
         </TabsList>
       </Tabs>
+
+      <ProjectDetailModal
+        project={detailProject}
+        onClose={() => setDetailProject(null)}
+      />
     </WowDraggableWindow>
   )
 }

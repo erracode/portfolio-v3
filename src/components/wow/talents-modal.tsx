@@ -1,9 +1,26 @@
 import { useEffect, useState } from "react"
 import { play } from "cuelume"
 import type { LucideIcon } from "lucide-react"
-import { Box, Cloud, Database, LayoutTemplate, Server, Shield } from "lucide-react"
+import {
+  Activity,
+  Box,
+  Cloud,
+  CloudCog,
+  Container,
+  Database,
+  Flame,
+  GitBranch,
+  Kanban,
+  LayoutTemplate,
+  Rocket,
+  Server,
+  Shield,
+  Smartphone,
+  Terminal,
+  Workflow,
+  Zap,
+} from "lucide-react"
 
-import { Badge } from "@/components/ui/8bit/badge"
 import { Button } from "@/components/ui/8bit/button"
 import {
   Tabs,
@@ -47,65 +64,176 @@ interface SpecDef {
   chain: TalentNodeData[]
 }
 
-interface TalentCategory {
+interface TalentBranch {
   id: string
   label: string
-  items: readonly string[]
+  nodes: TalentNodeData[]
 }
 
-/** Full stack, grouped formally by category — independent of the selected
- * specialization above (that selector highlights a focus area; this list is
- * the complete toolset). */
-const TALENT_CATEGORIES: TalentCategory[] = [
+/** Full stack as a 3-branch talent tree, grouped formally by category —
+ * independent of the selected specialization above (that selector
+ * highlights a focus area; this tree is the complete, honest toolset). */
+const TALENT_BRANCHES: TalentBranch[] = [
   {
     id: "frontend",
     label: "Frontend",
-    items: [
-      "React (17/18/19)",
-      "Next.js",
-      "Astro",
-      "React Native",
-      "TypeScript",
-      "Redux Toolkit/Saga",
-      "Zustand",
-      "Jotai",
-      "Ant Design (v3/v5)",
-      "Radix UI",
-      "shadcn/ui",
-      "Tailwind CSS v4",
-      "Three.js",
-      "GSAP",
+    nodes: [
+      {
+        id: "branch-react",
+        name: "React (17-19)",
+        description: "Librería de componentes — la base de toda interfaz construida en este stack.",
+        image: "/tech/react-logo.png",
+      },
+      {
+        id: "branch-nextjs",
+        name: "Next.js",
+        description: "Framework full-stack sobre React: rutas, SSR y API routes.",
+        image: "/tech/nextjs-logo.png",
+      },
+      {
+        id: "branch-astro",
+        name: "Astro",
+        description: "Framework orientado a contenido con hidratación parcial, para landings de carga rápida.",
+        Icon: Rocket,
+      },
+      {
+        id: "branch-react-native",
+        name: "React Native",
+        description: "Aplicaciones móviles nativas con el mismo modelo de componentes de React.",
+        Icon: Smartphone,
+      },
+      {
+        id: "branch-typescript",
+        name: "TypeScript",
+        description: "Tipado estático sobre JavaScript en todo el stack.",
+        image: "/tech/typescript-logo.png",
+      },
+      {
+        id: "branch-zustand",
+        name: "Zustand",
+        description: "Manejo de estado minimalista basado en hooks.",
+        image: "/tech/zustand-logo.png",
+      },
+      {
+        id: "branch-redux",
+        name: "Redux",
+        description: "Manejo de estado predecible para aplicaciones complejas.",
+        image: "/tech/redux-logo.png",
+      },
+      {
+        id: "branch-ui-frameworks",
+        name: "UI Frameworks",
+        description: "Ant Design, Radix UI, shadcn/ui, Tailwind CSS, Three.js y GSAP.",
+        Icon: LayoutTemplate,
+      },
     ],
   },
   {
     id: "backend",
-    label: "Backend & Runtimes",
-    items: [
-      "Node.js",
-      "Bun",
-      "Hono",
-      "NestJS",
-      "Express",
-      "PHP",
-      "Supabase",
-      "Cloudflare Workers",
-      "PostgreSQL",
-      "MongoDB",
-      "Redis",
+    label: "Backend & Systems",
+    nodes: [
+      {
+        id: "branch-nodejs",
+        name: "Node.js",
+        description: "Runtime de JavaScript en el servidor.",
+        image: "/tech/nodejs-logo.png",
+      },
+      {
+        id: "branch-bun",
+        name: "Bun",
+        description: "Runtime y toolkit de JavaScript de alto rendimiento.",
+        Icon: Zap,
+      },
+      {
+        id: "branch-hono",
+        name: "Hono",
+        description: "Framework web ultraligero, ideal para edge runtimes.",
+        Icon: Flame,
+      },
+      {
+        id: "branch-nestjs",
+        name: "NestJS",
+        description: "Framework de Node.js con arquitectura modular inspirada en Angular.",
+        image: "/tech/nestjs-logo.png",
+      },
+      {
+        id: "branch-express",
+        name: "Express",
+        description: "Framework minimalista para APIs HTTP en Node.js.",
+        image: "/tech/express-logo.png",
+      },
+      {
+        id: "branch-supabase",
+        name: "Supabase",
+        description: "Backend-as-a-service sobre PostgreSQL: auth, storage y realtime.",
+        image: "/tech/supabase-logo.png",
+      },
+      {
+        id: "branch-cf-workers",
+        name: "Cloudflare Workers",
+        description: "Cómputo serverless en el edge, sin cold starts perceptibles.",
+        Icon: CloudCog,
+      },
+      {
+        id: "branch-postgres",
+        name: "PostgreSQL",
+        description: "Base de datos relacional — la fuente de verdad.",
+        image: "/tech/postgres-logo.png",
+      },
+      {
+        id: "branch-redis",
+        name: "Redis",
+        description: "Caché en memoria para velocidad y datos efímeros.",
+        Icon: Database,
+      },
     ],
   },
   {
-    id: "tools",
-    label: "Tools & Workflow",
-    items: [
-      "Jira",
-      "Azure DevOps",
-      "Bitbucket",
-      "GitHub",
-      "AWS (CodeArtifact, Lambda, API Gateway)",
-      "Docker",
-      "OpenTelemetry",
-      "CPanel API/SSH",
+    id: "devops",
+    label: "DevOps & Workflow",
+    nodes: [
+      {
+        id: "branch-aws",
+        name: "AWS",
+        description: "CodeArtifact, Lambda y API Gateway — infraestructura cloud en producción.",
+        Icon: Cloud,
+      },
+      {
+        id: "branch-azure-devops",
+        name: "Azure DevOps",
+        description: "Repos, pipelines y tableros de trabajo.",
+        Icon: Workflow,
+      },
+      {
+        id: "branch-bitbucket",
+        name: "Bitbucket",
+        description: "Control de versiones y revisión de código.",
+        Icon: GitBranch,
+      },
+      {
+        id: "branch-jira",
+        name: "Jira",
+        description: "Planificación y seguimiento de tareas en equipo.",
+        Icon: Kanban,
+      },
+      {
+        id: "branch-docker",
+        name: "Docker",
+        description: "Contenerización de servicios para entornos consistentes.",
+        Icon: Container,
+      },
+      {
+        id: "branch-opentelemetry",
+        name: "OpenTelemetry",
+        description: "Trazas y métricas para observabilidad en producción.",
+        Icon: Activity,
+      },
+      {
+        id: "branch-cpanel",
+        name: "cPanel API/SSH",
+        description: "Aprovisionamiento y administración remota de servidores.",
+        Icon: Terminal,
+      },
     ],
   },
 ]
@@ -360,26 +488,17 @@ function SpecCard({
  */
 function StackTab() {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-      {TALENT_CATEGORIES.map((category) => (
+    <div className="flex flex-col gap-4">
+      {TALENT_BRANCHES.map((branch) => (
         <div
-          key={category.id}
+          key={branch.id}
           className="relative border-y-6 border-foreground bg-card p-3 dark:border-ring"
         >
           <h3 className="border-b-4 border-border pb-2 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-            {category.label}
+            {branch.label}
           </h3>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {category.items.map((item) => (
-              <Badge
-                key={item}
-                variant="outline"
-                font="normal"
-                className="px-1.5 py-0.5 text-[10px]"
-              >
-                {item}
-              </Badge>
-            ))}
+          <div className="mt-3 overflow-x-auto pb-1">
+            <TalentChain nodes={branch.nodes} direction="row" />
           </div>
           <div
             aria-hidden="true"
