@@ -1,7 +1,7 @@
 import { useEffect } from "react"
+import { play } from "cuelume"
 
 import { SECTIONS } from "@/data/sections"
-import { playClick } from "@/lib/sfx"
 import { useOpenWindowIds, useWindowsStore } from "@/lib/windows-store"
 
 import { Toggle } from "@/components/ui/8bit/toggle"
@@ -49,7 +49,8 @@ export function MicroBar() {
       if (!section) return
 
       event.preventDefault()
-      playClick()
+      // Keyboard shortcut bypasses the DOM click cuelume listens for.
+      play("toggle")
       toggleWindow(section.id)
     }
 
@@ -75,15 +76,15 @@ export function MicroBar() {
                     variant="outline"
                     aria-label={hint}
                     pressed={openIds.includes(section.id)}
-                    onPressedChange={() => {
-                      playClick()
-                      toggleWindow(section.id)
-                    }}
+                    onPressedChange={() => toggleWindow(section.id)}
+                    data-cuelume-toggle
                   >
                     <Icon aria-hidden="true" />
                   </Toggle>
                 </TooltipTrigger>
-                <TooltipContent side="top">{hint}</TooltipContent>
+                <TooltipContent side="top" font="normal" className="text-[10px]">
+                  {hint}
+                </TooltipContent>
               </Tooltip>
             )
           })}

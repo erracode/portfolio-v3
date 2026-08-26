@@ -71,6 +71,8 @@ function DialogContent({
               variant="ghost"
               className="absolute top-2 right-2"
               size="icon-sm"
+              data-cuelume-press
+              data-cuelume-release
             >
               <XIcon
               />

@@ -153,6 +153,8 @@ export function NpcQuestDialog({
                         if (quest) openQuest(quest)
                         else if (node) openInfo(node)
                       }}
+                      data-cuelume-press
+                      data-cuelume-release
                     >
                       <span
                         className={`w-4 shrink-0 text-center font-bold ${
@@ -212,20 +214,40 @@ export function NpcQuestDialog({
         {viewState === "quest_detail" && selectedQuest && (
           <footer className="flex items-center justify-between gap-2 border-t-4 border-border p-4">
             {selectedStatus === "completed" ? (
-              <Button variant="outline" onClick={backToGreeting}>
+              <Button
+                variant="outline"
+                onClick={backToGreeting}
+                data-cuelume-press
+                data-cuelume-release
+              >
                 Volver
               </Button>
             ) : (
               <>
-                <Button variant="destructive" onClick={backToGreeting}>
+                <Button
+                  variant="destructive"
+                  onClick={backToGreeting}
+                  data-cuelume-press
+                  data-cuelume-release
+                >
                   Rechazar
                 </Button>
                 {selectedStatus === "accepted" ? (
-                  <Button variant="default" onClick={handleComplete}>
+                  <Button
+                    variant="default"
+                    onClick={handleComplete}
+                    data-cuelume-press
+                    data-cuelume-release
+                  >
                     Completar
                   </Button>
                 ) : (
-                  <Button variant="default" onClick={handleAccept}>
+                  <Button
+                    variant="default"
+                    onClick={handleAccept}
+                    data-cuelume-press
+                    data-cuelume-release
+                  >
                     Aceptar
                   </Button>
                 )}
@@ -236,7 +258,12 @@ export function NpcQuestDialog({
 
         {viewState === "info_detail" && (
           <footer className="flex items-center justify-start border-t-4 border-border p-4">
-            <Button variant="outline" onClick={backToGreeting}>
+            <Button
+              variant="outline"
+              onClick={backToGreeting}
+              data-cuelume-press
+              data-cuelume-release
+            >
               &lt; Volver
             </Button>
           </footer>

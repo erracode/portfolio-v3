@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { play } from "cuelume"
 
 import { Toggle } from "@/components/ui/8bit/toggle"
 import { useLogStore } from "@/lib/log-store"
-import { playClick } from "@/lib/sfx"
 
 const SLOT_COUNT = 9
 
@@ -26,7 +26,6 @@ export function ActionBar() {
   const timeoutRef = useRef<number | null>(null)
 
   const activate = useCallback((index: number) => {
-    playClick()
     setActiveSlot(index)
     useLogStore.getState().addLog("system", `Ranura de acción ${index} activada`)
     if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current)
@@ -41,6 +40,8 @@ export function ActionBar() {
       const index = Number(event.key)
       if (index >= 1 && index <= SLOT_COUNT) {
         event.preventDefault()
+        // Keyboard shortcut bypasses the DOM click cuelume listens for.
+        play("toggle")
         activate(index)
       }
     }
@@ -62,6 +63,7 @@ export function ActionBar() {
             pressed={activeSlot === index}
             onPressedChange={() => activate(index)}
             className="size-10"
+            data-cuelume-toggle
           />
           <span
             aria-hidden="true"

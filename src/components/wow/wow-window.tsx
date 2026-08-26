@@ -3,7 +3,6 @@ import type { PointerEvent as ReactPointerEvent } from "react"
 import { X } from "lucide-react"
 
 import type { SectionId } from "@/data/sections"
-import { playClick } from "@/lib/sfx"
 import {
   useWindow,
   useWindowsStore,
@@ -109,12 +108,11 @@ export function WowWindow({ id }: { id: SectionId }) {
           </h2>
           <button
             type="button"
-            onClick={() => {
-              playClick()
-              closeWindow(id)
-            }}
+            onClick={() => closeWindow(id)}
             aria-label="Cerrar ventana"
             className="-mr-1 flex size-7 items-center justify-center border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+            data-cuelume-press
+            data-cuelume-release
           >
             <X className="size-4" aria-hidden="true" />
           </button>
