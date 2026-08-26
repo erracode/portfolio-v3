@@ -1,19 +1,9 @@
 import { useEffect, useState } from "react"
 import { play } from "cuelume"
 import type { LucideIcon } from "lucide-react"
-import {
-  Box,
-  Cloud,
-  Container,
-  Database,
-  GitBranch,
-  LayoutTemplate,
-  Server,
-  Shield,
-  Terminal,
-  Workflow,
-} from "lucide-react"
+import { Box, Cloud, Database, LayoutTemplate, Server, Shield } from "lucide-react"
 
+import { Badge } from "@/components/ui/8bit/badge"
 import { Button } from "@/components/ui/8bit/button"
 import {
   Tabs,
@@ -57,39 +47,66 @@ interface SpecDef {
   chain: TalentNodeData[]
 }
 
-/** Shared by every spec — foundational tools, not spec-specific. */
-const CORE_CHAIN: TalentNodeData[] = [
+interface TalentCategory {
+  id: string
+  label: string
+  items: readonly string[]
+}
+
+/** Full stack, grouped formally by category — independent of the selected
+ * specialization above (that selector highlights a focus area; this list is
+ * the complete toolset). */
+const TALENT_CATEGORIES: TalentCategory[] = [
   {
-    id: "git",
-    name: "Git",
-    description:
-      "Control de versiones distribuido — la base de todo flujo de trabajo en equipo.",
-    Icon: GitBranch,
+    id: "frontend",
+    label: "Frontend",
+    items: [
+      "React (17/18/19)",
+      "Next.js",
+      "Astro",
+      "React Native",
+      "TypeScript",
+      "Redux Toolkit/Saga",
+      "Zustand",
+      "Jotai",
+      "Ant Design (v3/v5)",
+      "Radix UI",
+      "shadcn/ui",
+      "Tailwind CSS v4",
+      "Three.js",
+      "GSAP",
+    ],
   },
   {
-    id: "docker",
-    name: "Docker",
-    description:
-      "Contenedores para empaquetar y desplegar de forma reproducible.",
-    Icon: Container,
+    id: "backend",
+    label: "Backend & Runtimes",
+    items: [
+      "Node.js",
+      "Bun",
+      "Hono",
+      "NestJS",
+      "Express",
+      "PHP",
+      "Supabase",
+      "Cloudflare Workers",
+      "PostgreSQL",
+      "MongoDB",
+      "Redis",
+    ],
   },
   {
-    id: "typescript",
-    name: "TypeScript",
-    description: "Tipado estático sobre JavaScript — la base de todo el stack.",
-    image: "/tech/typescript-logo.png",
-  },
-  {
-    id: "linux",
-    name: "Linux",
-    description: "Línea de comandos y administración de servidores.",
-    Icon: Terminal,
-  },
-  {
-    id: "cicd",
-    name: "CI/CD",
-    description: "Integración y despliegue continuo — automatizar para no romper nada.",
-    Icon: Workflow,
+    id: "tools",
+    label: "Tools & Workflow",
+    items: [
+      "Jira",
+      "Azure DevOps",
+      "Bitbucket",
+      "GitHub",
+      "AWS (CodeArtifact, Lambda, API Gateway)",
+      "Docker",
+      "OpenTelemetry",
+      "CPanel API/SSH",
+    ],
   },
 ]
 
@@ -280,8 +297,7 @@ function TalentChain({
 }
 
 /** One bordered box, no seams to fight — badge header, connected chain,
- * description. The background-image banner lives on the Talents tab
- * instead (see TalentsTab): that's where it reads at full width, per spec. */
+ * description. The full stack breakdown lives on the other tab (StackTab). */
 function SpecCard({
   spec,
   selected,
@@ -338,46 +354,39 @@ function SpecCard({
 }
 
 /**
- * Background art for the currently viewed spec sits directly behind the
- * tree — not a separate banner above it — matching WoW's talent window,
- * where the art fills the whole panel and nodes render on top of it.
- * Placeholder until real per-spec art replaces backgroundSrc. A darken
- * overlay keeps nodes/text legible regardless of what art goes there.
+ * Full stack grouped into three formal categories — independent of the
+ * spec selected on the previous tab, since this is meant to read as a
+ * complete, honest inventory rather than a per-role subset.
  */
-function TalentsTab({ spec }: { spec: SpecDef }) {
+function StackTab() {
   return (
-    <div className="relative h-full overflow-hidden border-y-6 border-foreground dark:border-ring">
-      <img
-        src="/placeholder.svg"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ imageRendering: "pixelated" }}
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-background/75"
-      />
-
-      <div className="relative grid grid-cols-2 gap-6 p-6">
-        <div className="flex flex-col items-center gap-4">
-          <h3 className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-            Core
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      {TALENT_CATEGORIES.map((category) => (
+        <div
+          key={category.id}
+          className="relative border-y-6 border-foreground bg-card p-3 dark:border-ring"
+        >
+          <h3 className="border-b-4 border-border pb-2 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+            {category.label}
           </h3>
-          <TalentChain nodes={CORE_CHAIN} />
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {category.items.map((item) => (
+              <Badge
+                key={item}
+                variant="outline"
+                font="normal"
+                className="px-1.5 py-0.5 text-[10px]"
+              >
+                {item}
+              </Badge>
+            ))}
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -mx-1.5 border-x-6 border-inherit"
+          />
         </div>
-        <div className="flex flex-col items-center gap-4">
-          <h3 className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-            {spec.label}
-          </h3>
-          <TalentChain nodes={spec.chain} />
-        </div>
-      </div>
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -mx-1.5 border-x-6 border-inherit"
-      />
+      ))}
     </div>
   )
 }
@@ -398,8 +407,6 @@ export function TalentsModal({ isOpen, onClose }: TalentsModalProps) {
     if (isOpen) play("ready")
   }, [isOpen])
 
-  const spec = SPECS[selectedSpec]
-
   return (
     <WowDraggableWindow
       id="spellbook"
@@ -411,9 +418,7 @@ export function TalentsModal({ isOpen, onClose }: TalentsModalProps) {
         data-window-drag-handle
         className="flex cursor-move touch-none items-center border-b-4 border-border px-4 py-3 pr-12 select-none"
       >
-        <h2 className="retro text-xs leading-snug">
-          Talentos y Especialización
-        </h2>
+        <h2 className="retro text-xs leading-snug">STACK & TALENTOS</h2>
       </header>
 
       <Tabs
@@ -441,13 +446,13 @@ export function TalentsModal({ isOpen, onClose }: TalentsModalProps) {
                   data-cuelume-press
                   data-cuelume-release
                 >
-                  View Talent Trees
+                  Ver Stack Completo
                 </Button>
               </div>
             </TabsContent>
 
             <TabsContent value="talents" className="mt-0 h-full">
-              <TalentsTab spec={spec} />
+              <StackTab />
             </TabsContent>
           </div>
         </TooltipProvider>
@@ -455,10 +460,10 @@ export function TalentsModal({ isOpen, onClose }: TalentsModalProps) {
         {/* Same hanging-flap recipe as CharacterSheetModal's tab strip. */}
         <TabsList className="absolute -bottom-9 left-3 w-fit">
           <TabsTrigger value="specialization" data-cuelume-toggle="page">
-            Specialization
+            Especialización
           </TabsTrigger>
           <TabsTrigger value="talents" data-cuelume-toggle="page">
-            Talents
+            Stack & Talentos
           </TabsTrigger>
         </TabsList>
       </Tabs>

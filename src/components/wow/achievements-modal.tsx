@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import { play } from "cuelume"
 import {
   Cpu,
+  Globe,
   GraduationCap,
   PartyPopper,
   Rocket,
@@ -69,6 +70,14 @@ const ACHIEVEMENTS: Achievement[] = [
     icon: Wrench,
   },
   {
+    id: "cinemark-onboarding",
+    title: "Multi-country Onboarding — Cinemark",
+    description:
+      "Incorporación de nuevas operaciones de Cinemark a la plataforma regional, ampliando cobertura a 12 países.",
+    points: 20,
+    icon: Globe,
+  },
+  {
     id: "scraper-scale",
     title: "+20.000 Dominios Procesados",
     description: "Sistema de web scraping a gran escala con Agenda.js.",
@@ -77,7 +86,7 @@ const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: "santa",
-    title: "'Dad SunDevs'",
+    title: "Dad SunDevs — Community Lead",
     description: "Santa honorario en los eventos comunitarios del equipo.",
     points: 10,
     icon: PartyPopper,
@@ -147,7 +156,7 @@ export function AchievementsModal({ isOpen, onClose }: AchievementsModalProps) {
         data-window-drag-handle
         className="flex cursor-move touch-none items-center justify-between gap-2 border-b-4 border-border px-4 py-3 pr-12 select-none"
       >
-        <h2 className="retro text-xs leading-snug">Logros</h2>
+        <h2 className="retro text-xs leading-snug">Logros & Hitos</h2>
         <span
           className="flex shrink-0 items-center gap-1.5 text-[10px] font-bold"
           style={{ color: "#ffd100" }}

@@ -111,7 +111,7 @@ export const useWindowsStore = create<WindowsState>()((set, get) => ({
     }))
 
     if (!wasOpen) {
-      useLogStore.getState().addLog("quest", `Opened window: ${current.title}`)
+      useLogStore.getState().addLog("system", `Opened window: ${current.title}`)
     }
   },
 
@@ -135,7 +135,7 @@ export const useWindowsStore = create<WindowsState>()((set, get) => ({
       }
     })
 
-    useLogStore.getState().addLog("quest", `Closed window: ${current.title}`)
+    useLogStore.getState().addLog("system", `Closed window: ${current.title}`)
   },
 
   toggleWindow: (id) => {

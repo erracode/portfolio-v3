@@ -57,6 +57,21 @@ const ROW_HEIGHT_PX = 260
 const LEVEL_LABEL = "Lv. 6+ Senior Full-Stack Engineer"
 const BIO_TEXT =
   "Ingeniero Full-Stack con foco en construir productos de punta a punta: interfaces en React/Next.js conectadas a APIs en Node.js, con PostgreSQL como fuente de datos. Cómodo moviéndose entre el navegador y el servidor sin perder de vista la experiencia del usuario."
+const LEADERSHIP_TEXT =
+  "Liderazgo técnico y mentoría: de Junior Developer a Web Coordinator en Studio73, y actualmente lead developer para el ecosistema Cinemark en SunDevs."
+
+interface Attribute {
+  label: string
+  /** Self-assessed, 1-5 pips — flavor, not a literal metric. Tweak freely. */
+  level: number
+}
+
+const ATTRIBUTES: Attribute[] = [
+  { label: "Backend", level: 4 },
+  { label: "Frontend", level: 4 },
+  { label: "Arquitectura", level: 4 },
+  { label: "Debugging", level: 4 },
+]
 
 /** Every gear slot starts empty on purpose — a placeholder grid to fill in
  * later (equipment/spec assignment now lives conceptually in TalentsModal). */
@@ -72,56 +87,36 @@ const GEAR_SLOT_LABELS = [
 ] as const
 
 /** Sourced from the user's LinkedIn/resume PDF, condensed to one line each
- * for the compact tab layout — full detail lives in the downloadable CV. */
+ * for the compact tab layout — full detail lives in the Work Log ('L') and
+ * the downloadable CV. */
 const EXPERIENCE_TIMELINE: TimelineStep[] = [
   {
     icon: "23",
-    title: "Software Engineer II",
+    title: "Senior Full-Stack Engineer",
     badge: "SunDevs Inc",
     description:
-      "Ene 2023 – Presente · Colombia. Full-stack lead en el ecosistema Cinemark (cadena de cines líder en LATAM): Next.js, microservicios, ADRs y migración de sistemas legacy.",
+      "Ene 2023 – Presente · Colombia. Lead developer para el ecosistema Cinemark (LATAM): 3 frontends y 8 microservicios para 12 países.",
   },
   {
     icon: "21",
-    title: "Software Engineer",
+    title: "Senior Software Engineer",
     badge: "Awsh",
     description:
-      "Feb 2021 – Presente · Estados Unidos. E-commerce y fintech con Next.js y PayloadCMS, scraping masivo de +20.000 dominios con Agenda.js y herramientas de conciliación financiera.",
+      "Feb 2021 – Presente · Estados Unidos. E-commerce regulado, conciliación financiera y scraping distribuido de +20.000 dominios.",
   },
   {
     icon: "21",
-    title: "Software Developer Coordinator",
+    title: "Web Coordinator",
     badge: "Studio73",
     description:
-      "Ene 2021 – Ene 2023 · Panamá. Promovido de Junior a Coordinador Web; punto de contacto técnico para marcas como Panama Leagues y LPK, gestión de infraestructura cloud.",
-  },
-  {
-    icon: "22",
-    title: "Ingeniero de Software Freelance",
-    badge: "Everythingwebsites",
-    description:
-      "Ago 2022 – Nov 2022 · Sacramento, CA. Reconstrucción completa del sitio insignia de la compañía a partir de diseños en Adobe XD; soluciones WordPress a medida enfocadas en performance y SEO.",
-  },
-  {
-    icon: "22",
-    title: "Back End Developer",
-    badge: "Eduqueo",
-    description:
-      "Abr 2022 – Jun 2022 · Argentina. API en Node.js/MySQL para mensajería automatizada por WhatsApp (Tasker + Airtable) y sincronización de leads en tiempo real con el CRM.",
+      "Ene 2021 – Ene 2023 · Panamá. Ascenso de Junior Developer a Coordinador Web; infraestructura cloud y desarrollo para múltiples clientes.",
   },
   {
     icon: "20",
     title: "Software Developer",
     badge: "Inverdata",
     description:
-      "Feb 2020 – Mar 2021 · Maracaibo, Venezuela. Sistema POS en Java y app de inventario en Django, ambos sobre PostgreSQL; soporte de infraestructura remota para Ingeniería y Diseño.",
-  },
-  {
-    icon: "🎓",
-    title: "Ingeniería en Computación",
-    badge: "URBE",
-    description:
-      "2015 – 2020. Universidad Rafael Belloso Chacín — título de Ingeniero, mención Ingeniería en Computación.",
+      "Feb 2020 – Mar 2021 · Maracaibo, Venezuela. Sistema POS en Java y aplicación de inventario en Django, ambos sobre PostgreSQL.",
   },
 ]
 
@@ -191,6 +186,27 @@ function GearColumn({ labels }: { labels: readonly string[] }) {
   )
 }
 
+function AttributeRow({ attribute }: { attribute: Attribute }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="font-sans text-[10px] font-bold tracking-wide uppercase">
+        {attribute.label}
+      </span>
+      <div className="flex gap-0.5" aria-hidden="true">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span
+            key={i}
+            className={cn(
+              "size-2",
+              i < attribute.level ? "bg-primary" : "bg-muted"
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function AttributesPanel() {
   return (
     <div className="relative border-y-6 border-foreground bg-card dark:border-ring">
@@ -212,6 +228,26 @@ function AttributesPanel() {
             Bio
           </h3>
           <p className="mt-1 font-sans text-xs leading-relaxed">{BIO_TEXT}</p>
+        </div>
+
+        <div>
+          <h3 className="font-sans text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+            Atributos
+          </h3>
+          <div className="mt-2 flex flex-col gap-1.5">
+            {ATTRIBUTES.map((attribute) => (
+              <AttributeRow key={attribute.label} attribute={attribute} />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="font-sans text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+            Liderazgo
+          </h3>
+          <p className="mt-1 font-sans text-xs leading-relaxed">
+            {LEADERSHIP_TEXT}
+          </p>
         </div>
       </div>
       <div

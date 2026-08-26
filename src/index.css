@@ -19,6 +19,36 @@
   }
 }
 
+/* Dark, square (no border-radius) scrollbars for every internal scrollable
+   container — matches the pixel-art frame recipe instead of the browser
+   default. Uses theme tokens directly so it stays correct in light/dark. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--foreground) var(--background);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--foreground);
+  border: 2px solid var(--background);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ring);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--background);
+}
+
 @theme inline {
     --font-heading: 'Press Start 2P', 'Geist Pixel', sans-serif;
     --font-sans: 'Geist Pixel', 'Inter Variable', sans-serif;

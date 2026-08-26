@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/8bit/tooltip"
 import { AchievementsModal } from "@/components/wow/achievements-modal"
 import { CharacterSheetModal } from "@/components/wow/character-sheet-modal"
-import { GuildSocialModal } from "@/components/wow/guild-social-modal"
-import { QuestLogModal } from "@/components/wow/quest-log-modal"
+import { SocialModal } from "@/components/wow/social-modal"
 import { TalentsModal } from "@/components/wow/talents-modal"
+import { WorkLogModal } from "@/components/wow/work-log-modal"
 
 function isEditableElement(element: EventTarget | null): boolean {
   if (!(element instanceof HTMLElement)) return false
@@ -29,10 +29,11 @@ function isEditableElement(element: EventTarget | null): boolean {
 
 /**
  * WoW-style micro menu fixed at the bottom-right corner — the single
- * integration point for all five main windows (Character, Quest Log,
- * Talents, Achievements, Guild). Each icon and its hotkey (C/L/P/Y/J)
- * toggles the matching window in the shared windows store; several can be
- * open and dragged around at once, same as the rest of the site's windows.
+ * integration point for all five main windows (Character, Work Log,
+ * Talents & Stack, Achievements, Social). Each icon and its hotkey
+ * (C/L/P/Y/J) toggles the matching window in the shared windows store;
+ * several can be open and dragged around at once, same as the rest of the
+ * site's windows.
  */
 export function MicroBar() {
   const openIds = useOpenWindowIds()
@@ -97,28 +98,30 @@ export function MicroBar() {
         </div>
       </TooltipProvider>
 
+      {/* No key here on purpose: each modal is a stable, always-mounted
+          component instance (per its fixed JSX position in this fragment).
+          `WowDraggableWindow` already unmounts/remounts its own visible
+          content based on `isOpen` (from the windows store) — forcing an
+          additional outer remount via a changing key duplicated that same
+          teardown-and-rebuild on every single open, which is what made
+          opening any window feel sluggish. */}
       <CharacterSheetModal
-        key={openIds.includes("character") ? "open" : "closed"}
         isOpen={openIds.includes("character")}
         onClose={() => closeWindow("character")}
       />
-      <QuestLogModal
-        key={openIds.includes("quests") ? "open" : "closed"}
+      <WorkLogModal
         isOpen={openIds.includes("quests")}
         onClose={() => closeWindow("quests")}
       />
       <TalentsModal
-        key={openIds.includes("spellbook") ? "open" : "closed"}
         isOpen={openIds.includes("spellbook")}
         onClose={() => closeWindow("spellbook")}
       />
       <AchievementsModal
-        key={openIds.includes("achievements") ? "open" : "closed"}
         isOpen={openIds.includes("achievements")}
         onClose={() => closeWindow("achievements")}
       />
-      <GuildSocialModal
-        key={openIds.includes("social") ? "open" : "closed"}
+      <SocialModal
         isOpen={openIds.includes("social")}
         onClose={() => closeWindow("social")}
       />

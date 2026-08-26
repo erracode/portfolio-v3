@@ -28,8 +28,8 @@ interface PlayerState {
 }
 
 const DEFAULT_PLAYER: PlayerProfile = {
-  name: "Jesús",
-  title: "Full-Stack Dev",
+  name: "Jesús Díaz",
+  title: "Senior Full-Stack Engineer",
   level: 99,
   portrait: "/social/talk-icon.png",
   health: { current: 12500, max: 12500 },
