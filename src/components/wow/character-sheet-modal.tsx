@@ -1,13 +1,12 @@
 import { useEffect } from "react"
 import { play } from "cuelume"
 import type { LucideIcon } from "lucide-react"
-import { Lock } from "lucide-react"
+import { Download, Lock } from "lucide-react"
 
 import { Avatar } from "@/components/ui/8bit/avatar"
 import Timeline1, {
   type TimelineStep,
 } from "@/components/ui/8bit/blocks/timeline1"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/8bit/dialog"
 import { SpriteAnimation } from "@/components/wow/sprite-animation"
 import {
   Tabs,
@@ -21,9 +20,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/8bit/tooltip"
+import { WowDraggableWindow } from "@/components/wow/wow-draggable-window"
+import { useLogStore } from "@/lib/log-store"
 import { cn } from "@/lib/utils"
 
-interface CharacterPanelModalProps {
+interface CharacterSheetModalProps {
   isOpen: boolean
   onClose: () => void
 }
@@ -57,9 +58,8 @@ const LEVEL_LABEL = "Lv. 6+ Senior Full-Stack Engineer"
 const BIO_TEXT =
   "Ingeniero Full-Stack con foco en construir productos de punta a punta: interfaces en React/Next.js conectadas a APIs en Node.js, con PostgreSQL como fuente de datos. Cómodo moviéndose entre el navegador y el servidor sin perder de vista la experiencia del usuario."
 
-/** Every gear slot starts empty on purpose — equipment now lives in the
- * Talents & Specialization window (see TalentTreeModal), which owns the
- * spec switcher. This sheet just shows the unequipped frame for now. */
+/** Every gear slot starts empty on purpose — a placeholder grid to fill in
+ * later (equipment/spec assignment now lives conceptually in TalentsModal). */
 const GEAR_SLOT_LABELS = [
   "Cabeza",
   "Hombros",
@@ -125,7 +125,12 @@ const EXPERIENCE_TIMELINE: TimelineStep[] = [
   },
 ]
 
-const DOWNLOAD_SLOTS = ["CV — Español", "CV — English"]
+/** Paths are a convention, not a guarantee — drop the actual PDFs at these
+ * exact public/ locations for the buttons below to serve real files. */
+const CV_DOWNLOADS = [
+  { lang: "ES", label: "CV — Español", href: "/cv/jesus-diaz-cv-es.pdf" },
+  { lang: "EN", label: "CV — English", href: "/cv/jesus-diaz-cv-en.pdf" },
+] as const
 
 /** Pixel-frame item slot, reusing the border recipe from BuffBar's SkillIcon. */
 function GearSlotBox({ item, label }: { item?: GearItem; label: string }) {
@@ -208,10 +213,6 @@ function AttributesPanel() {
           </h3>
           <p className="mt-1 font-sans text-xs leading-relaxed">{BIO_TEXT}</p>
         </div>
-
-        {/* Stack principal — deshabilitado por ahora, se retoma más
-            adelante (recibía `stack: GearItem[]` con los items equipados
-            y los listaba como <Badge variant="outline">). */}
       </div>
       <div
         aria-hidden="true"
@@ -276,20 +277,29 @@ function DownloadsTab() {
   return (
     <div className="flex flex-col gap-2">
       <p className="font-sans text-xs text-muted-foreground">
-        Slots de descarga en construcción — pronto vas a poder llevarte el CV
-        en PDF.
+        Descarga el currículum completo en el idioma que prefieras.
       </p>
       <div className="flex flex-col gap-2">
-        {DOWNLOAD_SLOTS.map((label) => (
-          <div
-            key={label}
-            className="flex items-center justify-between border-y-6 border-foreground bg-muted/30 px-3 py-2 opacity-60 dark:border-ring"
+        {CV_DOWNLOADS.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            download
+            onClick={() =>
+              useLogStore.getState().addLog("loot", `Descargado: ${item.label}`)
+            }
+            className="flex items-center justify-between border-y-6 border-foreground bg-muted/30 px-3 py-2 transition-colors hover:bg-accent dark:border-ring"
+            data-cuelume-press
+            data-cuelume-release
           >
-            <span className="text-xs">{label}</span>
-            <span className="text-[10px] text-muted-foreground uppercase">
-              Próximamente
+            <span className="flex items-center gap-2 text-xs">
+              <Download className="size-4" aria-hidden="true" />
+              {item.label}
             </span>
-          </div>
+            <span className="text-[10px] font-bold text-primary uppercase">
+              {item.lang}
+            </span>
+          </a>
         ))}
       </div>
     </div>
@@ -297,86 +307,86 @@ function DownloadsTab() {
 }
 
 /**
- * WoW-style Character Sheet modal. Shares the pixel-bordered dialog frame
- * with NpcQuestDialog. Spec switching now lives in TalentTreeModal — this
- * sheet just shows identity, equipment (currently unassigned), and history.
+ * WoW-style Character Sheet window — bound to the 'C' hotkey / micro-menu
+ * icon. Draggable/free-floating like the rest of the site's windows, but
+ * keeps the same pixel-bordered dialog layout (corner portrait, hanging
+ * tab flaps) the other four micro-menu windows share.
  */
-export function CharacterPanelModal({
+export function CharacterSheetModal({
   isOpen,
   onClose,
-}: CharacterPanelModalProps) {
+}: CharacterSheetModalProps) {
   useEffect(() => {
     if (isOpen) play("ready")
   }, [isOpen])
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose()
-      }}
+    <WowDraggableWindow
+      id="character"
+      isOpen={isOpen}
+      onClose={onClose}
+      className="h-[420px] w-[min(672px,calc(100svw-2rem))] max-h-[85svh]"
     >
-      <DialogContent className="flex h-[min(420px,85svh)] flex-col gap-0 p-0 sm:max-w-2xl">
-        {/* Portrait protrudes from the top-left border, same recipe as
-            NpcQuestDialog: positioning lives on an external wrapper. Same
-            idle sprite as the center viewport, just shrunk to avatar size. */}
-        <div className="absolute -top-6 -left-6 z-10">
-          <Avatar variant="default" className="size-14 bg-card">
-            <SpriteAnimation
-              src={PLAYER_SPRITE.src}
-              frameWidth={PLAYER_SPRITE.frameWidth}
-              frameHeight={PLAYER_SPRITE.frameHeight}
-              frameCount={PLAYER_SPRITE.frameCount}
-              sheetWidth={PLAYER_SPRITE.sheetWidth}
-              sheetHeight={PLAYER_SPRITE.sheetHeight}
-              fps={2}
-              scale={56 / PLAYER_SPRITE.frameWidth}
-              aria-label={`${PLAYER_NAME} — retrato`}
-            />
-          </Avatar>
+      {/* Portrait protrudes from the top-left border, same recipe as
+          NpcQuestDialog: positioning lives on an external wrapper. Same
+          idle sprite as the center viewport, just shrunk to avatar size. */}
+      <div className="absolute -top-6 -left-6 z-10">
+        <Avatar variant="default" className="size-14 bg-card">
+          <SpriteAnimation
+            src={PLAYER_SPRITE.src}
+            frameWidth={PLAYER_SPRITE.frameWidth}
+            frameHeight={PLAYER_SPRITE.frameHeight}
+            frameCount={PLAYER_SPRITE.frameCount}
+            sheetWidth={PLAYER_SPRITE.sheetWidth}
+            sheetHeight={PLAYER_SPRITE.sheetHeight}
+            fps={2}
+            scale={56 / PLAYER_SPRITE.frameWidth}
+            aria-label={`${PLAYER_NAME} — retrato`}
+          />
+        </Avatar>
+      </div>
+
+      <header
+        data-window-drag-handle
+        className="flex cursor-move touch-none items-center border-b-4 border-border py-3 pr-12 pl-16 select-none"
+      >
+        <h2 className="retro min-w-0 flex-1 truncate text-xs leading-snug">
+          {PLAYER_NAME}
+        </h2>
+      </header>
+
+      <Tabs defaultValue="character" className="min-h-0 flex-1 flex-col">
+        {/* Fills the window's fixed height exactly, always — it stays the
+            same size across every tab. "Personaje" fits inside it without
+            scrolling; a longer tab like "Trayectoria" scrolls inside this
+            same box instead of resizing the window. */}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <TabsContent value="character" className="mt-0">
+            <CharacterTab />
+          </TabsContent>
+          <TabsContent value="trajectory" className="mt-0">
+            <TrajectoryTab />
+          </TabsContent>
+          <TabsContent value="downloads" className="mt-0">
+            <DownloadsTab />
+          </TabsContent>
         </div>
 
-        <header className="flex items-center border-b-4 border-border py-3 pr-12 pl-16">
-          <DialogTitle className="min-w-0 flex-1 truncate text-xs leading-snug">
-            {PLAYER_NAME}
-          </DialogTitle>
-        </header>
-
-        <Tabs defaultValue="character" className="min-h-0 flex-1 flex-col">
-          {/* Fills the dialog's fixed height exactly, always — the window
-              stays the same size across every tab. "Personaje" fits inside
-              it without scrolling; a longer tab like "Trayectoria" scrolls
-              inside this same box instead of resizing the window. */}
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">
-            <TabsContent value="character" className="mt-0">
-              <CharacterTab />
-            </TabsContent>
-            <TabsContent value="trajectory" className="mt-0">
-              <TrajectoryTab />
-            </TabsContent>
-            <TabsContent value="downloads" className="mt-0">
-              <DownloadsTab />
-            </TabsContent>
-          </div>
-
-          {/* Tab strip hangs as flaps below the window's own border — not
-              flush inside it, not a full-width bar — matching the in-game
-              Character / Reputation / Currency tabs. Positioned relative to
-              DialogContent (the nearest positioned ancestor), same recipe
-              as the portrait avatar above. */}
-          <TabsList className="absolute -bottom-9 left-3 w-fit">
-            <TabsTrigger value="character" data-cuelume-toggle="page">
-              Personaje
-            </TabsTrigger>
-            <TabsTrigger value="trajectory" data-cuelume-toggle="page">
-              Trayectoria
-            </TabsTrigger>
-            <TabsTrigger value="downloads" data-cuelume-toggle="page">
-              Descargas
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+        {/* Tab strip hangs as flaps below the window's own border — not
+            flush inside it, not a full-width bar — matching the in-game
+            Character / Reputation / Currency tabs. */}
+        <TabsList className="absolute -bottom-9 left-3 w-fit">
+          <TabsTrigger value="character" data-cuelume-toggle="page">
+            Personaje
+          </TabsTrigger>
+          <TabsTrigger value="trajectory" data-cuelume-toggle="page">
+            Trayectoria
+          </TabsTrigger>
+          <TabsTrigger value="downloads" data-cuelume-toggle="page">
+            Descargas
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </WowDraggableWindow>
   )
 }

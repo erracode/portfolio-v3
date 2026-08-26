@@ -31,30 +31,38 @@ interface WindowsState {
 }
 
 const BASE_Z_INDEX = 100
-/** Window width plus its right margin, used for viewport clamping. */
-const WINDOW_WIDTH = 360
 const CASCADE_STEP = 24
 const MIN_POSITION = 8
+
+/** Approximate rendered footprint per window — used only to center the
+ * *default* open position and clamp dragging roughly on-screen before/
+ * without a live measurement. Matches each modal's own width/height
+ * classes; update here if a modal's sizing changes. */
+const WINDOW_SIZE: Record<SectionId, { width: number; height: number }> = {
+  character: { width: 672, height: 420 },
+  quests: { width: 672, height: 560 },
+  spellbook: { width: 1024, height: 680 },
+  achievements: { width: 672, height: 560 },
+  social: { width: 448, height: 280 },
+}
 
 // Monotonic counter so every window gets a unique cascade slot on first open.
 let cascadeIndex = 0
 
-function defaultPosition(): WindowPosition {
-  const x = Math.max(
-    MIN_POSITION,
-    window.innerWidth - WINDOW_WIDTH - 16 - cascadeIndex * CASCADE_STEP
-  )
-  const y = Math.max(
-    MIN_POSITION,
-    window.innerHeight - 160 - cascadeIndex * CASCADE_STEP
-  )
+function defaultPosition(id: SectionId): WindowPosition {
+  const { width, height } = WINDOW_SIZE[id]
+  const baseX = Math.max(MIN_POSITION, (window.innerWidth - width) / 2)
+  const baseY = Math.max(MIN_POSITION, (window.innerHeight - height) / 2)
+  const x = Math.max(MIN_POSITION, baseX - cascadeIndex * CASCADE_STEP)
+  const y = Math.max(MIN_POSITION, baseY - cascadeIndex * CASCADE_STEP)
   cascadeIndex += 1
   return { x, y }
 }
 
-function clampPosition(position: WindowPosition): WindowPosition {
-  const maxX = Math.max(MIN_POSITION, window.innerWidth - WINDOW_WIDTH)
-  const maxY = Math.max(MIN_POSITION, window.innerHeight - 160)
+function clampPosition(id: SectionId, position: WindowPosition): WindowPosition {
+  const { width, height } = WINDOW_SIZE[id]
+  const maxX = Math.max(MIN_POSITION, window.innerWidth - width)
+  const maxY = Math.max(MIN_POSITION, window.innerHeight - height)
   return {
     x: Math.min(Math.max(position.x, MIN_POSITION), maxX),
     y: Math.min(Math.max(position.y, MIN_POSITION), maxY),
@@ -95,7 +103,7 @@ export const useWindowsStore = create<WindowsState>()((set, get) => ({
           // First open gets a cascading default position; reopen keeps the last one.
           position: state.windows[id].isOpen
             ? state.windows[id].position
-            : defaultPosition(),
+            : defaultPosition(id),
         },
       },
       focusedId: id,
@@ -160,7 +168,7 @@ export const useWindowsStore = create<WindowsState>()((set, get) => ({
     set((state) => ({
       windows: {
         ...state.windows,
-        [id]: { ...state.windows[id], position: clampPosition(position) },
+        [id]: { ...state.windows[id], position: clampPosition(id, position) },
       },
     })),
 

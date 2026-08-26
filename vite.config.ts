@@ -14,4 +14,21 @@ export default defineConfig({
     // (zustand's react/shallow etc.), which breaks hooks with "Invalid hook call".
     dedupe: ["react", "react-dom"],
   },
+  optimizeDeps: {
+    // Pre-bundle every external dep up front at cold start instead of
+    // discovering them incrementally as new files import them — the latter
+    // triggers a "re-optimizing dependencies" full-page reload mid-session
+    // (felt as "slow the first few times" while adding new components).
+    include: [
+      "lucide-react",
+      "cuelume",
+      "zustand",
+      "zustand/react/shallow",
+      "zustand/middleware",
+      "clsx",
+      "tailwind-merge",
+      "class-variance-authority",
+      "radix-ui",
+    ],
+  },
 })

@@ -93,13 +93,9 @@ export function ThemeProvider({
     return defaultTheme
   })
 
-  const setTheme = React.useCallback(
-    (nextTheme: Theme) => {
-      localStorage.setItem(storageKey, nextTheme)
-      setThemeState(nextTheme)
-    },
-    [storageKey]
-  )
+  const setTheme = React.useCallback((nextTheme: Theme) => {
+    setThemeState(nextTheme)
+  }, [])
 
   const applyTheme = React.useCallback(
     (nextTheme: Theme) => {
@@ -121,6 +117,10 @@ export function ThemeProvider({
   )
 
   React.useEffect(() => {
+    // Single place that persists — the 'd' hotkey below only computes the
+    // next theme (as a pure updater); a cross-tab "storage" event just sets
+    // a plain value. Both funnel through this effect to write once.
+    localStorage.setItem(storageKey, theme)
     applyTheme(theme)
 
     if (theme !== "system") {
@@ -137,7 +137,7 @@ export function ThemeProvider({
     return () => {
       mediaQuery.removeEventListener("change", handleChange)
     }
-  }, [theme, applyTheme])
+  }, [theme, applyTheme, storageKey])
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -157,19 +157,17 @@ export function ThemeProvider({
         return
       }
 
-      setThemeState((currentTheme) => {
-        const nextTheme =
-          currentTheme === "dark"
-            ? "light"
-            : currentTheme === "light"
-              ? "dark"
-              : getSystemTheme() === "dark"
-                ? "light"
-                : "dark"
-
-        localStorage.setItem(storageKey, nextTheme)
-        return nextTheme
-      })
+      // Pure updater — no side effects here. Persistence happens in the
+      // effect above, which reacts to `theme` changing.
+      setThemeState((currentTheme) =>
+        currentTheme === "dark"
+          ? "light"
+          : currentTheme === "light"
+            ? "dark"
+            : getSystemTheme() === "dark"
+              ? "light"
+              : "dark"
+      )
     }
 
     window.addEventListener("keydown", handleKeyDown)
@@ -177,7 +175,7 @@ export function ThemeProvider({
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [storageKey])
+  }, [])
 
   React.useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {

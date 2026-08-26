@@ -29,18 +29,19 @@ export interface SocialLink {
 // github-logo.png ships under /tech in this project; the rest live under /social.
 export const SOCIAL_LINKS: readonly SocialLink[] = [
   {
+    // TODO: placeholder — real GitHub handle not on file yet, swap this href.
     name: "GitHub",
     href: "https://github.com",
     icon: "/tech/github-logo.png",
   },
   {
     name: "LinkedIn",
-    href: "https://linkedin.com",
+    href: "https://www.linkedin.com/in/jesus-diaz-erracode",
     icon: "/social/linkedin-logo.png",
   },
   {
     name: "Email",
-    href: "mailto:",
+    href: "mailto:jdiaz.97ma@gmail.com",
     icon: "/social/email-icon.svg",
   },
 ]

@@ -15,7 +15,6 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/8bit/button"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/8bit/dialog"
 import {
   Tabs,
   TabsContent,
@@ -28,9 +27,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/8bit/tooltip"
+import { WowDraggableWindow } from "@/components/wow/wow-draggable-window"
 import { cn } from "@/lib/utils"
 
-interface TalentTreeModalProps {
+interface TalentsModalProps {
   isOpen: boolean
   onClose: () => void
 }
@@ -383,12 +383,14 @@ function TalentsTab({ spec }: { spec: SpecDef }) {
 }
 
 /**
- * WoW-style "Talents & Specialization" window. Shares the pixel-bordered
- * dialog frame with NpcQuestDialog/CharacterPanelModal; "View Talent Trees"
+ * WoW-style "Talents & Specialization" window — bound to the 'P' hotkey /
+ * Grimoire micro-menu icon. Draggable/free-floating like the rest of the
+ * site's windows, but keeps the same pixel-bordered dialog layout (hanging
+ * tab flaps) the other four micro-menu windows share; "View Talent Trees"
  * drives the same controlled Tabs state the bottom tab strip uses, so both
  * paths land on the same place.
  */
-export function TalentTreeModal({ isOpen, onClose }: TalentTreeModalProps) {
+export function TalentsModal({ isOpen, onClose }: TalentsModalProps) {
   const [activeTab, setActiveTab] = useState<TalentTab>("specialization")
   const [selectedSpec, setSelectedSpec] = useState<SpecId>("fullstack")
 
@@ -399,66 +401,67 @@ export function TalentTreeModal({ isOpen, onClose }: TalentTreeModalProps) {
   const spec = SPECS[selectedSpec]
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose()
-      }}
+    <WowDraggableWindow
+      id="spellbook"
+      isOpen={isOpen}
+      onClose={onClose}
+      className="h-[680px] w-[min(1024px,calc(100svw-2rem))] max-h-[92svh]"
     >
-      <DialogContent className="flex h-[min(680px,92svh)] flex-col gap-0 p-0 sm:max-w-5xl">
-        <header className="flex items-center border-b-4 border-border px-4 py-3 pr-12">
-          <DialogTitle className="text-xs leading-snug">
-            Talentos y Especialización
-          </DialogTitle>
-        </header>
+      <header
+        data-window-drag-handle
+        className="flex cursor-move touch-none items-center border-b-4 border-border px-4 py-3 pr-12 select-none"
+      >
+        <h2 className="retro text-xs leading-snug">
+          Talentos y Especialización
+        </h2>
+      </header>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => setActiveTab(value as TalentTab)}
-          className="min-h-0 flex-1 flex-col"
-        >
-          <TooltipProvider delayDuration={150}>
-            <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4">
-              <TabsContent value="specialization" className="mt-0">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  {(Object.keys(SPECS) as SpecId[]).map((id) => (
-                    <SpecCard
-                      key={id}
-                      spec={SPECS[id]}
-                      selected={selectedSpec === id}
-                      onSelect={() => setSelectedSpec(id)}
-                    />
-                  ))}
-                </div>
-                <div className="mt-4 flex justify-center">
-                  <Button
-                    variant="default"
-                    onClick={() => setActiveTab("talents")}
-                    data-cuelume-press
-                    data-cuelume-release
-                  >
-                    View Talent Trees
-                  </Button>
-                </div>
-              </TabsContent>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as TalentTab)}
+        className="min-h-0 flex-1 flex-col"
+      >
+        <TooltipProvider delayDuration={150}>
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4">
+            <TabsContent value="specialization" className="mt-0">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {(Object.keys(SPECS) as SpecId[]).map((id) => (
+                  <SpecCard
+                    key={id}
+                    spec={SPECS[id]}
+                    selected={selectedSpec === id}
+                    onSelect={() => setSelectedSpec(id)}
+                  />
+                ))}
+              </div>
+              <div className="mt-4 flex justify-center">
+                <Button
+                  variant="default"
+                  onClick={() => setActiveTab("talents")}
+                  data-cuelume-press
+                  data-cuelume-release
+                >
+                  View Talent Trees
+                </Button>
+              </div>
+            </TabsContent>
 
-              <TabsContent value="talents" className="mt-0 h-full">
-                <TalentsTab spec={spec} />
-              </TabsContent>
-            </div>
-          </TooltipProvider>
+            <TabsContent value="talents" className="mt-0 h-full">
+              <TalentsTab spec={spec} />
+            </TabsContent>
+          </div>
+        </TooltipProvider>
 
-          {/* Same hanging-flap recipe as CharacterPanelModal's tab strip. */}
-          <TabsList className="absolute -bottom-9 left-3 w-fit">
-            <TabsTrigger value="specialization" data-cuelume-toggle="page">
-              Specialization
-            </TabsTrigger>
-            <TabsTrigger value="talents" data-cuelume-toggle="page">
-              Talents
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+        {/* Same hanging-flap recipe as CharacterSheetModal's tab strip. */}
+        <TabsList className="absolute -bottom-9 left-3 w-fit">
+          <TabsTrigger value="specialization" data-cuelume-toggle="page">
+            Specialization
+          </TabsTrigger>
+          <TabsTrigger value="talents" data-cuelume-toggle="page">
+            Talents
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </WowDraggableWindow>
   )
 }

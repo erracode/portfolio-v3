@@ -11,7 +11,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/8bit/tooltip"
-import { WowWindow } from "@/components/wow/wow-window"
+import { AchievementsModal } from "@/components/wow/achievements-modal"
+import { CharacterSheetModal } from "@/components/wow/character-sheet-modal"
+import { GuildSocialModal } from "@/components/wow/guild-social-modal"
+import { QuestLogModal } from "@/components/wow/quest-log-modal"
+import { TalentsModal } from "@/components/wow/talents-modal"
 
 function isEditableElement(element: EventTarget | null): boolean {
   if (!(element instanceof HTMLElement)) return false
@@ -24,14 +28,16 @@ function isEditableElement(element: EventTarget | null): boolean {
 }
 
 /**
- * WoW-style micro menu fixed at the bottom-right corner. Each button toggles
- * an independent window in the shared store, so several sections can be open
- * at once. Open windows render inside a pointer-events-none overlay so the
- * page underneath stays interactive.
+ * WoW-style micro menu fixed at the bottom-right corner — the single
+ * integration point for all five main windows (Character, Quest Log,
+ * Talents, Achievements, Guild). Each icon and its hotkey (C/L/P/Y/J)
+ * toggles the matching window in the shared windows store; several can be
+ * open and dragged around at once, same as the rest of the site's windows.
  */
 export function MicroBar() {
   const openIds = useOpenWindowIds()
   const toggleWindow = useWindowsStore((state) => state.toggleWindow)
+  const closeWindow = useWindowsStore((state) => state.closeWindow)
   const closeFocused = useWindowsStore((state) => state.closeFocused)
 
   useEffect(() => {
@@ -91,11 +97,31 @@ export function MicroBar() {
         </div>
       </TooltipProvider>
 
-      <div className="pointer-events-none fixed inset-0 z-50">
-        {openIds.map((id) => (
-          <WowWindow key={id} id={id} />
-        ))}
-      </div>
+      <CharacterSheetModal
+        key={openIds.includes("character") ? "open" : "closed"}
+        isOpen={openIds.includes("character")}
+        onClose={() => closeWindow("character")}
+      />
+      <QuestLogModal
+        key={openIds.includes("quests") ? "open" : "closed"}
+        isOpen={openIds.includes("quests")}
+        onClose={() => closeWindow("quests")}
+      />
+      <TalentsModal
+        key={openIds.includes("spellbook") ? "open" : "closed"}
+        isOpen={openIds.includes("spellbook")}
+        onClose={() => closeWindow("spellbook")}
+      />
+      <AchievementsModal
+        key={openIds.includes("achievements") ? "open" : "closed"}
+        isOpen={openIds.includes("achievements")}
+        onClose={() => closeWindow("achievements")}
+      />
+      <GuildSocialModal
+        key={openIds.includes("social") ? "open" : "closed"}
+        isOpen={openIds.includes("social")}
+        onClose={() => closeWindow("social")}
+      />
     </>
   )
 }
