@@ -20,6 +20,12 @@ const PREFETCH_IMAGES: readonly string[] = [
   "/projects/studio73-1.png",
   "/projects/catatumbo-tech-1.png",
   "/projects/everything-websites-1.png",
+  "/projects/kaironyx-logo.webp",
+  // WorkLogModal — personal project logos (Save Slots previews)
+  "/projects/aquetienda-logo.webp",
+  "/projects/petsosciety-logo.webp",
+  "/projects/aquetasa-logo.webp",
+  "/projects/point-party-logo.webp",
   // SocialModal
   "/tech/github-logo.png",
   "/social/linkedin-logo.png",

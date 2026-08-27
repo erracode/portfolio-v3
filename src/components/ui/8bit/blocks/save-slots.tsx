@@ -36,6 +36,7 @@ export interface SaveSlotsProps extends React.ComponentProps<"div"> {
     title?: string;
     showTimestamp?: boolean;
     showPreview?: boolean;
+    showSavedBadge?: boolean;
 }
 
 const slotItemVariants = cva(
@@ -159,12 +160,14 @@ function SlotItem({
     index,
     showPreview,
     showTimestamp,
+    showSavedBadge,
     onClick,
 }: {
     slot: SaveSlot;
     index: number;
     showPreview: boolean;
     showTimestamp: boolean;
+    showSavedBadge: boolean;
     onClick?: (slot: SaveSlot) => void;
 }) {
     const state = slot.isEmpty ? "empty" : "filled";
@@ -211,9 +214,9 @@ function SlotItem({
                             slot.isEmpty && "text-muted-foreground"
                         )}
                     >
-                        {slot.isEmpty ? `EMPTY ${slotNumber}` : displayName}
+                        {slot.isEmpty ? slot.name || `EMPTY ${slotNumber}` : displayName}
                     </h3>
-                    {!slot.isEmpty && (
+                    {!slot.isEmpty && showSavedBadge && (
                         <Badge className="text-[7px] sm:text-[9px] retro shrink-0 hidden sm:inline-flex" variant="secondary">
                             SAVED
                         </Badge>
@@ -236,8 +239,8 @@ function SlotItem({
                 )}
 
                 {slot.isEmpty && (
-                    <p className="text-[9px] sm:text-xs text-muted-foreground/60 retro">
-                        Click to save
+                    <p className="font-sans text-[9px] leading-snug text-muted-foreground/70 sm:text-xs">
+                        {slot.description || "Click to save"}
                     </p>
                 )}
             </div>
@@ -272,6 +275,7 @@ export function SaveSlots({
     title = "SAVE FILES",
     showTimestamp = true,
     showPreview = true,
+    showSavedBadge = true,
     ...props
 }: SaveSlotsProps) {
     const displaySlots = React.useMemo(() => {
@@ -309,6 +313,7 @@ export function SaveSlots({
                         onClick={onSlotClick}
                         showPreview={showPreview}
                         showTimestamp={showTimestamp}
+                        showSavedBadge={showSavedBadge}
                         slot={slot}
                     />
                 ))

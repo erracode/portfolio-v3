@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { play } from "cuelume"
 import {
+  ArrowLeft,
   Building2,
   ExternalLink,
   Layers,
@@ -20,12 +21,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/8bit/carousel"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/8bit/dialog"
 import { SaveSlots, type SaveSlot } from "@/components/ui/8bit/blocks/save-slots"
 import {
   Tabs,
@@ -51,6 +46,7 @@ interface ProjectEntry {
   stack: string[]
   images: string[]
   icon: LucideIcon
+  logo?: string
 }
 
 /** Personal products and apps — sourced directly from the user. */
@@ -76,6 +72,7 @@ const PROJECTS: ProjectEntry[] = [
     ],
     images: ["/placeholder.svg"],
     icon: Store,
+    logo: "/projects/aquetienda-logo.webp",
   },
   {
     id: "petsosciety",
@@ -89,6 +86,7 @@ const PROJECTS: ProjectEntry[] = [
     stack: ["Next.js", "Supabase", "Zustand", "GSAP", "MDX", "shadcn/ui"],
     images: ["/placeholder.svg"],
     icon: MapPin,
+    logo: "/projects/petsosciety-logo.webp",
   },
   {
     id: "aquetasa",
@@ -102,10 +100,11 @@ const PROJECTS: ProjectEntry[] = [
     stack: ["Astro", "React Native"],
     images: ["/placeholder.svg"],
     icon: TrendingUp,
+    logo: "/projects/aquetasa-logo.webp",
   },
   {
-    id: "story-point-poker",
-    name: "Story Point Poker",
+    id: "point-party",
+    name: "Point Party",
     domain: "story-point-poker-react.pages.dev",
     liveUrl: "https://story-point-poker-react.pages.dev",
     category: "Herramienta Interna",
@@ -114,8 +113,13 @@ const PROJECTS: ProjectEntry[] = [
     architecture:
       "SPA en React + TypeScript con componentes de Radix UI, sin backend propio: la sincronización de sesiones se resuelve completamente en el cliente. Adoptada como herramienta de facto en ceremonias de estimación de varios equipos.",
     stack: ["React", "TypeScript", "Radix UI"],
-    images: ["/placeholder.svg"],
+    images: [
+      "/projects/point-party-1.png",
+      "/projects/point-party-2.png",
+      "/projects/point-party-3.png",
+    ],
     icon: Layers,
+    logo: "/projects/point-party-logo.webp",
   },
   {
     id: "opencode-obsidian",
@@ -131,12 +135,22 @@ const PROJECTS: ProjectEntry[] = [
   },
 ]
 
-const PROJECT_SLOTS: SaveSlot[] = PROJECTS.map((project) => ({
-  id: project.id,
-  isEmpty: false,
-  name: project.name,
-  description: project.category,
-}))
+const PROJECT_SLOTS: SaveSlot[] = [
+  ...PROJECTS.map((project) => ({
+    id: project.id,
+    isEmpty: false,
+    name: project.name,
+    description: project.category,
+    preview: project.logo,
+  })),
+  // An open slot on purpose — an invitation to build the next project together.
+  {
+    id: "next-collab",
+    isEmpty: true,
+    name: "¿Tienes un proyecto en mente?",
+    description: "Escríbeme y lo construimos juntos.",
+  },
+]
 
 interface WorkItem {
   id: string
@@ -173,7 +187,13 @@ const WORK_HISTORY: EmployerEntry[] = [
         id: "ckc-api-commons",
         title: "@sundevs/ckc-api-commons",
         description:
-          "Librería compartida publicada en AWS CodeArtifact; integración de 9 pasarelas de pago.",
+          "Librería compartida publicada en AWS CodeArtifact, integrada en cada microservicio para reemplazar llamadas HTTPS por invocaciones Lambda internas.",
+      },
+      {
+        id: "ckc-ecosystem",
+        title: "Ecosistema ckc-* / cnk-*",
+        description:
+          "Contribuciones en los repos ckc-* y en cnk-products-service/cnk-backoffice-ui; mantenimiento continuo del frontend ckc-website (Colombia) desde su inicio, además de aprovisionamiento de backoffice y productos en Azure para operaciones LATAM.",
       },
     ],
   },
@@ -181,7 +201,7 @@ const WORK_HISTORY: EmployerEntry[] = [
     id: "awsh",
     name: "Awsh",
     role: "Senior Software Engineer",
-    period: "Feb 2021 – Presente",
+    period: "Feb 2021 – Presente (colaboración estacional)",
     logo: "/companies/awsh-logo.jpg",
     items: [
       {
@@ -221,15 +241,15 @@ const WORK_HISTORY: EmployerEntry[] = [
   {
     id: "studio73",
     name: "Studio73",
-    role: "Web Coordinator",
+    role: "De Programador Full-Stack a Líder del Departamento de Programación",
     period: "Ene 2021 – Ene 2023",
     logo: "/companies/studio-logo.png",
     items: [
       {
         id: "studio73-clients",
-        title: "Infraestructura Cloud & Desarrollo de Clientes",
+        title: "Desarrollo WordPress para Clientes LATAM y Panamá",
         description:
-          "Gran Fondo (granfondo.probidsida.org), Grupo Romarin (gruporomarin.com) y Legal Food Panama (legalfoodpa.com).",
+          "Sitios y plataformas para numerosos clientes en Latinoamérica y Panamá, entre ellos Gran Fondo (granfondo.probidsida.org), Grupo Romarin (gruporomarin.com) y Legal Food Panama (legalfoodpa.com).",
         image: "/projects/studio73-1.png",
       },
     ],
@@ -244,6 +264,7 @@ const WORK_HISTORY: EmployerEntry[] = [
         id: "kaironyx",
         title: "Kaironyx Labs",
         description: "kaironyx-labs-landing.pages.dev.",
+        image: "/projects/kaironyx-logo.webp",
       },
       {
         id: "catatumbo",
@@ -258,102 +279,112 @@ const WORK_HISTORY: EmployerEntry[] = [
         image: "/projects/everything-websites-1.png",
       },
       {
-        id: "erracode",
-        title: "ErraCode",
-        description: "erracode.pages.dev.",
+        id: "pixieplayevents",
+        title: "PixiePlayEvents.com",
+        description: "Sitio de gestión de eventos.",
       },
     ],
   },
 ]
 
-function ProjectDetailModal({
+function ProjectDetailView({
   project,
-  onClose,
+  onBack,
 }: {
-  project: ProjectEntry | null
-  onClose: () => void
+  project: ProjectEntry
+  onBack: () => void
 }) {
   return (
-    <Dialog
-      open={project !== null}
-      onOpenChange={(open) => {
-        if (!open) onClose()
-      }}
-    >
-      <DialogContent className="max-h-[85svh] w-[min(640px,calc(100svw-2rem))] overflow-y-auto">
-        {project && (
+    <div className="flex flex-col gap-4">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onBack}
+        className="w-fit"
+        data-cuelume-press
+        data-cuelume-release
+      >
+        <ArrowLeft className="size-3.5" aria-hidden="true" />
+        Volver a Proyectos
+      </Button>
+
+      <div className="flex items-center gap-2 border-b-4 border-border pb-2">
+        <project.icon
+          className="size-5 shrink-0 text-primary"
+          aria-hidden="true"
+        />
+        <h3 className="min-w-0 flex-1 truncate text-xs font-bold tracking-wide uppercase">
+          {project.name}
+        </h3>
+      </div>
+
+      <Carousel className="px-8">
+        <CarouselContent>
+          {project.images.map((image, index) => (
+            <CarouselItem key={image + index}>
+              <img
+                src={image}
+                alt=""
+                loading="lazy"
+                className="aspect-video w-full border-y-4 border-foreground bg-background object-cover dark:border-ring"
+              />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        {project.images.length > 1 && (
           <>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 pr-6 text-xs leading-snug">
-                <project.icon
-                  className="size-4 shrink-0 text-primary"
-                  aria-hidden="true"
-                />
-                {project.name}
-              </DialogTitle>
-            </DialogHeader>
-
-            <Carousel className="px-8">
-              <CarouselContent>
-                {project.images.map((image, index) => (
-                  <CarouselItem key={image + index}>
-                    <img
-                      src={image}
-                      alt=""
-                      loading="lazy"
-                      className="aspect-video w-full border-y-4 border-foreground bg-background object-cover dark:border-ring"
-                    />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {project.images.length > 1 && (
-                <>
-                  <CarouselPrevious />
-                  <CarouselNext />
-                </>
-              )}
-            </Carousel>
-
-            <p className="font-sans text-[10px] leading-relaxed text-muted-foreground">
-              {project.architecture}
-            </p>
-
-            <div className="flex flex-wrap gap-1.5">
-              {project.stack.map((tech) => (
-                <Badge
-                  key={tech}
-                  variant="outline"
-                  font="normal"
-                  className="px-1.5 py-0.5 text-[9px]"
-                >
-                  {tech}
-                </Badge>
-              ))}
-            </div>
-
-            {project.liveUrl && (
-              <Button asChild size="sm" className="w-fit">
-                <a href={project.liveUrl} target="_blank" rel="noreferrer">
-                  <ExternalLink className="size-3.5" aria-hidden="true" />
-                  Visitar Proyecto
-                </a>
-              </Button>
-            )}
+            <CarouselPrevious />
+            <CarouselNext />
           </>
         )}
-      </DialogContent>
-    </Dialog>
+      </Carousel>
+
+      <p className="font-sans text-[10px] leading-relaxed text-muted-foreground">
+        {project.architecture}
+      </p>
+
+      <div className="flex flex-wrap gap-1.5">
+        {project.stack.map((tech) => (
+          <Badge
+            key={tech}
+            variant="outline"
+            font="normal"
+            className="px-1.5 py-0.5 text-[9px]"
+          >
+            {tech}
+          </Badge>
+        ))}
+      </div>
+
+      {project.liveUrl && (
+        <Button asChild size="sm" className="w-fit">
+          <a href={project.liveUrl} target="_blank" rel="noreferrer">
+            <ExternalLink className="size-3.5" aria-hidden="true" />
+            Visitar Proyecto
+          </a>
+        </Button>
+      )}
+    </div>
   )
 }
 
-function ProjectsTab({
-  onSelectProject,
-}: {
-  onSelectProject: (project: ProjectEntry) => void
-}) {
+function ProjectsTab() {
+  const [detailProjectId, setDetailProjectId] = useState<string | null>(null)
+  const detailProject = PROJECTS.find((entry) => entry.id === detailProjectId)
+
   const handleSlotClick = (slot: SaveSlot) => {
-    const project = PROJECTS.find((entry) => entry.id === slot.id)
-    if (project) onSelectProject(project)
+    if (PROJECTS.some((entry) => entry.id === slot.id)) {
+      setDetailProjectId(slot.id)
+    }
+  }
+
+  if (detailProject) {
+    return (
+      <ProjectDetailView
+        project={detailProject}
+        onBack={() => setDetailProjectId(null)}
+      />
+    )
   }
 
   return (
@@ -361,7 +392,8 @@ function ProjectsTab({
       slots={PROJECT_SLOTS}
       onSlotClick={handleSlotClick}
       title=""
-      maxVisibleSlots={5}
+      showSavedBadge={false}
+      maxVisibleSlots={6}
       showTimestamp={false}
       layout="vertical"
     />
@@ -459,12 +491,10 @@ function TrajectoryTab() {
 
 /**
  * Work Log — bound to the 'L' hotkey / micro-menu icon. Two tabs: personal
- * projects rendered as Save Slots (drilling into ProjectDetailModal), and
- * professional trajectory grouped by employer/client.
+ * projects rendered as Save Slots (drilling into an in-place detail view),
+ * and professional trajectory grouped by employer/client.
  */
 export function WorkLogModal({ isOpen, onClose }: WorkLogModalProps) {
-  const [detailProject, setDetailProject] = useState<ProjectEntry | null>(null)
-
   useEffect(() => {
     if (isOpen) play("ready")
   }, [isOpen])
@@ -488,7 +518,7 @@ export function WorkLogModal({ isOpen, onClose }: WorkLogModalProps) {
       <Tabs defaultValue="products" className="min-h-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <TabsContent value="products" className="mt-0">
-            <ProjectsTab onSelectProject={setDetailProject} />
+            <ProjectsTab />
           </TabsContent>
           <TabsContent value="trajectory" className="mt-0">
             <TrajectoryTab />
@@ -505,11 +535,6 @@ export function WorkLogModal({ isOpen, onClose }: WorkLogModalProps) {
           </TabsTrigger>
         </TabsList>
       </Tabs>
-
-      <ProjectDetailModal
-        project={detailProject}
-        onClose={() => setDetailProject(null)}
-      />
     </WowDraggableWindow>
   )
 }
