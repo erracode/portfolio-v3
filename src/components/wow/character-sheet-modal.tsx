@@ -8,6 +8,7 @@ import Timeline1, {
   type TimelineStep,
 } from "@/components/ui/8bit/blocks/timeline1"
 import { SpriteAnimation } from "@/components/wow/sprite-animation"
+import { PLAYER_SPRITE } from "@/data/sprites"
 import {
   Tabs,
   TabsContent,
@@ -36,17 +37,6 @@ interface GearItem {
 }
 
 const PLAYER_NAME = "Jesús Díaz"
-
-/** Idle strip: top row only (6 of the sheet's 12 frames) — the bottom row
- * is a walk cycle, out of scope for a standing character-sheet view. */
-const PLAYER_SPRITE = {
-  src: "/game/player.png",
-  frameWidth: 250,
-  frameHeight: 250,
-  frameCount: 6,
-  sheetWidth: 1500,
-  sheetHeight: 500,
-}
 
 /** Row height shared by both gear columns, the portrait, and the attributes
  * panel (4 slots x size-14 + 3 gaps) so the "Personaje" tab never needs to
@@ -272,7 +262,7 @@ function CharacterTab() {
             src={PLAYER_SPRITE.src}
             frameWidth={PLAYER_SPRITE.frameWidth}
             frameHeight={PLAYER_SPRITE.frameHeight}
-            frameCount={PLAYER_SPRITE.frameCount}
+            frameCount={PLAYER_SPRITE.rows.idle.frameCount}
             sheetWidth={PLAYER_SPRITE.sheetWidth}
             sheetHeight={PLAYER_SPRITE.sheetHeight}
             fps={2}
@@ -372,7 +362,7 @@ export function CharacterSheetModal({
             src={PLAYER_SPRITE.src}
             frameWidth={PLAYER_SPRITE.frameWidth}
             frameHeight={PLAYER_SPRITE.frameHeight}
-            frameCount={PLAYER_SPRITE.frameCount}
+            frameCount={PLAYER_SPRITE.rows.idle.frameCount}
             sheetWidth={PLAYER_SPRITE.sheetWidth}
             sheetHeight={PLAYER_SPRITE.sheetHeight}
             fps={2}

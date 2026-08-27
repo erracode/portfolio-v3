@@ -31,6 +31,10 @@ const PREFETCH_IMAGES: readonly string[] = [
   "/social/linkedin-logo.png",
   // CharacterSheetModal — the idle sprite sheet
   "/game/player.png",
+  // 3D world — the NPC's idle sprite sheet (always visible on load)
+  "/avatar/me.png",
+  // 3D world — the zeppelin's animation sheet (always visible on load)
+  "/game/contact-sprite.png",
 ]
 
 /**

@@ -29,6 +29,7 @@ export default defineConfig({
       "tailwind-merge",
       "class-variance-authority",
       "radix-ui",
+      "three",
     ],
   },
 })
