@@ -4,6 +4,18 @@ import { useShallow } from "zustand/react/shallow"
 import { SECTION_IDS, SECTIONS, type SectionId } from "@/data/sections"
 
 import { useLogStore } from "@/lib/log-store"
+import { useQuestStore } from "@/lib/quest-store"
+
+/** Sections whose first-open-of-the-session also completes a matching
+ * quest objective (if that objective's quest is currently accepted) —
+ * see `src/data/npc.ts`. */
+const WINDOW_OBJECTIVE_IDS: Partial<Record<SectionId, string>> = {
+  character: "open-character",
+  quests: "open-quests",
+  spellbook: "open-talents",
+  achievements: "open-achievements",
+  social: "open-social",
+}
 
 export interface WindowPosition {
   x: number
@@ -112,6 +124,9 @@ export const useWindowsStore = create<WindowsState>()((set, get) => ({
 
     if (!wasOpen) {
       useLogStore.getState().addLog("system", `Opened window: ${current.title}`)
+
+      const objectiveId = WINDOW_OBJECTIVE_IDS[id]
+      if (objectiveId) useQuestStore.getState().completeObjectiveIfAccepted(objectiveId)
     }
   },
 

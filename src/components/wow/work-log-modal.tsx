@@ -29,6 +29,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/8bit/tabs"
 import { WowDraggableWindow } from "@/components/wow/wow-draggable-window"
+import { useQuestStore } from "@/lib/quest-store"
 
 interface WorkLogModalProps {
   isOpen: boolean
@@ -375,6 +376,7 @@ function ProjectsTab() {
   const handleSlotClick = (slot: SaveSlot) => {
     if (PROJECTS.some((entry) => entry.id === slot.id)) {
       setDetailProjectId(slot.id)
+      useQuestStore.getState().completeObjectiveIfAccepted("view-project")
     }
   }
 
@@ -515,7 +517,15 @@ export function WorkLogModal({ isOpen, onClose }: WorkLogModalProps) {
         </h2>
       </header>
 
-      <Tabs defaultValue="products" className="min-h-0 flex-1 flex-col">
+      <Tabs
+        defaultValue="products"
+        className="min-h-0 flex-1 flex-col"
+        onValueChange={(value) => {
+          if (value === "trajectory") {
+            useQuestStore.getState().completeObjectiveIfAccepted("review-experience")
+          }
+        }}
+      >
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <TabsContent value="products" className="mt-0">
             <ProjectsTab />

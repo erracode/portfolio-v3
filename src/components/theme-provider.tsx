@@ -1,6 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 
+import { useQuestStore } from "@/lib/quest-store"
+
 type Theme = "dark" | "light" | "system"
 type ResolvedTheme = "dark" | "light"
 
@@ -168,6 +170,7 @@ export function ThemeProvider({
               ? "light"
               : "dark"
       )
+      useQuestStore.getState().completeObjectiveIfAccepted("toggle-theme")
     }
 
     window.addEventListener("keydown", handleKeyDown)

@@ -29,3 +29,18 @@ export const PLAYER_SPRITE: SpriteSheetConfig = {
     walk: { row: 1, frameCount: 6 },
   },
 }
+
+/** "Guardián del Portfolio" NPC sprite — shared by the 3D world's
+ * billboard (`world-npc.tsx`), the NPC dialog's portrait, and the quest
+ * dialogue banner's avatar. A 9-frame idle strip, single row. */
+export const NPC_SPRITE: SpriteSheetConfig = {
+  src: "/avatar/me.png",
+  frameWidth: 250,
+  frameHeight: 250,
+  sheetWidth: 2250,
+  sheetHeight: 250,
+  rows: {
+    idle: { row: 0, frameCount: 9 },
+    walk: { row: 0, frameCount: 9 },
+  },
+}

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/8bit/tooltip"
 import { WowDraggableWindow } from "@/components/wow/wow-draggable-window"
 import { useLogStore } from "@/lib/log-store"
+import { useQuestStore } from "@/lib/quest-store"
 import { cn } from "@/lib/utils"
 
 interface CharacterSheetModalProps {
@@ -311,9 +312,10 @@ function DownloadsTab() {
             key={item.href}
             href={item.href}
             download
-            onClick={() =>
+            onClick={() => {
               useLogStore.getState().addLog("loot", `Descargado: ${item.label}`)
-            }
+              useQuestStore.getState().completeObjectiveIfAccepted("download-cv")
+            }}
             className="flex items-center justify-between border-y-6 border-foreground bg-muted/30 px-3 py-2 transition-colors hover:bg-accent dark:border-ring"
             data-cuelume-press
             data-cuelume-release

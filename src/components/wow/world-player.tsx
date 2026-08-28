@@ -66,7 +66,25 @@ export function WorldPlayer({
 
     const isMoving = input.current.lengthSq() > 0
     if (isMoving) {
-      input.current.normalize().multiplyScalar(WORLD_CONFIG.movement.speed * delta)
+      input.current.normalize()
+
+      // Screen-relative flip: the sign of the movement direction's
+      // component along the camera's CURRENT right vector — not raw
+      // world-space x, which only matched "left/right on screen" while
+      // the camera sat at its fixed default orientation. Now that the
+      // camera free-orbits, world x can point anywhere relative to the
+      // screen, so this must be re-derived from `right.current` every
+      // frame. Checked on the normalized (unit-length) vector, before
+      // it's scaled by speed*delta below — that scaled magnitude
+      // (~0.02-0.08 at typical frame times) never cleared
+      // FLIP_THRESHOLD, which silently made the flip nearly never fire.
+      const rightComponent = input.current.dot(right.current)
+      if (Math.abs(rightComponent) > FLIP_THRESHOLD) {
+        const nextFlip = rightComponent < 0
+        setFlipX((current) => (current === nextFlip ? current : nextFlip))
+      }
+
+      input.current.multiplyScalar(WORLD_CONFIG.movement.speed * delta)
       positionRef.current.add(input.current)
       positionRef.current.x = THREE.MathUtils.clamp(
         positionRef.current.x,
@@ -78,11 +96,6 @@ export function WorldPlayer({
         -WORLD_CONFIG.bounds.halfDepth,
         WORLD_CONFIG.bounds.halfDepth
       )
-
-      if (Math.abs(input.current.x) > FLIP_THRESHOLD) {
-        const nextFlip = input.current.x < 0
-        setFlipX((current) => (current === nextFlip ? current : nextFlip))
-      }
     }
     setMoving((current) => (current === isMoving ? current : isMoving))
 

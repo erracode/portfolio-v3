@@ -1,17 +1,19 @@
 import { useState } from "react"
+import { play } from "cuelume"
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/8bit/avatar"
+import { Avatar } from "@/components/ui/8bit/avatar"
 import { Button } from "@/components/ui/8bit/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/8bit/dialog"
+import { SpriteAnimation } from "@/components/wow/sprite-animation"
 
 import { useLogStore } from "@/lib/log-store"
 import { useQuestStore, type QuestStatus } from "@/lib/quest-store"
 
+import { NPC_SPRITE } from "@/data/sprites"
 import type { NpcData, NpcInfoNode, NpcQuest } from "@/data/npc"
+
+/** Portrait footprint (px) — the sprite is scaled down to fit this. */
+const PORTRAIT_SIZE = 56
 
 type ViewState = "greeting" | "quest_detail" | "info_detail"
 
@@ -21,17 +23,19 @@ interface NpcQuestDialogProps {
   npcData: NpcData
 }
 
-/** Fallback portrait used when an NPC has no portraitUrl assigned. */
-const DEFAULT_PORTRAIT = "/social/talk-icon.png"
-
-function questMarker(status: QuestStatus): string {
+/** Symbol + color for each quest state, matching WoW's own marker
+ * language: gold "!" available, gray "?" in progress, gold "?" ready to
+ * turn in, muted "✓" already turned in. */
+function questMarker(status: QuestStatus): { symbol: string; className: string } {
   switch (status) {
     case "accepted":
-      return "?"
+      return { symbol: "?", className: "text-muted-foreground" }
+    case "ready":
+      return { symbol: "?", className: "text-[#ffd100]" }
     case "completed":
-      return "✓"
+      return { symbol: "✓", className: "text-muted-foreground" }
     default:
-      return "!"
+      return { symbol: "!", className: "text-[#ffd100]" }
   }
 }
 
@@ -40,7 +44,10 @@ function questMarker(status: QuestStatus): string {
  * (greeting -> quest detail / info detail). Reusable via props.
  * The parent should key this by open state so it remounts (and thus resets
  * to GREETING) on every open — see App.tsx.
- * Quest progress is read/written to the persistent quest store.
+ * Quest progress is read from the persistent quest store; there is no
+ * manual "Completar" button — every objective completes on its own from a
+ * real site action (see `quest-store.ts`), so this dialog only displays
+ * that progress rather than letting the visitor self-report it done.
  */
 export function NpcQuestDialog({
   isOpen,
@@ -52,6 +59,7 @@ export function NpcQuestDialog({
   const [selectedInfo, setSelectedInfo] = useState<NpcInfoNode | null>(null)
 
   const questStatuses = useQuestStore((state) => state.quests)
+  const objectiveDone = useQuestStore((state) => state.objectives)
 
   const openQuest = (quest: NpcQuest) => {
     setSelectedQuest(quest)
@@ -77,13 +85,14 @@ export function NpcQuestDialog({
       useLogStore
         .getState()
         .addLog("quest", `Accepted quest: "${selectedQuest.title}"`)
+      play("arrival")
     }
     backToGreeting()
   }
 
-  const handleComplete = () => {
+  const handleTurnIn = () => {
     if (selectedQuest) {
-      useQuestStore.getState().completeQuest(selectedQuest.id)
+      useQuestStore.getState().turnInQuest(selectedQuest.id)
       useLogStore
         .getState()
         .addLog("quest", `Completed quest: "${selectedQuest.title}"`)
@@ -108,12 +117,18 @@ export function NpcQuestDialog({
             className to BOTH its wrapper and inner root, so absolute
             positioning must not go on the Avatar itself. */}
         <div className="absolute -top-6 -left-6 z-10">
-          <Avatar variant="default" className="size-14 bg-card">
-            <AvatarImage
-              src={npcData.portraitUrl || DEFAULT_PORTRAIT}
-              alt={npcData.name}
+          <Avatar variant="default" className="size-14 items-center justify-center bg-card">
+            <SpriteAnimation
+              src={NPC_SPRITE.src}
+              frameWidth={NPC_SPRITE.frameWidth}
+              frameHeight={NPC_SPRITE.frameHeight}
+              frameCount={NPC_SPRITE.rows.idle.frameCount}
+              sheetWidth={NPC_SPRITE.sheetWidth}
+              sheetHeight={NPC_SPRITE.sheetHeight}
+              fps={4}
+              scale={PORTRAIT_SIZE / NPC_SPRITE.frameWidth}
+              aria-label={npcData.name}
             />
-            <AvatarFallback>{npcData.name.charAt(0)}</AvatarFallback>
           </Avatar>
         </div>
 
@@ -126,14 +141,17 @@ export function NpcQuestDialog({
           </div>
         </header>
 
-        {/* Scrollable body: descriptive text on top, options below it. */}
-        <div className="flex-1 overflow-y-auto p-4">
+        {/* Scrollable body: descriptive text on top, options below it.
+            Long paragraphs use font-sans (Geist Pixel) — the retro/
+            Press Start 2P font inherited from the dialog doesn't wrap
+            readably at this width. */}
+        <div className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-4">
           {viewState === "greeting" && (
-            <div className="flex flex-col gap-3">
-              <p className="text-sm leading-relaxed text-muted-foreground">
+            <div className="flex min-w-0 flex-col gap-3">
+              <p className="font-sans text-sm leading-relaxed text-muted-foreground">
                 {npcData.greeting}
               </p>
-              <div className="flex flex-col gap-1">
+              <div className="flex min-w-0 flex-col gap-1">
                 {npcData.options.map((option) => {
                   const quest =
                     option.type === "quest"
@@ -148,7 +166,7 @@ export function NpcQuestDialog({
                       key={option.refId}
                       variant="ghost"
                       font="normal"
-                      className="justify-start"
+                      className="min-w-0 justify-start"
                       onClick={() => {
                         if (quest) openQuest(quest)
                         else if (node) openInfo(node)
@@ -158,14 +176,17 @@ export function NpcQuestDialog({
                     >
                       <span
                         className={`w-4 shrink-0 text-center font-bold ${
-                          option.type === "quest" ? "text-primary" : ""
+                          option.type === "quest"
+                            ? questMarker(questStatuses[option.refId] ?? "available")
+                                .className
+                            : ""
                         }`}
                       >
                         {option.type === "quest"
-                          ? questMarker(questStatuses[option.refId] ?? "available")
+                          ? questMarker(questStatuses[option.refId] ?? "available").symbol
                           : "💬"}
                       </span>
-                      <span>{option.label}</span>
+                      <span className="min-w-0 truncate text-left">{option.label}</span>
                     </Button>
                   )
                 })}
@@ -174,29 +195,39 @@ export function NpcQuestDialog({
           )}
 
           {viewState === "quest_detail" && selectedQuest && (
-            <div className="flex flex-col gap-3">
-              <p className="text-sm leading-relaxed">
+            <div className="flex min-w-0 flex-col gap-3">
+              <p className="font-sans text-sm leading-relaxed">
                 {selectedQuest.description}
               </p>
               <div>
-                <p className="mb-1 text-xs font-semibold text-muted-foreground">
+                <p className="mb-1 font-sans text-xs font-semibold text-muted-foreground">
                   Objetivos
                 </p>
                 <ul className="flex flex-col gap-0.5">
-                  {selectedQuest.objectives.map((obj) => (
-                    <li key={obj} className="text-sm text-muted-foreground">
-                      • {obj}
+                  {selectedQuest.objectives.map((objective) => (
+                    <li
+                      key={objective.id}
+                      className={`font-sans text-sm ${
+                        objectiveDone[objective.id]
+                          ? "text-foreground line-through"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {objectiveDone[objective.id] ? "✓" : "•"} {objective.label}
                     </li>
                   ))}
                 </ul>
               </div>
               <div>
-                <p className="mb-1 text-xs font-semibold text-muted-foreground">
+                <p className="mb-1 font-sans text-xs font-semibold text-muted-foreground">
                   Recompensas
                 </p>
                 <ul className="flex flex-col gap-0.5">
-                  {selectedQuest.rewards.map((reward) => (
-                    <li key={reward} className="text-sm text-muted-foreground">
+                  <li className="font-sans text-sm text-muted-foreground">
+                    +{selectedQuest.xpReward} XP
+                  </li>
+                  {selectedQuest.bonusRewards?.map((reward) => (
+                    <li key={reward} className="font-sans text-sm text-muted-foreground">
                       {reward}
                     </li>
                   ))}
@@ -206,23 +237,18 @@ export function NpcQuestDialog({
           )}
 
           {viewState === "info_detail" && selectedInfo && (
-            <p className="text-sm leading-relaxed">{selectedInfo.text}</p>
+            <p className="font-sans text-sm leading-relaxed">{selectedInfo.text}</p>
           )}
         </div>
 
-        {/* Footer: buttons anchored to the bottom of the dialog. */}
+        {/* Footer: buttons anchored to the bottom of the dialog. There is
+            no self-report "Completar" — a quest only turns in here once
+            every objective is genuinely done (status "ready"); an
+            in-progress quest just shows its live objective checklist
+            above until the real actions finish it. */}
         {viewState === "quest_detail" && selectedQuest && (
           <footer className="flex items-center justify-between gap-2 border-t-4 border-border p-4">
-            {selectedStatus === "completed" ? (
-              <Button
-                variant="outline"
-                onClick={backToGreeting}
-                data-cuelume-press
-                data-cuelume-release
-              >
-                Volver
-              </Button>
-            ) : (
+            {selectedStatus === "available" && (
               <>
                 <Button
                   variant="destructive"
@@ -232,26 +258,45 @@ export function NpcQuestDialog({
                 >
                   Rechazar
                 </Button>
-                {selectedStatus === "accepted" ? (
-                  <Button
-                    variant="default"
-                    onClick={handleComplete}
-                    data-cuelume-press
-                    data-cuelume-release
-                  >
-                    Completar
-                  </Button>
-                ) : (
-                  <Button
-                    variant="default"
-                    onClick={handleAccept}
-                    data-cuelume-press
-                    data-cuelume-release
-                  >
-                    Aceptar
-                  </Button>
-                )}
+                <Button
+                  variant="default"
+                  onClick={handleAccept}
+                  data-cuelume-press
+                  data-cuelume-release
+                >
+                  Aceptar
+                </Button>
               </>
+            )}
+            {selectedStatus === "ready" && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={backToGreeting}
+                  data-cuelume-press
+                  data-cuelume-release
+                >
+                  Volver
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={handleTurnIn}
+                  data-cuelume-press
+                  data-cuelume-release
+                >
+                  Entregar
+                </Button>
+              </>
+            )}
+            {(selectedStatus === "accepted" || selectedStatus === "completed") && (
+              <Button
+                variant="outline"
+                onClick={backToGreeting}
+                data-cuelume-press
+                data-cuelume-release
+              >
+                Volver
+              </Button>
             )}
           </footer>
         )}

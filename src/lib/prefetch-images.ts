@@ -39,6 +39,10 @@ const PREFETCH_IMAGES: readonly string[] = [
   "/textures/ground-dirt-2.png",
   // 3D world — the flag prop's wave animation sheet
   "/props/flag.png",
+  // 3D world — quest marker icons over the NPC's head
+  "/quest-markers/quest-available.png",
+  "/quest-markers/quest-not-ready.png",
+  "/quest-markers/quest-ready.png",
 ]
 
 /**
