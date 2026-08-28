@@ -35,6 +35,10 @@ const PREFETCH_IMAGES: readonly string[] = [
   "/avatar/me.png",
   // 3D world — the zeppelin's animation sheet (always visible on load)
   "/game/contact-sprite.png",
+  // 3D world — the ground tile texture (always visible on load)
+  "/textures/ground-dirt-2.png",
+  // 3D world — the flag prop's wave animation sheet
+  "/props/flag.png",
 ]
 
 /**

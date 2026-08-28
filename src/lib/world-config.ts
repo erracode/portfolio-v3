@@ -13,13 +13,27 @@ export const WORLD_CONFIG = {
    * collision geometry. Keeps the "very limited sandbox" scope from the
    * plan without needing a physics/collision library. */
   bounds: {
-    halfWidth: 9,
-    halfDepth: 9,
+    halfWidth: 13,
+    halfDepth: 12,
   },
+  /** The ground is tiled to match `GROUND_MAP`'s silhouette — one square
+   * per dot in the reference pixel-art image, not a flat plane. Bounds
+   * above are sized to roughly match this footprint (48 cols x 41 rows)
+   * so the walkable area tracks the tile size, not a fixed leftover from
+   * the old flat-plane ground. */
   ground: {
-    size: 20,
-    colorLight: "#6b8f5a",
-    colorDark: "#2e3d28",
+    cellSize: 0.6,
+    tileHeight: 0.18,
+    textureSrc: "/textures/ground-dirt-2.png",
+    // Multiplied against the texture map — these used to be a saturated
+    // green/dark-green pair meant for a flat-color material. Against an
+    // actual texture, multiplying two dark colors together crushed the
+    // tiles to near-black, so these are now a near-white pair: light mode
+    // shows the texture at full brightness, dark mode only dims it
+    // slightly. Day/night mood mostly comes from the light intensities
+    // below instead.
+    colorLight: "#ffffff",
+    colorDark: "#c9c9c9",
   },
   fog: {
     colorLight: "#dfe7d8",
@@ -39,7 +53,18 @@ export const WORLD_CONFIG = {
   },
   npc: {
     interactRadius: 2.5,
-    position: { x: 3, y: 0, z: -2 },
+    // Placed on Zulia — the isolated western lobe of `GROUND_MAP` (rows
+    // 8-10, separated from the main landmass by a gap), converted from
+    // grid cell (row 9, col 2) using the same cellSize/origin math as
+    // `world-ground.tsx`.
+    position: { x: -12.9, y: 0, z: -6.6 },
+  },
+  /** Decorative flag prop near spawn — placeholder art, swap to the real
+   * Venezuela flag texture later (single-line change to `WorldFlag`'s
+   * `FLAG_SPRITE.src`). Grid cell (row 20, col 26), just east of the
+   * cell nearest the world origin (where the player spawns). */
+  flag: {
+    position: { x: 1.5, y: 0, z: 0 },
   },
   /** Ambient background decoration — ported from the sibling portfolio-v2
    * engine's `ZeppelinEntity`: a slow, autonomous float within a bounded

@@ -4,6 +4,7 @@ import * as THREE from "three"
 
 import { NpcQuestDialog } from "@/components/wow/npc-quest-dialog"
 import { WorldCameraRig } from "@/components/wow/world-camera-rig"
+import { WorldFlag } from "@/components/wow/world-flag"
 import { WorldGround } from "@/components/wow/world-ground"
 import { WorldNpc } from "@/components/wow/world-npc"
 import { WorldPlayer } from "@/components/wow/world-player"
@@ -71,6 +72,7 @@ export function WorldScene() {
 
           <WorldGround isDark={isDark} />
           <WorldNpc />
+          <WorldFlag />
           <WorldZeppelin />
           <WorldPlayer
             positionRef={positionRef}
