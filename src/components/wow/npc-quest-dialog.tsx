@@ -111,7 +111,7 @@ export function NpcQuestDialog({
         if (!open) onClose()
       }}
     >
-      <DialogContent className="flex h-[min(480px,80svh)] flex-col gap-0 p-0 sm:max-w-md">
+      <DialogContent className="flex h-[min(420px,76svh)] flex-col gap-0 p-0 sm:h-[min(480px,80svh)] sm:max-w-md">
         {/* Portrait protrudes from the top-left border of the dialog.
             Positioned via an external wrapper: the 8bit Avatar applies
             className to BOTH its wrapper and inner root, so absolute
@@ -145,10 +145,10 @@ export function NpcQuestDialog({
             Long paragraphs use font-sans (Geist Pixel) — the retro/
             Press Start 2P font inherited from the dialog doesn't wrap
             readably at this width. */}
-        <div className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-4">
+        <div className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-4">
           {viewState === "greeting" && (
             <div className="flex min-w-0 flex-col gap-3">
-              <p className="font-sans text-sm leading-relaxed text-muted-foreground">
+              <p className="font-sans text-sm leading-normal text-muted-foreground sm:leading-relaxed">
                 {npcData.greeting}
               </p>
               <div className="flex min-w-0 flex-col gap-1">
@@ -196,7 +196,7 @@ export function NpcQuestDialog({
 
           {viewState === "quest_detail" && selectedQuest && (
             <div className="flex min-w-0 flex-col gap-3">
-              <p className="font-sans text-sm leading-relaxed">
+              <p className="font-sans text-sm leading-normal sm:leading-relaxed">
                 {selectedQuest.description}
               </p>
               <div>
@@ -237,7 +237,9 @@ export function NpcQuestDialog({
           )}
 
           {viewState === "info_detail" && selectedInfo && (
-            <p className="font-sans text-sm leading-relaxed">{selectedInfo.text}</p>
+            <p className="font-sans text-sm leading-normal sm:leading-relaxed">
+              {selectedInfo.text}
+            </p>
           )}
         </div>
 
@@ -247,7 +249,7 @@ export function NpcQuestDialog({
             in-progress quest just shows its live objective checklist
             above until the real actions finish it. */}
         {viewState === "quest_detail" && selectedQuest && (
-          <footer className="flex items-center justify-between gap-2 border-t-4 border-border p-4">
+          <footer className="flex items-center justify-between gap-2 border-t-4 border-border p-3 sm:p-4">
             {selectedStatus === "available" && (
               <>
                 <Button
@@ -302,7 +304,7 @@ export function NpcQuestDialog({
         )}
 
         {viewState === "info_detail" && (
-          <footer className="flex items-center justify-start border-t-4 border-border p-4">
+          <footer className="flex items-center justify-start border-t-4 border-border p-3 sm:p-4">
             <Button
               variant="outline"
               onClick={backToGreeting}

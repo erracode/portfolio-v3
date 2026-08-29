@@ -3,6 +3,7 @@ import { Canvas } from "@react-three/fiber"
 import * as THREE from "three"
 
 import { NpcQuestDialog } from "@/components/wow/npc-quest-dialog"
+import { TouchJoystick } from "@/components/wow/touch-joystick"
 import { WorldCameraRig } from "@/components/wow/world-camera-rig"
 import { WorldChest } from "@/components/wow/world-chest"
 import { WorldCombatController } from "@/components/wow/world-combat-controller"
@@ -13,7 +14,9 @@ import { WorldNpc } from "@/components/wow/world-npc"
 import { WorldPlayer } from "@/components/wow/world-player"
 import { WorldZeppelin } from "@/components/wow/world-zeppelin"
 import { sampleNpc } from "@/data/npc"
-import { FERRIS_SPRITE, GOPHER_SPRITE } from "@/data/guard-sprites"
+import { DUKE_SPRITE, FERRIS_SPRITE, GOPHER_SPRITE } from "@/data/guard-sprites"
+import { useIsTouchDevice } from "@/lib/use-is-mobile"
+import { useMovementInput } from "@/lib/use-movement-input"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
 /** Tracks the resolved (never "system") theme by watching the class
@@ -38,9 +41,30 @@ function useIsDarkTheme(): boolean {
   return isDark
 }
 
-function InteractPrompt() {
+/** On a touch device this doubles as the "E" interact key's touch
+ * equivalent — a real tappable button in the same spot, since there's no
+ * keyboard to press E on. */
+function InteractPrompt({ onInteract }: { onInteract: () => void }) {
+  const isTouchDevice = useIsTouchDevice()
+  const positionClassName = "fixed bottom-24 left-1/2 z-30 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 dark:border-ring"
+
+  if (isTouchDevice) {
+    return (
+      <button
+        type="button"
+        onPointerDown={(event) => {
+          event.preventDefault()
+          onInteract()
+        }}
+        className={positionClassName}
+      >
+        <p className="retro text-[10px]">Interactuar</p>
+      </button>
+    )
+  }
+
   return (
-    <div className="pointer-events-none fixed bottom-24 left-1/2 z-30 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 dark:border-ring">
+    <div className={`pointer-events-none ${positionClassName}`}>
       <p className="retro text-[10px]">Presiona E</p>
     </div>
   )
@@ -55,6 +79,7 @@ function InteractPrompt() {
 export function WorldScene() {
   const isDark = useIsDarkTheme()
   const positionRef = useRef(new THREE.Vector3(0, 0, 0))
+  const { movementRef, interactPressedRef, setExternalFlags } = useMovementInput()
   const [isNearNpc, setIsNearNpc] = useState(false)
   const [isNearChest, setIsNearChest] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -91,10 +116,18 @@ export function WorldScene() {
             skin={GOPHER_SPRITE}
             spawnPosition={WORLD_CONFIG.guards.positions.gopher}
           />
-          <WorldChest onNearChange={setIsNearChest} />
+          <WorldGuard
+            id="guard-duke"
+            name="Guardia Duke"
+            skin={DUKE_SPRITE}
+            spawnPosition={WORLD_CONFIG.guards.positions.duke}
+          />
+          <WorldChest interactPressedRef={interactPressedRef} onNearChange={setIsNearChest} />
           <WorldCombatController />
           <WorldPlayer
             positionRef={positionRef}
+            movementRef={movementRef}
+            interactPressedRef={interactPressedRef}
             onNearNpcChange={setIsNearNpc}
             onInteract={() => setIsDialogOpen(true)}
           />
@@ -102,7 +135,11 @@ export function WorldScene() {
         </Canvas>
       </div>
 
-      {(isNearNpc || isNearChest) && !isDialogOpen && <InteractPrompt />}
+      <TouchJoystick setExternalFlags={setExternalFlags} />
+
+      {(isNearNpc || isNearChest) && !isDialogOpen && (
+        <InteractPrompt onInteract={() => { interactPressedRef.current = true }} />
+      )}
 
       <NpcQuestDialog
         key={isDialogOpen ? "open" : "closed"}

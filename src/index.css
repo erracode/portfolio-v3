@@ -31,6 +31,34 @@
   }
 }
 
+/* Full-screen red flash on player hit — re-triggered by remounting the
+   overlay keyed on `lastPlayerHitAt`, same pattern as `cooldown-wipe`. */
+@keyframes damage-vignette {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Floating "-N" combat text — rises and fades, classic WoW damage-number
+   convention. Shared by the player's DOM combat text and a guard's
+   in-Canvas (`<Html>`) combat text. */
+@keyframes float-damage {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-28px);
+    opacity: 0;
+  }
+}
+
 /* Dark, square (no border-radius) scrollbars for every internal scrollable
    container — matches the pixel-art frame recipe instead of the browser
    default. Uses theme tokens directly so it stays correct in light/dark. */

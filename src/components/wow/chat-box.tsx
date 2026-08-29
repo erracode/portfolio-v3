@@ -1,18 +1,6 @@
 import { useEffect, useRef } from "react"
 
-import { useLogs, type LogChannel } from "@/lib/log-store"
-
-const CHANNEL_LABEL: Record<LogChannel, string> = {
-  system: "System",
-  quest: "Quest",
-  loot: "Loot",
-}
-
-const CHANNEL_COLOR: Record<LogChannel, string> = {
-  system: "text-[#ffd100]",
-  quest: "text-[#c79c6e]",
-  loot: "text-[#1eff00]",
-}
+import { CHANNEL_COLOR, CHANNEL_LABEL, useLogs } from "@/lib/log-store"
 
 /**
  * WoW-style chat box / system log pinned to the bottom-left corner. Reads the

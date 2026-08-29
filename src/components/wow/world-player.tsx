@@ -6,7 +6,7 @@ import * as THREE from "three"
 import { PixelSpriteBillboard } from "@/components/wow/pixel-sprite-billboard"
 import { PLAYER_SPRITE } from "@/data/sprites"
 import { useCombatStore } from "@/lib/combat-store"
-import { useMovementInput } from "@/lib/use-movement-input"
+import type { MovementInput } from "@/lib/use-movement-input"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
 const PLAYER_SCALE = 0.006
@@ -14,7 +14,7 @@ const SPRITE_HEIGHT = PLAYER_SPRITE.frameHeight * PLAYER_SCALE
 const UP = new THREE.Vector3(0, 1, 0)
 const FLIP_THRESHOLD = 0.1
 
-interface WorldPlayerProps {
+interface WorldPlayerProps extends Pick<MovementInput, "movementRef" | "interactPressedRef"> {
   positionRef: RefObject<THREE.Vector3>
   onNearNpcChange: (isNear: boolean) => void
   onInteract: () => void
@@ -30,11 +30,12 @@ interface WorldPlayerProps {
  */
 export function WorldPlayer({
   positionRef,
+  movementRef,
+  interactPressedRef,
   onNearNpcChange,
   onInteract,
 }: WorldPlayerProps) {
   const { camera } = useThree()
-  const { movementRef, interactPressedRef } = useMovementInput()
   const groupRef = useRef<THREE.Group>(null)
   const [moving, setMoving] = useState(false)
   const [flipX, setFlipX] = useState(false)

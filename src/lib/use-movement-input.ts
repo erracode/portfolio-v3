@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import type { RefObject } from "react"
 
 import { WORLD_CONFIG } from "@/lib/world-config"
@@ -15,6 +15,12 @@ export interface MovementInput {
   /** Edge-triggered: set to true for one frame after "E" is pressed. The
    * caller must consume it (reset to false) once handled. */
   interactPressedRef: RefObject<boolean>
+  /** Merges an external source's (e.g. the touch joystick) flags into
+   * `movementRef` via the same OR-based pattern keyboard/mouse already use
+   * for `forward` below — so releasing one source never clobbers another
+   * still-held source. Pass all-false flags to clear this source's
+   * contribution. */
+  setExternalFlags: (flags: MovementFlags) => void
 }
 
 const { forward, backward, left, right, interact } = WORLD_CONFIG.keyBindings
@@ -47,42 +53,66 @@ export function useMovementInput(): MovementInput {
     right: false,
   })
   const interactPressedRef = useRef(false)
-  // Keyboard and mouse can each independently ask to move forward — track
-  // them separately so releasing one doesn't clobber the other.
+  // Keyboard, mouse, and an external source (the touch joystick) can each
+  // independently ask to move — track them separately so releasing one
+  // never clobbers another still-held source.
   const keyForwardRef = useRef(false)
+  const keyBackwardRef = useRef(false)
+  const keyLeftRef = useRef(false)
+  const keyRightRef = useRef(false)
   const mouseForwardRef = useRef(false)
+  const externalFlagsRef = useRef<MovementFlags>({
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
+  })
+
+  const sync = useCallback(() => {
+    movementRef.current.forward =
+      keyForwardRef.current || mouseForwardRef.current || externalFlagsRef.current.forward
+    movementRef.current.backward = keyBackwardRef.current || externalFlagsRef.current.backward
+    movementRef.current.left = keyLeftRef.current || externalFlagsRef.current.left
+    movementRef.current.right = keyRightRef.current || externalFlagsRef.current.right
+  }, [])
+
+  const setExternalFlags = useCallback(
+    (flags: MovementFlags) => {
+      externalFlagsRef.current = flags
+      sync()
+    },
+    [sync]
+  )
 
   useEffect(() => {
-    const syncForward = () => {
-      movementRef.current.forward = keyForwardRef.current || mouseForwardRef.current
-    }
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isEditableTarget(event.target)) return
 
-      if (forward.includes(event.code)) {
-        keyForwardRef.current = true
-        syncForward()
-      } else if (backward.includes(event.code)) movementRef.current.backward = true
-      else if (left.includes(event.code)) movementRef.current.left = true
-      else if (right.includes(event.code)) movementRef.current.right = true
+      if (forward.includes(event.code)) keyForwardRef.current = true
+      else if (backward.includes(event.code)) keyBackwardRef.current = true
+      else if (left.includes(event.code)) keyLeftRef.current = true
+      else if (right.includes(event.code)) keyRightRef.current = true
       else if (interact.includes(event.code) && !event.repeat) {
         interactPressedRef.current = true
-      }
+        return
+      } else return
+
+      sync()
     }
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      if (forward.includes(event.code)) {
-        keyForwardRef.current = false
-        syncForward()
-      } else if (backward.includes(event.code)) movementRef.current.backward = false
-      else if (left.includes(event.code)) movementRef.current.left = false
-      else if (right.includes(event.code)) movementRef.current.right = false
+      if (forward.includes(event.code)) keyForwardRef.current = false
+      else if (backward.includes(event.code)) keyBackwardRef.current = false
+      else if (left.includes(event.code)) keyLeftRef.current = false
+      else if (right.includes(event.code)) keyRightRef.current = false
+      else return
+
+      sync()
     }
 
     const handlePointerChange = (event: PointerEvent) => {
       mouseForwardRef.current = event.buttons === BOTH_MOUSE_BUTTONS
-      syncForward()
+      sync()
     }
 
     // Right-click drives the WoW-style camera/walk controls, not a
@@ -102,7 +132,7 @@ export function useMovementInput(): MovementInput {
       window.removeEventListener("pointerup", handlePointerChange)
       window.removeEventListener("contextmenu", handleContextMenu)
     }
-  }, [])
+  }, [sync])
 
-  return { movementRef, interactPressedRef }
+  return { movementRef, interactPressedRef, setExternalFlags }
 }

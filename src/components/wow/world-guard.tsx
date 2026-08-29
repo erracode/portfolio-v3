@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
 
+import { EnemyDamageNumbers } from "@/components/wow/enemy-damage-numbers"
 import { EnemyHealthBar } from "@/components/wow/enemy-health-bar"
 import { PixelSpriteBillboard } from "@/components/wow/pixel-sprite-billboard"
 import type { SpriteSheetConfig } from "@/data/sprites"
@@ -140,7 +141,8 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
         tint={hitFlash ? HIT_TINT : "#ffffff"}
         onClick={() => useCombatStore.getState().setTarget(id)}
       />
-      <EnemyHealthBar enemyId={id} yOffset={spriteHeight + 0.3} />
+      <EnemyHealthBar enemyId={id} yOffset={spriteHeight + 0.15} />
+      <EnemyDamageNumbers enemyId={id} yOffset={spriteHeight + 0.55} />
     </group>
   )
 }

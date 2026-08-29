@@ -18,6 +18,7 @@ import {
   Smartphone,
   Terminal,
   Workflow,
+  X,
   Zap,
 } from "lucide-react"
 
@@ -34,7 +35,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/8bit/tooltip"
+import { Drawer, DrawerClose, DrawerContent, DrawerTitle } from "@/components/ui/8bit/drawer"
+import { ScrollArea } from "@/components/ui/8bit/scroll-area"
 import { WowDraggableWindow } from "@/components/wow/wow-draggable-window"
+import { useIsMobile } from "@/lib/use-is-mobile"
 import { cn } from "@/lib/utils"
 
 interface TalentsModalProps {
@@ -510,21 +514,185 @@ function StackTab() {
   )
 }
 
-/**
- * WoW-style "Talents & Specialization" window — bound to the 'P' hotkey /
- * Grimoire micro-menu icon. Draggable/free-floating like the rest of the
- * site's windows, but keeps the same pixel-bordered dialog layout (hanging
- * tab flaps) the other four micro-menu windows share; "View Talent Trees"
- * drives the same controlled Tabs state the bottom tab strip uses, so both
- * paths land on the same place.
- */
-export function TalentsModal({ isOpen, onClose }: TalentsModalProps) {
+const TALENTS_TITLE = "STACK & TALENTOS"
+
+/** Title bar — stays pinned above the scrollable body in both shells. */
+function TalentsHeader() {
+  return (
+    <header
+      data-window-drag-handle
+      className="flex cursor-move touch-none items-center border-b-4 border-border px-4 py-3 pr-12 select-none"
+    >
+      <h2 className="retro text-xs leading-snug">{TALENTS_TITLE}</h2>
+    </header>
+  )
+}
+
+/* Same hanging-flap recipe as CharacterSheetModal's tab strip. Absolutely
+   positioned relative to the enclosing `Tabs` root, so it never scrolls
+   with the body in either shell. */
+function TalentsTabsList() {
+  return (
+    <TabsList className="absolute -bottom-9 left-3 w-fit">
+      <TabsTrigger value="specialization" data-cuelume-toggle="page">
+        Especialización
+      </TabsTrigger>
+      <TabsTrigger value="talents" data-cuelume-toggle="page">
+        Stack & Talentos
+      </TabsTrigger>
+    </TabsList>
+  )
+}
+
+interface TalentsTabsBodyProps {
+  selectedSpec: SpecId
+  onSelectSpec: (id: SpecId) => void
+  onShowTalents: () => void
+}
+
+/** The actual scrollable body — each shell wraps this in its own scrolling
+ * container (a plain overflow-y-auto div on desktop, `ScrollArea` in the
+ * mobile Drawer). A mobile Drawer never crosses the 768px breakpoint, so
+ * the spec-card grid's `md:grid-cols-3` never activates there and
+ * correctly stays single-column. */
+function TalentsTabsBody({
+  selectedSpec,
+  onSelectSpec,
+  onShowTalents,
+}: TalentsTabsBodyProps) {
+  return (
+    <TooltipProvider delayDuration={150}>
+      <TabsContent value="specialization" className="mt-0">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {(Object.keys(SPECS) as SpecId[]).map((id) => (
+            <SpecCard
+              key={id}
+              spec={SPECS[id]}
+              selected={selectedSpec === id}
+              onSelect={() => onSelectSpec(id)}
+            />
+          ))}
+        </div>
+        <div className="mt-4 flex justify-center">
+          <Button
+            variant="default"
+            onClick={onShowTalents}
+            data-cuelume-press
+            data-cuelume-release
+          >
+            Ver Stack Completo
+          </Button>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="talents" className="mt-0 h-full">
+        <StackTab />
+      </TabsContent>
+    </TooltipProvider>
+  )
+}
+
+/** Desktop composition — unchanged layout, only the header/tabs-list/body
+ * pieces are now shared with the mobile Drawer composition below. */
+function TalentsDesktopContent() {
   const [activeTab, setActiveTab] = useState<TalentTab>("specialization")
   const [selectedSpec, setSelectedSpec] = useState<SpecId>("fullstack")
+
+  return (
+    <>
+      <TalentsHeader />
+
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as TalentTab)}
+        className="min-h-0 flex-1 flex-col"
+      >
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4">
+          <TalentsTabsBody
+            selectedSpec={selectedSpec}
+            onSelectSpec={setSelectedSpec}
+            onShowTalents={() => setActiveTab("talents")}
+          />
+        </div>
+
+        <TalentsTabsList />
+      </Tabs>
+    </>
+  )
+}
+
+/** Mobile Drawer composition — header and tab strip stay pinned above the
+ * `ScrollArea`, which wraps only the actual tab body. Keeps its own local
+ * tab/spec state (mirroring `TalentsDesktopContent`'s) rather than sharing
+ * state across shells, since only one composition is ever mounted at a
+ * time (the deliberate mobile/desktop state-reset-on-swap behavior is
+ * unchanged by this split). */
+function TalentsMobileContent() {
+  const [activeTab, setActiveTab] = useState<TalentTab>("specialization")
+  const [selectedSpec, setSelectedSpec] = useState<SpecId>("fullstack")
+
+  return (
+    <>
+      <TalentsHeader />
+
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as TalentTab)}
+        className="min-h-0 flex-1 flex-col"
+      >
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="overflow-x-hidden p-4">
+            <TalentsTabsBody
+              selectedSpec={selectedSpec}
+              onSelectSpec={setSelectedSpec}
+              onShowTalents={() => setActiveTab("talents")}
+            />
+          </div>
+        </ScrollArea>
+
+        <TalentsTabsList />
+      </Tabs>
+    </>
+  )
+}
+
+/**
+ * WoW-style "Talents & Specialization" window — bound to the 'P' hotkey /
+ * Grimoire micro-menu icon. Desktop keeps the draggable/free-floating
+ * pixel-bordered dialog (hanging tab flaps); mobile swaps the shell for a
+ * bottom-sheet Drawer around the identical content.
+ */
+export function TalentsModal({ isOpen, onClose }: TalentsModalProps) {
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (isOpen) play("ready")
   }, [isOpen])
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DrawerContent className="max-h-[85svh]">
+          <DrawerTitle className="sr-only">{TALENTS_TITLE}</DrawerTitle>
+          <div className="relative flex min-h-0 flex-1 flex-col pb-10">
+            <DrawerClose asChild>
+              <button
+                type="button"
+                aria-label="Cerrar ventana"
+                className="absolute top-2 right-2 z-20 flex size-7 items-center justify-center border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+                data-cuelume-press
+                data-cuelume-release
+              >
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            </DrawerClose>
+
+            <TalentsMobileContent />
+          </div>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
 
   return (
     <WowDraggableWindow
@@ -533,59 +701,7 @@ export function TalentsModal({ isOpen, onClose }: TalentsModalProps) {
       onClose={onClose}
       className="h-[680px] w-[min(1024px,calc(100svw-2rem))] max-h-[92svh]"
     >
-      <header
-        data-window-drag-handle
-        className="flex cursor-move touch-none items-center border-b-4 border-border px-4 py-3 pr-12 select-none"
-      >
-        <h2 className="retro text-xs leading-snug">STACK & TALENTOS</h2>
-      </header>
-
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value as TalentTab)}
-        className="min-h-0 flex-1 flex-col"
-      >
-        <TooltipProvider delayDuration={150}>
-          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4">
-            <TabsContent value="specialization" className="mt-0">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                {(Object.keys(SPECS) as SpecId[]).map((id) => (
-                  <SpecCard
-                    key={id}
-                    spec={SPECS[id]}
-                    selected={selectedSpec === id}
-                    onSelect={() => setSelectedSpec(id)}
-                  />
-                ))}
-              </div>
-              <div className="mt-4 flex justify-center">
-                <Button
-                  variant="default"
-                  onClick={() => setActiveTab("talents")}
-                  data-cuelume-press
-                  data-cuelume-release
-                >
-                  Ver Stack Completo
-                </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="talents" className="mt-0 h-full">
-              <StackTab />
-            </TabsContent>
-          </div>
-        </TooltipProvider>
-
-        {/* Same hanging-flap recipe as CharacterSheetModal's tab strip. */}
-        <TabsList className="absolute -bottom-9 left-3 w-fit">
-          <TabsTrigger value="specialization" data-cuelume-toggle="page">
-            Especialización
-          </TabsTrigger>
-          <TabsTrigger value="talents" data-cuelume-toggle="page">
-            Stack & Talentos
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <TalentsDesktopContent />
     </WowDraggableWindow>
   )
 }

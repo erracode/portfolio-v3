@@ -2,6 +2,20 @@ import { create } from "zustand"
 
 export type LogChannel = "system" | "quest" | "loot"
 
+/** Shared between `ChatBox` and `MobileChatBox` — kept here since both
+ * already import from this module. */
+export const CHANNEL_LABEL: Record<LogChannel, string> = {
+  system: "System",
+  quest: "Quest",
+  loot: "Loot",
+}
+
+export const CHANNEL_COLOR: Record<LogChannel, string> = {
+  system: "text-[#ffd100]",
+  quest: "text-[#c79c6e]",
+  loot: "text-[#1eff00]",
+}
+
 export interface LogEntry {
   id: number
   channel: LogChannel

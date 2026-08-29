@@ -1,4 +1,5 @@
 import { useRef } from "react"
+import type { RefObject } from "react"
 import { useFrame } from "@react-three/fiber"
 import { play } from "cuelume"
 import * as THREE from "three"
@@ -8,7 +9,6 @@ import type { SpriteSheetConfig } from "@/data/sprites"
 import { useCombatStore } from "@/lib/combat-store"
 import { useLogStore } from "@/lib/log-store"
 import { useObjectiveDone, useQuestStore } from "@/lib/quest-store"
-import { useMovementInput } from "@/lib/use-movement-input"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
 function chestSheet(src: string): SpriteSheetConfig {
@@ -31,6 +31,7 @@ const CHEST_OPEN_SHEET = chestSheet("/game/chest-open.png")
 const CHEST_SCALE = 0.006
 
 interface WorldChestProps {
+  interactPressedRef: RefObject<boolean>
   onNearChange: (isNear: boolean) => void
 }
 
@@ -40,12 +41,12 @@ function guardsCleared(): boolean {
 }
 
 /**
- * Self-contained proximity + "E" interaction — its own `useMovementInput()`
- * call gets an independent `interactPressedRef` (each call wires its own
- * listeners), so this needs no coupling to `WorldPlayer` at all.
+ * Proximity + "E" interaction. Receives `interactPressedRef` as a prop from
+ * `world-scene.tsx` — the same single `useMovementInput()` instance shared
+ * with `WorldPlayer` — so both the keyboard "E" key and the mobile touch
+ * "Interactuar" button reach the chest, not just the NPC.
  */
-export function WorldChest({ onNearChange }: WorldChestProps) {
-  const { interactPressedRef } = useMovementInput()
+export function WorldChest({ interactPressedRef, onNearChange }: WorldChestProps) {
   const wasNearRef = useRef(false)
   const isOpen = useObjectiveDone("open-chest")
 

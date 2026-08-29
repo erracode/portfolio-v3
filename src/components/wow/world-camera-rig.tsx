@@ -42,6 +42,15 @@ export function WorldCameraRig({ positionRef }: WorldCameraRigProps) {
     }
 
     controls.update()
+
+    // Backstop: `maxPolarAngle` keeps `controls.update()` from ever placing
+    // the camera at/below the ground plane on its own, but a stray touch
+    // gesture (pinch/drag) has been observed on mobile fighting that clamp
+    // for a frame — clamp the world-space floor directly so the finite
+    // ground mesh never falls out of frame.
+    if (controls.object.position.y < WORLD_CONFIG.camera.minWorldY) {
+      controls.object.position.y = WORLD_CONFIG.camera.minWorldY
+    }
   })
 
   const { lookAtHeight, dampingFactor, minDistance, maxDistance, minPolarAngle, maxPolarAngle } =

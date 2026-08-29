@@ -17,3 +17,4 @@ function enemySheet(src: string): SpriteSheetConfig {
  * export (fast-refresh). */
 export const FERRIS_SPRITE = enemySheet("/game/ferris-enemy.png")
 export const GOPHER_SPRITE = enemySheet("/game/gopher-enemy.png")
+export const DUKE_SPRITE = enemySheet("/game/duke-enemy.png")

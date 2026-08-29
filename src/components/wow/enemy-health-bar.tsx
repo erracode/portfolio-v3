@@ -8,8 +8,12 @@ interface EnemyHealthBarProps {
   yOffset: number
 }
 
-/** Billboarded DOM health bar above a guard, styled after
- * `PlayerUnitFrame`'s pixel-frame recipe (`Progress variant="retro"`). */
+/** Billboarded DOM health-plate above a guard, in `PlayerUnitFrame`'s own
+ * pixel-frame recipe (border-y + a `-mx`-offset border-x "corner step",
+ * `bg-card`) scaled down for an in-world billboard — not bare floating
+ * text. Needs its own `relative` so the corner-step border, which is
+ * absolutely positioned, anchors to the plate instead of the `<Html>`
+ * portal root. */
 export function EnemyHealthBar({ enemyId, yOffset }: EnemyHealthBarProps) {
   const enemy = useCombatStore((state) => state.enemies[enemyId])
 
@@ -19,16 +23,18 @@ export function EnemyHealthBar({ enemyId, yOffset }: EnemyHealthBarProps) {
 
   return (
     <Html position={[0, yOffset, 0]} center distanceFactor={8} occlude={false}>
-      <div className="pointer-events-none flex w-24 flex-col items-center gap-0.5">
-        <span className="retro text-[7px] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">
-          {enemy.name}
-        </span>
+      <div className="pointer-events-none relative flex w-24 flex-col items-center gap-1 border-y-2 border-foreground bg-card px-2 py-1 dark:border-ring">
+        <span className="retro text-[7px] leading-none">{enemy.name}</span>
         <Progress
           variant="retro"
           value={percent}
           progressBg="bg-red-500"
-          className="h-2 w-full"
+          className="h-1 w-full"
           aria-label={`Vida de ${enemy.name}`}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -mx-1 border-x-2 border-inherit"
         />
       </div>
     </Html>

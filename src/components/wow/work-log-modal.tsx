@@ -9,6 +9,7 @@ import {
   Search,
   Store,
   TrendingUp,
+  X,
   type LucideIcon,
 } from "lucide-react"
 
@@ -28,8 +29,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/8bit/tabs"
+import { Drawer, DrawerClose, DrawerContent, DrawerTitle } from "@/components/ui/8bit/drawer"
+import { ScrollArea } from "@/components/ui/8bit/scroll-area"
 import { WowDraggableWindow } from "@/components/wow/wow-draggable-window"
 import { useQuestStore } from "@/lib/quest-store"
+import { useIsMobile } from "@/lib/use-is-mobile"
 
 interface WorkLogModalProps {
   isOpen: boolean
@@ -491,15 +495,132 @@ function TrajectoryTab() {
   )
 }
 
+const WORK_LOG_TITLE = "Registro de Misiones & Proyectos"
+
+/** Title bar — stays pinned above the scrollable body in both shells. */
+function WorkLogHeader() {
+  return (
+    <header
+      data-window-drag-handle
+      className="flex cursor-move touch-none items-center border-b-4 border-border px-4 py-3 pr-12 select-none"
+    >
+      <h2 className="retro text-xs leading-snug">{WORK_LOG_TITLE}</h2>
+    </header>
+  )
+}
+
+/* Same hanging-flap recipe as the other micro-menu windows. Absolutely
+   positioned relative to the enclosing `Tabs` root, so it never scrolls
+   with the body in either shell. */
+function WorkLogTabsList() {
+  return (
+    <TabsList className="absolute -bottom-9 left-3 w-fit">
+      <TabsTrigger value="products" data-cuelume-toggle="page">
+        PROYECTOS
+      </TabsTrigger>
+      <TabsTrigger value="trajectory" data-cuelume-toggle="page">
+        EXPERIENCIA
+      </TabsTrigger>
+    </TabsList>
+  )
+}
+
+/** The actual scrollable body — each shell wraps this in its own scrolling
+ * container (a plain overflow-y-auto div on desktop, `ScrollArea` in the
+ * mobile Drawer). */
+function WorkLogTabsBody() {
+  return (
+    <>
+      <TabsContent value="products" className="mt-0">
+        <ProjectsTab />
+      </TabsContent>
+      <TabsContent value="trajectory" className="mt-0">
+        <TrajectoryTab />
+      </TabsContent>
+    </>
+  )
+}
+
+function handleWorkLogTabChange(value: string) {
+  if (value === "trajectory") {
+    useQuestStore.getState().completeObjectiveIfAccepted("review-experience")
+  }
+}
+
+/** Everything the desktop window shell wraps — unchanged layout, just
+ * composed from the header/tabs-list/body pieces above so the mobile
+ * Drawer branch can recompose them around its own scrolling boundary. */
+function WorkLogContent() {
+  return (
+    <>
+      <WorkLogHeader />
+
+      <Tabs
+        defaultValue="products"
+        className="min-h-0 flex-1 flex-col"
+        onValueChange={handleWorkLogTabChange}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <WorkLogTabsBody />
+        </div>
+
+        <WorkLogTabsList />
+      </Tabs>
+    </>
+  )
+}
+
 /**
  * Work Log — bound to the 'L' hotkey / micro-menu icon. Two tabs: personal
  * projects rendered as Save Slots (drilling into an in-place detail view),
- * and professional trajectory grouped by employer/client.
+ * and professional trajectory grouped by employer/client. Desktop keeps the
+ * draggable window; mobile swaps in a bottom-sheet Drawer.
  */
 export function WorkLogModal({ isOpen, onClose }: WorkLogModalProps) {
+  const isMobile = useIsMobile()
+
   useEffect(() => {
     if (isOpen) play("ready")
   }, [isOpen])
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DrawerContent className="max-h-[85svh]">
+          <DrawerTitle className="sr-only">{WORK_LOG_TITLE}</DrawerTitle>
+          <div className="relative flex min-h-0 flex-1 flex-col pb-10">
+            <DrawerClose asChild>
+              <button
+                type="button"
+                aria-label="Cerrar ventana"
+                className="absolute top-2 right-2 z-20 flex size-7 items-center justify-center border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+                data-cuelume-press
+                data-cuelume-release
+              >
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            </DrawerClose>
+
+            <WorkLogHeader />
+
+            <Tabs
+              defaultValue="products"
+              className="min-h-0 flex-1 flex-col"
+              onValueChange={handleWorkLogTabChange}
+            >
+              <ScrollArea className="min-h-0 flex-1">
+                <div className="p-4">
+                  <WorkLogTabsBody />
+                </div>
+              </ScrollArea>
+
+              <WorkLogTabsList />
+            </Tabs>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
 
   return (
     <WowDraggableWindow
@@ -508,43 +629,7 @@ export function WorkLogModal({ isOpen, onClose }: WorkLogModalProps) {
       onClose={onClose}
       className="h-[600px] w-[min(720px,calc(100svw-2rem))] max-h-[90svh]"
     >
-      <header
-        data-window-drag-handle
-        className="flex cursor-move touch-none items-center border-b-4 border-border px-4 py-3 pr-12 select-none"
-      >
-        <h2 className="retro text-xs leading-snug">
-          Registro de Misiones & Proyectos
-        </h2>
-      </header>
-
-      <Tabs
-        defaultValue="products"
-        className="min-h-0 flex-1 flex-col"
-        onValueChange={(value) => {
-          if (value === "trajectory") {
-            useQuestStore.getState().completeObjectiveIfAccepted("review-experience")
-          }
-        }}
-      >
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          <TabsContent value="products" className="mt-0">
-            <ProjectsTab />
-          </TabsContent>
-          <TabsContent value="trajectory" className="mt-0">
-            <TrajectoryTab />
-          </TabsContent>
-        </div>
-
-        {/* Same hanging-flap recipe as the other micro-menu windows. */}
-        <TabsList className="absolute -bottom-9 left-3 w-fit">
-          <TabsTrigger value="products" data-cuelume-toggle="page">
-            PROYECTOS
-          </TabsTrigger>
-          <TabsTrigger value="trajectory" data-cuelume-toggle="page">
-            EXPERIENCIA
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <WorkLogContent />
     </WowDraggableWindow>
   )
 }

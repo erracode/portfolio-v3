@@ -17,6 +17,19 @@ export interface EnemyCombatState {
   positionRef: RefObject<THREE.Vector3>
 }
 
+/** A single floating "-N" combat-text event. Bounded lifetime by
+ * construction, same philosophy as `AxeProjectile`: the component that
+ * renders one schedules its own removal (`removePlayerDamageEvent` /
+ * `removeEnemyDamageEvent`) after a fixed TTL, so nothing here can
+ * accumulate indefinitely. */
+export interface DamageEvent {
+  id: number
+  amount: number
+  at: number
+}
+
+let nextDamageEventId = 1
+
 interface CombatState {
   enemies: Record<string, EnemyCombatState>
   targetId: string | null
@@ -27,6 +40,12 @@ interface CombatState {
   castRequestToken: number
   playerInvulnerableUntil: number
   playerPositionRef: RefObject<THREE.Vector3> | null
+  /** Timestamp of the player's last actual hit — DOM-side damage-feedback
+   * components (`DamageVignette`) key off this to re-trigger their CSS
+   * animation, same pattern `CooldownOverlay` already uses. */
+  lastPlayerHitAt: number
+  playerDamageEvents: DamageEvent[]
+  enemyDamageEvents: Record<string, DamageEvent[]>
   registerEnemy: (
     id: string,
     name: string,
@@ -38,6 +57,8 @@ interface CombatState {
   damageEnemy: (id: string, amount: number) => void
   requestAxeCast: () => void
   takePlayerDamage: (amount: number) => void
+  removePlayerDamageEvent: (id: number) => void
+  removeEnemyDamageEvent: (enemyId: string, id: number) => void
 }
 
 /**
@@ -55,6 +76,9 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
   castRequestToken: 0,
   playerInvulnerableUntil: 0,
   playerPositionRef: null,
+  lastPlayerHitAt: 0,
+  playerDamageEvents: [],
+  enemyDamageEvents: {},
 
   registerEnemy: (id, name, maxHealth, positionRef) =>
     set((state) => ({
@@ -79,6 +103,19 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
     set((state) => ({
       enemies: { ...state.enemies, [id]: { ...enemy, health, isDead } },
       targetId: isDead && state.targetId === id ? null : state.targetId,
+      // `WorldGuard` unmounts immediately on death (returns null), which
+      // unmounts `EnemyDamageNumbers` before any still-pending `DamageNumber`
+      // timeout can fire `onExpire` — clear this enemy's events here instead
+      // so none are orphaned in the store for the rest of the session.
+      enemyDamageEvents: isDead
+        ? { ...state.enemyDamageEvents, [id]: [] }
+        : {
+            ...state.enemyDamageEvents,
+            [id]: [
+              ...(state.enemyDamageEvents[id] ?? []),
+              { id: nextDamageEventId++, amount, at: Date.now() },
+            ],
+          },
     }))
 
     if (isDead) {
@@ -96,6 +133,14 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
     const newHealth = health.current - amount
     usePlayerStore.getState().setHealth(newHealth)
     useLogStore.getState().addLog("system", `Recibiste ${amount} de daño de los guardias.`)
+
+    set((state) => ({
+      lastPlayerHitAt: Date.now(),
+      playerDamageEvents: [
+        ...state.playerDamageEvents,
+        { id: nextDamageEventId++, amount, at: Date.now() },
+      ],
+    }))
 
     if (newHealth <= 0) {
       // Invulnerable through the whole respawn wait, not just the normal
@@ -119,6 +164,19 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
       set({ playerInvulnerableUntil: Date.now() + WORLD_CONFIG.combat.invulnerabilityMs })
     }
   },
+
+  removePlayerDamageEvent: (id) =>
+    set((state) => ({
+      playerDamageEvents: state.playerDamageEvents.filter((event) => event.id !== id),
+    })),
+
+  removeEnemyDamageEvent: (enemyId, id) =>
+    set((state) => ({
+      enemyDamageEvents: {
+        ...state.enemyDamageEvents,
+        [enemyId]: (state.enemyDamageEvents[enemyId] ?? []).filter((event) => event.id !== id),
+      },
+    })),
 }))
 
 // Guards can die before "recover-relic" is ever accepted (no respawn path

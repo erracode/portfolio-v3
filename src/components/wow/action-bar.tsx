@@ -4,24 +4,35 @@ import { play } from "cuelume"
 import { Toggle } from "@/components/ui/8bit/toggle"
 import { useCombatStore } from "@/lib/combat-store"
 import { useLogStore } from "@/lib/log-store"
+import { useIsMobile } from "@/lib/use-is-mobile"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
 const SLOT_COUNT = 9
 const AXE_SLOT_INDEX = 1
 /** axe-sheet.png is 8 square frames (1760/220) in a single row. Sizing the
- * background as a percentage of the icon's OWN box — instead of assuming
- * the slot renders at an exact pixel size — keeps frame 0 exactly filling
- * the slot regardless of the 8bit `Toggle`'s actual rendered box (which
- * runs a few px taller than its `size-10` class due to its own pixel-frame
- * border recipe). */
+ * background as a percentage of the icon's OWN box keeps frame 0 exactly
+ * filling that box — but the box itself must be pinned to an EXPLICIT
+ * pixel size (matching the slot's `size-8`/`size-10` class) rather than
+ * `inset-0` of the implicitly-sized wrapper: `inset-0` ties the icon to
+ * whatever the wrapper resolves to, and the 8bit `Toggle`'s own
+ * pixel-frame border recipe (`border-x/y-6 -mx/my-1.5`, drawn via
+ * absolutely-positioned pseudo-elements straddling the Toggle's edges)
+ * visually overshoots that box by a few px — a much bigger fraction of a
+ * 32px mobile slot than a 40px desktop one, which is what made the icon
+ * read as overflowing again on mobile. Pinning width/height directly
+ * removes that coupling regardless of slot size. */
 const AXE_FRAME_COUNT = 8
 
-function AxeIcon() {
+const AXE_ICON_SIZE = { mobile: 32, desktop: 40 } as const
+
+function AxeIcon({ size }: { size: number }) {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 overflow-hidden [image-rendering:pixelated]"
+      className="pointer-events-none absolute top-0 left-0 overflow-hidden [image-rendering:pixelated]"
       style={{
+        width: size,
+        height: size,
         backgroundImage: "url(/game/axe-sheet.png)",
         backgroundPosition: "0 0",
         backgroundSize: `${AXE_FRAME_COUNT * 100}% 100%`,
@@ -34,15 +45,16 @@ function AxeIcon() {
 /** Bottom-up wipe re-triggered by remounting the element keyed on
  * `axeCooldownEndsAt` — pure CSS, no JS timer, same philosophy as
  * `sprite-step` in index.css. */
-function CooldownOverlay({ cooldownEndsAt }: { cooldownEndsAt: number }) {
+function CooldownOverlay({ cooldownEndsAt, size }: { cooldownEndsAt: number; size: number }) {
   if (cooldownEndsAt <= 0) return null
 
   return (
     <div
       key={cooldownEndsAt}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-black/60"
+      className="pointer-events-none absolute bottom-0 left-0 z-10 bg-black/60"
       style={{
+        width: size,
         animation: `cooldown-wipe ${WORLD_CONFIG.axe.cooldownMs}ms linear forwards`,
       }}
     />
@@ -65,6 +77,7 @@ function isEditableElement(element: EventTarget | null): boolean {
  * the Grimoire/Spellbook will assign actions to them later.
  */
 export function ActionBar() {
+  const isMobile = useIsMobile()
   const [activeSlot, setActiveSlot] = useState<number | null>(null)
   const timeoutRef = useRef<number | null>(null)
   const axeCooldownEndsAt = useCombatStore((state) => state.axeCooldownEndsAt)
@@ -98,7 +111,13 @@ export function ActionBar() {
   return (
     <nav
       aria-label="Barra de acciones"
-      className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-2"
+      className={`fixed left-1/2 z-40 flex -translate-x-1/2 ${
+        // Mobile: pushed well above the joystick/chat-toggle column
+        // (bottom-3 + 104px + 12px gap + 40px + 12px gap = 192px, see
+        // `WORLD_CONFIG.mobile.joystick`) with a 12px gap above `XpBarHud`
+        // so the two never overlap and stay visibly separated.
+        isMobile ? "bottom-[200px] gap-1" : "bottom-7 gap-2"
+      }`}
     >
       {Array.from({ length: SLOT_COUNT }, (_, i) => i + 1).map((index) => (
         <div key={index} className="relative">
@@ -107,13 +126,16 @@ export function ActionBar() {
             aria-label={`Ranura de acción ${index}`}
             pressed={activeSlot === index}
             onPressedChange={() => activate(index)}
-            className="size-10"
+            className={isMobile ? "size-8" : "size-10"}
             data-cuelume-toggle
           />
           {index === AXE_SLOT_INDEX && (
             <>
-              <AxeIcon />
-              <CooldownOverlay cooldownEndsAt={axeCooldownEndsAt} />
+              <AxeIcon size={isMobile ? AXE_ICON_SIZE.mobile : AXE_ICON_SIZE.desktop} />
+              <CooldownOverlay
+                cooldownEndsAt={axeCooldownEndsAt}
+                size={isMobile ? AXE_ICON_SIZE.mobile : AXE_ICON_SIZE.desktop}
+              />
             </>
           )}
           <span

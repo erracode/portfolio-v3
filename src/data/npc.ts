@@ -126,9 +126,9 @@ export const sampleNpc: NpcData = {
       id: "recover-relic",
       title: "Recupera la Reliquia",
       description:
-        "Dos guardias custodian un cofre al este del campamento. Derrótalos y reclama lo que esconde.",
+        "Tres guardias custodian un cofre al este del campamento. Derrótalos y reclama lo que esconde.",
       objectives: [
-        { id: "defeat-guards", label: "Derrota a los dos guardias" },
+        { id: "defeat-guards", label: "Derrota a los tres guardias" },
         { id: "open-chest", label: "Abre el cofre" },
       ],
       xpReward: 400,

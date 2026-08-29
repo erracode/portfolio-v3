@@ -49,7 +49,18 @@ export const WORLD_CONFIG = {
     minDistance: 5,
     maxDistance: 15,
     minPolarAngle: Math.PI / 6,
-    maxPolarAngle: Math.PI / 2.1,
+    // Was PI/2.1 (~85.7deg from vertical, i.e. almost eye-level with the
+    // target). At that angle + minDistance the camera sits barely above
+    // the finite ground mesh and can end up staring past its edge into
+    // the fog-colored void, reading as "the terrain disappeared". PI/2.4
+    // (~75deg) keeps a real downward tilt at all times so the ground
+    // plane stays in frame.
+    maxPolarAngle: Math.PI / 2.4,
+    /** Safety floor for the camera's world-space Y in `WorldCameraRig` —
+     * a backstop in case a touch drag/pinch gesture ever pushes the rig's
+     * position below the ground plane (y=0) despite the polar-angle clamp
+     * above. */
+    minWorldY: 1,
   },
   npc: {
     interactRadius: 2.5,
@@ -102,6 +113,11 @@ export const WORLD_CONFIG = {
     positions: {
       ferris: { x: 8.7, y: 0, z: -3 },
       gopher: { x: 12.3, y: 0, z: -3 },
+      // Ferris/Gopher flank the chest east-west on the same row (15).
+      // Duke guards from the north (row 8) instead — the far side of the
+      // chest from the other two, so the encounter reads as guarded from
+      // multiple sides rather than a third guard stacked on the same line.
+      duke: { x: 10.5, y: 0, z: -7 },
     },
   },
   /** Sits between the two guards. */
@@ -112,7 +128,9 @@ export const WORLD_CONFIG = {
   axe: {
     damage: 400,
     cooldownMs: 2500,
-    range: 4,
+    // Out-ranges a guard's own aggro trigger distance (3.5) comfortably
+    // without being absurd relative to leashRadius (6).
+    range: 7,
     projectileDurationMs: 350,
   },
   combat: {
@@ -120,5 +138,19 @@ export const WORLD_CONFIG = {
     respawnDelayMs: 2000,
     respawnInvulnerabilityMs: 2000,
     playerSpawnPosition: { x: 0, y: 0, z: 0 },
+  },
+  /** Mobile HUD tunables — the desktop HUD has no equivalents since it's
+   * all fixed-pixel sizing baked into each component's className. */
+  mobile: {
+    joystick: {
+      baseDiameter: 104,
+      thumbDiameter: 46,
+      /** Pointer travel below this fraction of the base radius reports no
+       * direction — avoids jittering between sectors near dead center. */
+      deadZone: 0.2,
+    },
+    /** 9 size-8 slots + gap-1 between them = 9*32 + 8*4 = 320px — matches
+     * `ActionBar`'s mobile branch, mirrored here so `XpBarHud` can match it. */
+    actionBarWidth: "320px",
   },
 }

@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { play } from "cuelume"
 import type { LucideIcon } from "lucide-react"
-import { Download, Lock } from "lucide-react"
+import { Download, Lock, X } from "lucide-react"
 
 import { Avatar } from "@/components/ui/8bit/avatar"
 import Timeline1, {
@@ -21,9 +21,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/8bit/tooltip"
+import { Drawer, DrawerClose, DrawerContent, DrawerTitle } from "@/components/ui/8bit/drawer"
+import { ScrollArea } from "@/components/ui/8bit/scroll-area"
 import { WowDraggableWindow } from "@/components/wow/wow-draggable-window"
 import { useLogStore } from "@/lib/log-store"
 import { useQuestStore } from "@/lib/quest-store"
+import { useIsMobile } from "@/lib/use-is-mobile"
 import { cn } from "@/lib/utils"
 
 interface CharacterSheetModalProps {
@@ -334,27 +337,12 @@ function DownloadsTab() {
   )
 }
 
-/**
- * WoW-style Character Sheet window — bound to the 'C' hotkey / micro-menu
- * icon. Draggable/free-floating like the rest of the site's windows, but
- * keeps the same pixel-bordered dialog layout (corner portrait, hanging
- * tab flaps) the other four micro-menu windows share.
- */
-export function CharacterSheetModal({
-  isOpen,
-  onClose,
-}: CharacterSheetModalProps) {
-  useEffect(() => {
-    if (isOpen) play("ready")
-  }, [isOpen])
-
+/** Portrait + title bar — stays pinned above the scrollable body in both
+ * shells (desktop never scrolls it either; it lives outside the window's
+ * one scrolling region). */
+function CharacterSheetHeader() {
   return (
-    <WowDraggableWindow
-      id="character"
-      isOpen={isOpen}
-      onClose={onClose}
-      className="h-[420px] w-[min(672px,calc(100svw-2rem))] max-h-[85svh]"
-    >
+    <>
       {/* Portrait protrudes from the top-left border, same recipe as
           NpcQuestDialog: positioning lives on an external wrapper. Same
           idle sprite as the center viewport, just shrunk to avatar size. */}
@@ -382,6 +370,57 @@ export function CharacterSheetModal({
           {PLAYER_NAME}
         </h2>
       </header>
+    </>
+  )
+}
+
+/* Tab strip hangs as flaps below the window's own border — not flush
+   inside it, not a full-width bar — matching the in-game Character /
+   Reputation / Currency tabs. Absolutely positioned relative to the
+   enclosing `Tabs` root, so it never scrolls with the body in either
+   shell. */
+function CharacterSheetTabsList() {
+  return (
+    <TabsList className="absolute -bottom-9 left-3 w-fit">
+      <TabsTrigger value="character" data-cuelume-toggle="page">
+        Personaje
+      </TabsTrigger>
+      <TabsTrigger value="trajectory" data-cuelume-toggle="page">
+        Trayectoria
+      </TabsTrigger>
+      <TabsTrigger value="downloads" data-cuelume-toggle="page">
+        Descargas
+      </TabsTrigger>
+    </TabsList>
+  )
+}
+
+/** The actual scrollable body — each shell wraps this in its own scrolling
+ * container (a plain overflow-y-auto div on desktop, `ScrollArea` in the
+ * mobile Drawer). */
+function CharacterSheetTabsBody() {
+  return (
+    <>
+      <TabsContent value="character" className="mt-0">
+        <CharacterTab />
+      </TabsContent>
+      <TabsContent value="trajectory" className="mt-0">
+        <TrajectoryTab />
+      </TabsContent>
+      <TabsContent value="downloads" className="mt-0">
+        <DownloadsTab />
+      </TabsContent>
+    </>
+  )
+}
+
+/** Everything the desktop window shell wraps — unchanged layout, just
+ * composed from the header/tabs-list/body pieces above so the mobile
+ * Drawer branch can recompose them around its own scrolling boundary. */
+function CharacterSheetContent() {
+  return (
+    <>
+      <CharacterSheetHeader />
 
       <Tabs defaultValue="character" className="min-h-0 flex-1 flex-col">
         {/* Fills the window's fixed height exactly, always — it stays the
@@ -389,32 +428,74 @@ export function CharacterSheetModal({
             scrolling; a longer tab like "Trayectoria" scrolls inside this
             same box instead of resizing the window. */}
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          <TabsContent value="character" className="mt-0">
-            <CharacterTab />
-          </TabsContent>
-          <TabsContent value="trajectory" className="mt-0">
-            <TrajectoryTab />
-          </TabsContent>
-          <TabsContent value="downloads" className="mt-0">
-            <DownloadsTab />
-          </TabsContent>
+          <CharacterSheetTabsBody />
         </div>
 
-        {/* Tab strip hangs as flaps below the window's own border — not
-            flush inside it, not a full-width bar — matching the in-game
-            Character / Reputation / Currency tabs. */}
-        <TabsList className="absolute -bottom-9 left-3 w-fit">
-          <TabsTrigger value="character" data-cuelume-toggle="page">
-            Personaje
-          </TabsTrigger>
-          <TabsTrigger value="trajectory" data-cuelume-toggle="page">
-            Trayectoria
-          </TabsTrigger>
-          <TabsTrigger value="downloads" data-cuelume-toggle="page">
-            Descargas
-          </TabsTrigger>
-        </TabsList>
+        <CharacterSheetTabsList />
       </Tabs>
+    </>
+  )
+}
+
+/**
+ * WoW-style Character Sheet window — bound to the 'C' hotkey / micro-menu
+ * icon. Desktop keeps the draggable/free-floating pixel-bordered dialog
+ * (corner portrait, hanging tab flaps); mobile swaps the shell for a
+ * bottom-sheet Drawer around the identical content.
+ */
+export function CharacterSheetModal({
+  isOpen,
+  onClose,
+}: CharacterSheetModalProps) {
+  const isMobile = useIsMobile()
+
+  useEffect(() => {
+    if (isOpen) play("ready")
+  }, [isOpen])
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DrawerContent className="max-h-[85svh]">
+          <DrawerTitle className="sr-only">{PLAYER_NAME}</DrawerTitle>
+          <div className="relative flex min-h-0 flex-1 flex-col pt-8 pb-10">
+            <DrawerClose asChild>
+              <button
+                type="button"
+                aria-label="Cerrar ventana"
+                className="absolute top-2 right-2 z-20 flex size-7 items-center justify-center border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+                data-cuelume-press
+                data-cuelume-release
+              >
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            </DrawerClose>
+
+            <CharacterSheetHeader />
+
+            <Tabs defaultValue="character" className="min-h-0 flex-1 flex-col">
+              <ScrollArea className="min-h-0 flex-1">
+                <div className="p-4">
+                  <CharacterSheetTabsBody />
+                </div>
+              </ScrollArea>
+
+              <CharacterSheetTabsList />
+            </Tabs>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
+  return (
+    <WowDraggableWindow
+      id="character"
+      isOpen={isOpen}
+      onClose={onClose}
+      className="h-[420px] w-[min(672px,calc(100svw-2rem))] max-h-[85svh]"
+    >
+      <CharacterSheetContent />
     </WowDraggableWindow>
   )
 }

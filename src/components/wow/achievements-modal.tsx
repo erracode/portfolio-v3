@@ -7,11 +7,15 @@ import {
   Mic,
   Server,
   Wrench,
+  X,
   type LucideIcon,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/8bit/badge"
+import { Drawer, DrawerClose, DrawerContent, DrawerTitle } from "@/components/ui/8bit/drawer"
+import { ScrollArea } from "@/components/ui/8bit/scroll-area"
 import { WowDraggableWindow } from "@/components/wow/wow-draggable-window"
+import { useIsMobile } from "@/lib/use-is-mobile"
 
 interface AchievementsModalProps {
   isOpen: boolean
@@ -114,15 +118,91 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
   )
 }
 
+const ACHIEVEMENTS_TITLE = "Logros & Hitos"
+
+/** Title bar — stays pinned above the scrollable body in both shells. */
+function AchievementsHeader() {
+  return (
+    <header
+      data-window-drag-handle
+      className="flex cursor-move touch-none items-center border-b-4 border-border px-4 py-3 pr-12 select-none"
+    >
+      <h2 className="retro text-xs leading-snug">{ACHIEVEMENTS_TITLE}</h2>
+    </header>
+  )
+}
+
+/** The actual scrollable body — each shell wraps this in its own scrolling
+ * container (a plain overflow-y-auto div on desktop, `ScrollArea` in the
+ * mobile Drawer). */
+function AchievementsBody() {
+  return (
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      {ACHIEVEMENTS.map((achievement) => (
+        <AchievementCard key={achievement.id} achievement={achievement} />
+      ))}
+    </div>
+  )
+}
+
+/** Everything the desktop window shell wraps — unchanged layout, just
+ * composed from the header/body pieces above so the mobile Drawer branch
+ * can recompose them around its own scrolling boundary. */
+function AchievementsContent() {
+  return (
+    <>
+      <AchievementsHeader />
+
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <AchievementsBody />
+      </div>
+    </>
+  )
+}
+
 /**
  * WoW-style Achievements window — bound to the 'Y' hotkey / Logros
  * micro-menu icon. A grid of real career milestones tagged by category;
- * no fabricated certifications, only what's grounded in the resume.
+ * no fabricated certifications, only what's grounded in the resume. Desktop
+ * keeps the draggable window; mobile swaps in a bottom-sheet Drawer.
  */
 export function AchievementsModal({ isOpen, onClose }: AchievementsModalProps) {
+  const isMobile = useIsMobile()
+
   useEffect(() => {
     if (isOpen) play("ready")
   }, [isOpen])
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DrawerContent className="max-h-[85svh]">
+          <DrawerTitle className="sr-only">{ACHIEVEMENTS_TITLE}</DrawerTitle>
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            <DrawerClose asChild>
+              <button
+                type="button"
+                aria-label="Cerrar ventana"
+                className="absolute top-2 right-2 z-20 flex size-7 items-center justify-center border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+                data-cuelume-press
+                data-cuelume-release
+              >
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            </DrawerClose>
+
+            <AchievementsHeader />
+
+            <ScrollArea className="min-h-0 flex-1">
+              <div className="p-4">
+                <AchievementsBody />
+              </div>
+            </ScrollArea>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
 
   return (
     <WowDraggableWindow
@@ -131,20 +211,7 @@ export function AchievementsModal({ isOpen, onClose }: AchievementsModalProps) {
       onClose={onClose}
       className="h-[560px] w-[min(672px,calc(100svw-2rem))] max-h-[88svh]"
     >
-      <header
-        data-window-drag-handle
-        className="flex cursor-move touch-none items-center border-b-4 border-border px-4 py-3 pr-12 select-none"
-      >
-        <h2 className="retro text-xs leading-snug">Logros & Hitos</h2>
-      </header>
-
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          {ACHIEVEMENTS.map((achievement) => (
-            <AchievementCard key={achievement.id} achievement={achievement} />
-          ))}
-        </div>
-      </div>
+      <AchievementsContent />
     </WowDraggableWindow>
   )
 }

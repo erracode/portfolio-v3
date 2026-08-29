@@ -4,53 +4,14 @@ import {
   AvatarImage,
 } from "@/components/ui/8bit/avatar"
 // import { Badge } from "@/components/ui/8bit/badge"
-import { Progress } from "@/components/ui/8bit/progress"
+import { StatBar } from "@/components/wow/stat-bar"
 
-import {
-  usePlayer,
-  type ResourceStat,
-  type ResourceType,
-} from "@/lib/player-store"
-
-const RESOURCE_BAR_BG: Record<ResourceType, string> = {
-  energy: "bg-yellow-500",
-  mana: "bg-blue-500",
-}
+import { usePlayer, type ResourceType } from "@/lib/player-store"
+import { RESOURCE_BAR_BG } from "@/lib/resource-colors"
 
 const RESOURCE_LABEL: Record<ResourceType, string> = {
   energy: "Energía",
   mana: "Maná",
-}
-
-function formatStat({ current, max }: ResourceStat): string {
-  return `${current.toLocaleString()} / ${max.toLocaleString()}`
-}
-
-function percentOf({ current, max }: ResourceStat): number {
-  return max > 0 ? (current / max) * 100 : 0
-}
-
-interface StatBarProps {
-  label: string
-  stat: ResourceStat
-  progressBg: string
-}
-
-function StatBar({ label, stat, progressBg }: StatBarProps) {
-  return (
-    <div className="group relative">
-      <Progress
-        variant="retro"
-        value={percentOf(stat)}
-        progressBg={progressBg}
-        className="h-4"
-        aria-label={label}
-      />
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] leading-none font-semibold tabular-nums text-white opacity-0 transition-opacity group-hover:opacity-100 [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
-        {formatStat(stat)}
-      </span>
-    </div>
-  )
 }
 
 /**
