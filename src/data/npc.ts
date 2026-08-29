@@ -68,6 +68,7 @@ export const sampleNpc: NpcData = {
     { type: "quest", label: "Recorre el Portafolio", refId: "explore-portfolio" },
     { type: "quest", label: "Llévate mi CV", refId: "grab-cv" },
     { type: "quest", label: "Recorrido Completo", refId: "portfolio-tour" },
+    { type: "quest", label: "Recupera la Reliquia", refId: "recover-relic" },
   ],
   quests: [
     {
@@ -120,6 +121,19 @@ export const sampleNpc: NpcData = {
       xpReward: 1000,
       bonusRewards: ["Logro: Explorador Completo"],
       completionLine: "Recorriste todo el reino. Espero que hablemos pronto — de verdad.",
+    },
+    {
+      id: "recover-relic",
+      title: "Recupera la Reliquia",
+      description:
+        "Dos guardias custodian un cofre al este del campamento. Derrótalos y reclama lo que esconde.",
+      objectives: [
+        { id: "defeat-guards", label: "Derrota a los dos guardias" },
+        { id: "open-chest", label: "Abre el cofre" },
+      ],
+      xpReward: 400,
+      bonusRewards: ["Objeto: Reliquia del Cofre"],
+      completionLine: "Esa reliquia estuvo bien guardada. Gracias por el esfuerzo, aventurero.",
     },
   ],
   infoNodes: [

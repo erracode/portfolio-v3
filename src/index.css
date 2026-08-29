@@ -19,6 +19,18 @@
   }
 }
 
+/* Bottom-up cooldown wipe for the action bar's axe slot — re-triggered by
+   remounting the overlay element keyed on `axeCooldownEndsAt` instead of a
+   JS timer, same "pure CSS" approach as `sprite-step` above. */
+@keyframes cooldown-wipe {
+  from {
+    height: 100%;
+  }
+  to {
+    height: 0%;
+  }
+}
+
 /* Dark, square (no border-radius) scrollbars for every internal scrollable
    container — matches the pixel-art frame recipe instead of the browser
    default. Uses theme tokens directly so it stays correct in light/dark. */

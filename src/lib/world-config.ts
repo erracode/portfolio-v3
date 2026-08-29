@@ -85,4 +85,40 @@ export const WORLD_CONFIG = {
     right: ["KeyD", "ArrowRight"] as string[],
     interact: ["KeyE"] as string[],
   },
+  /** Two stationary guards east of the flag/spawn, on `GROUND_MAP` row 15
+   * (cols 38/44) — well clear of the NPC (row 9, west lobe), the flag
+   * (row 20, col 26) and spawn (row 20, col 24), and inside `bounds`. */
+  guards: {
+    aggroRadius: 3.5,
+    /** Measured from the guard's OWN spawn point, not from the player —
+     * classic WoW leash: a guard chases as far as this from home, then
+     * gives up and walks back regardless of where the player is. */
+    leashRadius: 6,
+    attackRange: 1.4,
+    attackDamage: 300,
+    attackCooldownMs: 1400,
+    maxHealth: 1000,
+    walkSpeed: 3,
+    positions: {
+      ferris: { x: 8.7, y: 0, z: -3 },
+      gopher: { x: 12.3, y: 0, z: -3 },
+    },
+  },
+  /** Sits between the two guards. */
+  chest: {
+    position: { x: 10.5, y: 0, z: -3 },
+    interactRadius: 2,
+  },
+  axe: {
+    damage: 400,
+    cooldownMs: 2500,
+    range: 4,
+    projectileDurationMs: 350,
+  },
+  combat: {
+    invulnerabilityMs: 800,
+    respawnDelayMs: 2000,
+    respawnInvulnerabilityMs: 2000,
+    playerSpawnPosition: { x: 0, y: 0, z: 0 },
+  },
 }

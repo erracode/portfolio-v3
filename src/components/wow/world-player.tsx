@@ -1,10 +1,11 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { RefObject } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 
 import { PixelSpriteBillboard } from "@/components/wow/pixel-sprite-billboard"
 import { PLAYER_SPRITE } from "@/data/sprites"
+import { useCombatStore } from "@/lib/combat-store"
 import { useMovementInput } from "@/lib/use-movement-input"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
@@ -49,6 +50,10 @@ export function WorldPlayer({
       WORLD_CONFIG.npc.position.z
     )
   )
+
+  useEffect(() => {
+    useCombatStore.getState().registerPlayerPositionRef(positionRef)
+  }, [positionRef])
 
   useFrame((_state, delta) => {
     const flags = movementRef.current

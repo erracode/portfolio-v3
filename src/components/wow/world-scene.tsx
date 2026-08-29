@@ -4,12 +4,16 @@ import * as THREE from "three"
 
 import { NpcQuestDialog } from "@/components/wow/npc-quest-dialog"
 import { WorldCameraRig } from "@/components/wow/world-camera-rig"
+import { WorldChest } from "@/components/wow/world-chest"
+import { WorldCombatController } from "@/components/wow/world-combat-controller"
 import { WorldFlag } from "@/components/wow/world-flag"
 import { WorldGround } from "@/components/wow/world-ground"
+import { WorldGuard } from "@/components/wow/world-guard"
 import { WorldNpc } from "@/components/wow/world-npc"
 import { WorldPlayer } from "@/components/wow/world-player"
 import { WorldZeppelin } from "@/components/wow/world-zeppelin"
 import { sampleNpc } from "@/data/npc"
+import { FERRIS_SPRITE, GOPHER_SPRITE } from "@/data/guard-sprites"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
 /** Tracks the resolved (never "system") theme by watching the class
@@ -52,6 +56,7 @@ export function WorldScene() {
   const isDark = useIsDarkTheme()
   const positionRef = useRef(new THREE.Vector3(0, 0, 0))
   const [isNearNpc, setIsNearNpc] = useState(false)
+  const [isNearChest, setIsNearChest] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const { offset } = WORLD_CONFIG.camera
@@ -74,6 +79,20 @@ export function WorldScene() {
           <WorldNpc />
           <WorldFlag />
           <WorldZeppelin />
+          <WorldGuard
+            id="guard-ferris"
+            name="Guardia Ferris"
+            skin={FERRIS_SPRITE}
+            spawnPosition={WORLD_CONFIG.guards.positions.ferris}
+          />
+          <WorldGuard
+            id="guard-gopher"
+            name="Guardia Gopher"
+            skin={GOPHER_SPRITE}
+            spawnPosition={WORLD_CONFIG.guards.positions.gopher}
+          />
+          <WorldChest onNearChange={setIsNearChest} />
+          <WorldCombatController />
           <WorldPlayer
             positionRef={positionRef}
             onNearNpcChange={setIsNearNpc}
@@ -83,7 +102,7 @@ export function WorldScene() {
         </Canvas>
       </div>
 
-      {isNearNpc && !isDialogOpen && <InteractPrompt />}
+      {(isNearNpc || isNearChest) && !isDialogOpen && <InteractPrompt />}
 
       <NpcQuestDialog
         key={isDialogOpen ? "open" : "closed"}

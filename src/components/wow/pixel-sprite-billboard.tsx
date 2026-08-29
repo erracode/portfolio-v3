@@ -18,6 +18,10 @@ interface PixelSpriteBillboardProps {
   scale?: number
   position?: [number, number, number]
   onClick?: () => void
+  /** Multiplies the sprite material's color — a no-op ("#ffffff", the
+   * default) for every existing call site. Used for a guard's red
+   * hit-flash without a second texture. */
+  tint?: THREE.ColorRepresentation
 }
 
 /**
@@ -37,6 +41,7 @@ export function PixelSpriteBillboard({
   scale = 1,
   position = [0, 0, 0],
   onClick,
+  tint = "#ffffff",
 }: PixelSpriteBillboardProps) {
   const texture = useLoader(THREE.TextureLoader, sheet.src)
   const elapsedRef = useRef(0)
@@ -85,7 +90,7 @@ export function PixelSpriteBillboard({
       onPointerOver={onClick && (() => (document.body.style.cursor = "pointer"))}
       onPointerOut={onClick && (() => (document.body.style.cursor = "auto"))}
     >
-      <spriteMaterial map={texture} transparent alphaTest={0.5} />
+      <spriteMaterial map={texture} color={tint} transparent alphaTest={0.5} />
     </sprite>
   )
 }
