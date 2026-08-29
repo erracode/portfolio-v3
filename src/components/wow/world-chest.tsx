@@ -79,9 +79,13 @@ export function WorldChest({ interactPressedRef, onNearChange }: WorldChestProps
       onNearChange(isNear)
     }
 
-    if (interactPressedRef.current) {
+    // Only consume the shared flag when actually near — `WorldPlayer` reads
+    // the same ref for the NPC, and an unconditional reset here would
+    // swallow a press meant for the NPC (or vice versa) depending on which
+    // component's `useFrame` happens to run first that frame.
+    if (interactPressedRef.current && isNear) {
       interactPressedRef.current = false
-      if (isNear) attemptOpen()
+      attemptOpen()
     }
   })
 

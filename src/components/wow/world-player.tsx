@@ -117,9 +117,13 @@ export function WorldPlayer({
       onNearNpcChange(isNear)
     }
 
-    if (interactPressedRef.current) {
+    // Only consume the shared flag when actually near — `WorldChest` reads
+    // the same ref, and an unconditional reset here would swallow a press
+    // meant for the chest (or vice versa) depending on which component's
+    // `useFrame` happens to run first that frame.
+    if (interactPressedRef.current && isNear) {
       interactPressedRef.current = false
-      if (isNear) onInteract()
+      onInteract()
     }
   })
 
