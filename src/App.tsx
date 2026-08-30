@@ -2,6 +2,7 @@ import { ActionBar } from "@/components/wow/action-bar"
 import { BuffBar } from "@/components/wow/buff-bar"
 import { ChatBox } from "@/components/wow/chat-box"
 import { DamageVignette } from "@/components/wow/damage-vignette"
+import { GameOverDialog } from "@/components/wow/game-over-dialog"
 import { MicroBar } from "@/components/wow/micro-bar"
 import { MobileBuffBar } from "@/components/wow/mobile-buff-bar"
 import { MobileChatBox } from "@/components/wow/mobile-chat-box"
@@ -46,6 +47,7 @@ export function App() {
       <QuestDialogueBanner />
       <PlayerDamageNumbers />
       <DamageVignette />
+      <GameOverDialog />
     </div>
   )
 }

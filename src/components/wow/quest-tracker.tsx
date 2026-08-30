@@ -33,7 +33,7 @@ export function QuestTracker() {
   const completedLabel = activeQuests.length === 1 ? "completada" : "completadas"
 
   return (
-    <div className="pointer-events-none fixed top-16 right-3 z-30 flex w-64 max-w-[calc(100svw-2rem)] flex-col gap-3 text-right md:top-28 md:right-4">
+    <div className="pointer-events-none fixed top-32 right-3 z-30 flex w-64 max-w-[calc(100svw-2rem)] flex-col gap-3 text-right md:top-28 md:right-4">
       <div className="flex items-baseline justify-between gap-2">
         <p
           className="font-sans text-xs font-bold"

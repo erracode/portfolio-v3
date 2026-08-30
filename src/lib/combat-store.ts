@@ -46,6 +46,10 @@ interface CombatState {
   lastPlayerHitAt: number
   playerDamageEvents: DamageEvent[]
   enemyDamageEvents: Record<string, DamageEvent[]>
+  /** True while the Game Over dialog is shown: movement is frozen in
+   * `WorldPlayer` and `takePlayerDamage` is a no-op until
+   * `resurrectPlayer` clears it. */
+  playerDead: boolean
   registerEnemy: (
     id: string,
     name: string,
@@ -57,6 +61,9 @@ interface CombatState {
   damageEnemy: (id: string, amount: number) => void
   requestAxeCast: () => void
   takePlayerDamage: (amount: number) => void
+  /** Restores health, teleports to spawn, clears `playerDead`, and grants
+   * post-respawn invulnerability. The only way out of Game Over. */
+  resurrectPlayer: () => void
   removePlayerDamageEvent: (id: number) => void
   removeEnemyDamageEvent: (enemyId: string, id: number) => void
 }
@@ -79,6 +86,7 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
   lastPlayerHitAt: 0,
   playerDamageEvents: [],
   enemyDamageEvents: {},
+  playerDead: false,
 
   registerEnemy: (id, name, maxHealth, positionRef) =>
     set((state) => ({
@@ -127,6 +135,7 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
   requestAxeCast: () => set((state) => ({ castRequestToken: state.castRequestToken + 1 })),
 
   takePlayerDamage: (amount) => {
+    if (get().playerDead) return
     if (Date.now() < get().playerInvulnerableUntil) return
 
     const { health } = usePlayerStore.getState().player
@@ -143,26 +152,27 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
     }))
 
     if (newHealth <= 0) {
-      // Invulnerable through the whole respawn wait, not just the normal
-      // hit window — otherwise a guard's next attack can land mid-respawn
-      // and schedule a second overlapping respawn timeout.
-      set({ playerInvulnerableUntil: Date.now() + WORLD_CONFIG.combat.respawnDelayMs })
-      setTimeout(() => {
-        const maxHealth = usePlayerStore.getState().player.health.max
-        usePlayerStore.getState().setHealth(maxHealth)
-
-        const { playerPositionRef } = get()
-        const { x, y, z } = WORLD_CONFIG.combat.playerSpawnPosition
-        playerPositionRef?.current?.set(x, y, z)
-
-        set({
-          playerInvulnerableUntil: Date.now() + WORLD_CONFIG.combat.respawnInvulnerabilityMs,
-        })
-        useLogStore.getState().addLog("system", "Reapareciste en el punto de origen.")
-      }, WORLD_CONFIG.combat.respawnDelayMs)
+      // Game Over: freeze (movement is gated in WorldPlayer) and show the
+      // dialog. No auto-respawn — the player must resurrect explicitly.
+      set({ playerDead: true })
     } else {
       set({ playerInvulnerableUntil: Date.now() + WORLD_CONFIG.combat.invulnerabilityMs })
     }
+  },
+
+  resurrectPlayer: () => {
+    const maxHealth = usePlayerStore.getState().player.health.max
+    usePlayerStore.getState().setHealth(maxHealth)
+
+    const { playerPositionRef } = get()
+    const { x, y, z } = WORLD_CONFIG.combat.playerSpawnPosition
+    playerPositionRef?.current?.set(x, y, z)
+
+    set({
+      playerDead: false,
+      playerInvulnerableUntil: Date.now() + WORLD_CONFIG.combat.respawnInvulnerabilityMs,
+    })
+    useLogStore.getState().addLog("system", "Reapareciste en el punto de origen.")
   },
 
   removePlayerDamageEvent: (id) =>

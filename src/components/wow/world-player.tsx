@@ -57,6 +57,9 @@ export function WorldPlayer({
   }, [positionRef])
 
   useFrame((_state, delta) => {
+    // Frozen while the Game Over dialog is shown (player is dead).
+    if (useCombatStore.getState().playerDead) return
+
     const flags = movementRef.current
 
     camera.getWorldDirection(forward.current)

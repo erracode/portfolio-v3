@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { play } from "cuelume"
 import { Menu } from "lucide-react"
 
@@ -45,6 +45,7 @@ function isEditableElement(element: EventTarget | null): boolean {
  */
 export function MicroBar() {
   const isMobile = useIsMobile()
+  const [menuOpen, setMenuOpen] = useState(false)
   const openIds = useOpenWindowIds()
   const toggleWindow = useWindowsStore((state) => state.toggleWindow)
   const closeWindow = useWindowsStore((state) => state.closeWindow)
@@ -78,13 +79,13 @@ export function MicroBar() {
     <>
       {isMobile ? (
         <div className="fixed right-3 bottom-3 z-40">
-          <DropdownMenu>
+          <DropdownMenu onOpenChange={setMenuOpen}>
             <DropdownMenuTrigger asChild>
               <Toggle
                 variant="outline"
                 aria-label="Menú principal"
-                pressed={openIds.length > 0}
-                className="size-10"
+                pressed={openIds.length > 0 || menuOpen}
+                className={`size-10 ${menuOpen ? "animate-in zoom-in-95" : ""}`}
                 data-cuelume-toggle
               >
                 <Menu aria-hidden="true" />
