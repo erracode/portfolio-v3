@@ -133,12 +133,27 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
   playerDead: false,
 
   registerEnemy: (id, name, maxHealth, positionRef) =>
-    set((state) => ({
-      enemies: {
-        ...state.enemies,
-        [id]: { id, name, health: maxHealth, maxHealth, isDead: false, positionRef },
-      },
-    })),
+    set((state) => {
+      // A `WorldGuard` remount (e.g. React StrictMode's dev double-invoke,
+      // or a Suspense boundary re-suspending on a texture that only loads
+      // lazily well after initial mount — `AxeProjectile`'s axe-sheet.png,
+      // first requested on the player's first actual cast) re-runs this
+      // mount effect on an enemy that's already being tracked. Keeping the
+      // unconditional fresh-state overwrite here would silently wipe any
+      // damage already dealt (and even revive an already-dead enemy) —
+      // exactly the mechanism that made guards feel unkillable and the
+      // chest never open. Only `positionRef` needs to follow the new
+      // component instance; health/isDead must survive re-registration.
+      const existing = state.enemies[id]
+      return {
+        enemies: {
+          ...state.enemies,
+          [id]: existing
+            ? { ...existing, positionRef }
+            : { id, name, health: maxHealth, maxHealth, isDead: false, positionRef },
+        },
+      }
+    }),
 
   registerPlayerPositionRef: (ref) => set({ playerPositionRef: ref }),
 

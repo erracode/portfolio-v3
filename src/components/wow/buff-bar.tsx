@@ -57,6 +57,7 @@ function SkillStackTrigger({ overflow }: { overflow: readonly Skill[] }) {
           type="button"
           aria-label={`Más tecnologías (${overflow.length})`}
           className="relative flex size-11 flex-col items-center justify-center gap-0.5 border-y-6 border-foreground bg-card dark:border-ring"
+          data-cuelume-toggle
         >
           <span className="flex items-center">
             {preview.map((skill, index) => (
@@ -79,7 +80,12 @@ function SkillStackTrigger({ overflow }: { overflow: readonly Skill[] }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom" className="w-56">
         {overflow.map((skill) => (
-          <DropdownMenuItem key={skill.id} className="gap-2 text-[11px]">
+          <DropdownMenuItem
+            key={skill.id}
+            className="gap-2 text-[11px]"
+            data-cuelume-press
+            data-cuelume-release
+          >
             <img
               src={skill.icon}
               alt=""
