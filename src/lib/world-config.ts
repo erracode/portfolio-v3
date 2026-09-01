@@ -70,12 +70,24 @@ export const WORLD_CONFIG = {
     // `world-ground.tsx`.
     position: { x: -12.9, y: 0, z: -6.6 },
   },
-  /** Decorative flag prop near spawn — placeholder art, swap to the real
-   * Venezuela flag texture later (single-line change to `WorldFlag`'s
-   * `FLAG_SPRITE.src`). Grid cell (row 20, col 26), just east of the
-   * cell nearest the world origin (where the player spawns). */
+  /** Decorative flag props scattered across the walkable map — placeholder
+   * art, swap to the real Venezuela flag texture later (single-line change
+   * to `WorldFlag`'s `FLAG_SPRITE.src`). Each position is converted from a
+   * `GROUND_MAP` grid cell via the same `x = -14.1 + col*cellSize`,
+   * `z = -12 + row*cellSize` math `world-ground.tsx` uses to place tiles
+   * (origin derived from the map's 48x41 footprint), picked on confirmed
+   * '1' cells clear of the NPC (row 9, col 3), the other guard/chest
+   * cluster (rows 8/15, cols 39-45), and the original flag/spawn (row 20,
+   * cols 24-27). The zeppelin roams at y=7 well above these, so no
+   * ground-level overlap to worry about there. */
   flag: {
-    position: { x: 1.5, y: 0, z: 0 },
+    positions: [
+      { x: 1.5, y: 0, z: 0 }, // row 20, col 26 — original, near spawn
+      { x: -5.7, y: 0, z: -8.4 }, // row 6, col 14 — north field
+      { x: -8.7, y: 0, z: -4.2 }, // row 13, col 9 — west of the NPC
+      { x: 0.3, y: 0, z: 5.4 }, // row 29, col 24 — south of spawn
+      { x: 3.3, y: 0, z: 8.4 }, // row 34, col 29 — far south
+    ],
   },
   /** Ambient background decoration — ported from the sibling portfolio-v2
    * engine's `ZeppelinEntity`: a slow, autonomous float within a bounded
@@ -106,7 +118,11 @@ export const WORLD_CONFIG = {
      * gives up and walks back regardless of where the player is. */
     leashRadius: 6,
     attackRange: 1.4,
-    attackDamage: 300,
+    attackDamageMin: 240,
+    attackDamageMax: 360,
+    /** WoW-ish base miss rate — slightly worse than the player's `axe.hitChance`
+     * so the player keeps a small edge in a straight trade. */
+    hitChance: 0.85,
     attackCooldownMs: 1400,
     maxHealth: 1000,
     walkSpeed: 3,
@@ -126,7 +142,10 @@ export const WORLD_CONFIG = {
     interactRadius: 2,
   },
   axe: {
-    damage: 400,
+    damageMin: 320,
+    damageMax: 480,
+    /** Base miss rate — a reasonable WoW-ish 90% hit chance, not punishing. */
+    hitChance: 0.9,
     cooldownMs: 2500,
     // Out-ranges a guard's own aggro trigger distance (3.5) comfortably
     // without being absurd relative to leashRadius (6).

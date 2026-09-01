@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from "react"
 import type { RefObject } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
+import { useShallow } from "zustand/react/shallow"
 
+import { HitEffect } from "@/components/wow/hit-effect"
 import { PixelSpriteBillboard } from "@/components/wow/pixel-sprite-billboard"
 import { PLAYER_SPRITE } from "@/data/sprites"
-import { useCombatStore } from "@/lib/combat-store"
+import { selectHitEvents, useCombatStore } from "@/lib/combat-store"
 import type { MovementInput } from "@/lib/use-movement-input"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
@@ -40,6 +42,9 @@ export function WorldPlayer({
   const [moving, setMoving] = useState(false)
   const [flipX, setFlipX] = useState(false)
   const wasNearRef = useRef(false)
+  const hitEvents = useCombatStore(
+    useShallow((state) => selectHitEvents(state.playerDamageEvents))
+  )
 
   const forward = useRef(new THREE.Vector3())
   const right = useRef(new THREE.Vector3())
@@ -143,6 +148,7 @@ export function WorldPlayer({
         scale={PLAYER_SCALE}
         position={[0, SPRITE_HEIGHT / 2, 0]}
       />
+      <HitEffect events={hitEvents} position={[0, SPRITE_HEIGHT / 2, 0]} />
     </group>
   )
 }

@@ -102,7 +102,9 @@ export function WorldScene() {
 
           <WorldGround isDark={isDark} />
           <WorldNpc />
-          <WorldFlag />
+          {WORLD_CONFIG.flag.positions.map((position, index) => (
+            <WorldFlag key={index} position={position} />
+          ))}
           <WorldZeppelin />
           <WorldGuard
             id="guard-ferris"

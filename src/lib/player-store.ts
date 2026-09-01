@@ -32,7 +32,11 @@ const DEFAULT_PLAYER: PlayerProfile = {
   title: "Senior Full-Stack Engineer",
   level: 99,
   portrait: "/social/talk-icon.png",
-  health: { current: 12500, max: 12500 },
+  // Was 12500 — a flavor number picked before combat existed. Against a
+  // guard's actual attackDamage (240-360/hit, see WORLD_CONFIG.guards),
+  // that made the player nearly unkillable; 2000 keeps a handful of
+  // unlucky hits genuinely dangerous while still surviving a real fight.
+  health: { current: 2000, max: 2000 },
   resource: { current: 5000, max: 5000, type: "mana" },
 }
 

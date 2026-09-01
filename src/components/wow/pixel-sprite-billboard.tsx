@@ -44,6 +44,12 @@ export function PixelSpriteBillboard({
   tint = "#ffffff",
 }: PixelSpriteBillboardProps) {
   const texture = useLoader(THREE.TextureLoader, sheet.src)
+  // r3f's loader cache returns the SAME `THREE.Texture` instance for every
+  // component loading this `src` — cloning gives each instance its own
+  // offset/repeat state so multiple sprites sharing one sheet (e.g. the 5
+  // world flags) don't fight over a single texture's `.offset` in
+  // `useFrame`.
+  const ownTexture = useMemo(() => texture.clone(), [texture])
   const elapsedRef = useRef(0)
 
   const frameU = useMemo(() => sheet.frameWidth / sheet.sheetWidth, [sheet])
@@ -56,17 +62,32 @@ export function PixelSpriteBillboard({
   // texture sampling, so the filter must be set here on the object itself.
   useEffect(() => {
     /* eslint-disable react-hooks/immutability -- texture config objects are meant to be mutated after load; no ref-based escape hatch exists for non-ref hook results. */
-    texture.magFilter = THREE.NearestFilter
-    texture.minFilter = THREE.NearestFilter
-    texture.colorSpace = THREE.SRGBColorSpace
+    ownTexture.magFilter = THREE.NearestFilter
+    ownTexture.minFilter = THREE.NearestFilter
+    ownTexture.colorSpace = THREE.SRGBColorSpace
     // RepeatWrapping is required for offset/repeat atlasing (and the
     // negative-repeat flip trick below) to sample correctly — the default
     // ClampToEdgeWrapping only behaves for a single untiled [0,1] texture.
-    texture.wrapS = THREE.RepeatWrapping
-    texture.wrapT = THREE.RepeatWrapping
+    ownTexture.wrapS = THREE.RepeatWrapping
+    ownTexture.wrapT = THREE.RepeatWrapping
+    ownTexture.repeat.set(flipX ? -frameU : frameU, frameV)
+    // `.clone()` resets `version` to 0, and the renderer only uploads a
+    // texture to the GPU when `version > 0` — without this, the cloned
+    // texture would never actually render.
+    ownTexture.needsUpdate = true
     /* eslint-enable react-hooks/immutability */
-    texture.repeat.set(flipX ? -frameU : frameU, frameV)
-  }, [texture, frameU, frameV, flipX])
+  }, [ownTexture, frameU, frameV, flipX])
+
+  // Separate from the setup effect above on purpose: that effect's deps
+  // (frameU/frameV/flipX) change independently of `ownTexture` identity, and
+  // running dispose on every one of those re-runs would free a texture still
+  // actively in use by this sprite. This effect only tears down on unmount
+  // or when `ownTexture` itself is replaced by a new clone.
+  useEffect(() => {
+    return () => {
+      ownTexture.dispose()
+    }
+  }, [ownTexture])
 
   useFrame((_state, delta) => {
     let frameIndex = 0
@@ -79,7 +100,7 @@ export function PixelSpriteBillboard({
 
     const offsetX = flipX ? (frameIndex + 1) * frameU : frameIndex * frameU
     const offsetY = 1 - (row + 1) * frameV
-    texture.offset.set(offsetX, offsetY)
+    ownTexture.offset.set(offsetX, offsetY)
   })
 
   return (
@@ -90,7 +111,7 @@ export function PixelSpriteBillboard({
       onPointerOver={onClick && (() => (document.body.style.cursor = "pointer"))}
       onPointerOut={onClick && (() => (document.body.style.cursor = "auto"))}
     >
-      <spriteMaterial map={texture} color={tint} transparent alphaTest={0.5} />
+      <spriteMaterial map={ownTexture} color={tint} transparent alphaTest={0.5} />
     </sprite>
   )
 }

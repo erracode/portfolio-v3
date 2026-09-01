@@ -21,11 +21,14 @@ function SkillIcon({ skill }: { skill: Skill }) {
   );
 }
 
+const COLUMNS = 10;
+
 export function BuffBar() {
   return (
     <nav
       aria-label="Tech buff icons"
-      className="fixed top-4 right-4 z-40 flex max-w-[calc(100svw-2rem)] flex-row-reverse flex-wrap gap-2"
+      className="fixed top-4 right-4 z-40 grid max-w-[calc(100svw-2rem)] gap-2"
+      style={{ gridTemplateColumns: `repeat(${COLUMNS}, minmax(0, 1fr))` }}
     >
       {skills.map((skill) => (
         <SkillIcon key={skill.id} skill={skill} />

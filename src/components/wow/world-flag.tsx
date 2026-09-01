@@ -1,6 +1,5 @@
 import { PixelSpriteBillboard } from "@/components/wow/pixel-sprite-billboard"
 import type { SpriteSheetConfig } from "@/data/sprites"
-import { WORLD_CONFIG } from "@/lib/world-config"
 
 const FLAG_SCALE = 0.033
 
@@ -19,9 +18,14 @@ const FLAG_SPRITE: SpriteSheetConfig = {
   },
 }
 
-/** Decorative waving flag near spawn. */
-export function WorldFlag() {
-  const { x, y, z } = WORLD_CONFIG.flag.position
+interface WorldFlagProps {
+  position: { x: number; y: number; z: number }
+}
+
+/** Decorative waving flag. One instance per entry in
+ * `WORLD_CONFIG.flag.positions`, mounted by `world-scene.tsx`. */
+export function WorldFlag({ position }: WorldFlagProps) {
+  const { x, y, z } = position
   const spriteHeight = FLAG_SPRITE.frameHeight * FLAG_SCALE
 
   return (

@@ -1,24 +1,16 @@
-import { useMemo, useRef } from "react"
-import { useFrame } from "@react-three/fiber"
+import { useEffect, useMemo, useRef } from "react"
+import { useFrame, useLoader } from "@react-three/fiber"
 import * as THREE from "three"
 
-import { PixelSpriteBillboard } from "@/components/wow/pixel-sprite-billboard"
-import type { SpriteSheetConfig } from "@/data/sprites"
-
 const AXE_FRAME_COUNT = 8
-const AXE_SCALE = 0.012
-
-const AXE_SHEET: SpriteSheetConfig = {
-  src: "/game/axe-sheet.png",
-  frameWidth: 220,
-  frameHeight: 220,
-  sheetWidth: 1760,
-  sheetHeight: 220,
-  rows: {
-    idle: { row: 0, frameCount: AXE_FRAME_COUNT },
-    walk: { row: 0, frameCount: AXE_FRAME_COUNT },
-  },
-}
+const AXE_SHEET_SRC = "/game/axe-sheet.png"
+const FRAME_U = 1 / AXE_FRAME_COUNT // 220x220 square frames, single row
+const SPIN_FPS = 24
+// World-unit footprint — sized against the player/guards' own ~1.5-unit
+// sprite height (a thrown axe should read as roughly half a character's
+// height, not bigger than one, which `PixelSpriteBillboard`'s default
+// scale convention produced here).
+const AXE_SIZE = 0.6
 
 interface AxeProjectileProps {
   from: [number, number, number]
@@ -32,18 +24,43 @@ interface AxeProjectileProps {
  * Lerps a spinning axe from `from` to `to` over `durationMs`, then calls
  * `onDone` so the parent removes it — a bounded lifetime by construction,
  * fixing v2's axe projectile that never despawned.
+ *
+ * Unlike every other in-world sprite (player/NPC/guards/chest), this is a
+ * flat `PlaneGeometry` tilted `rotation.x = -Math.PI/2` to lie flat and
+ * face up, matching v2's `AxeAnimation`'s own orientation — NOT a
+ * `PixelSpriteBillboard` (`THREE.Sprite`), which is always camera-facing.
+ * A thrown weapon reads as tumbling through 3D space; a billboard would
+ * always present the same big flat square straight at the camera instead.
  */
 export function AxeProjectile({ from, to, startedAt, durationMs, onDone }: AxeProjectileProps) {
   const groupRef = useRef<THREE.Group>(null)
   const fromVec = useMemo(() => new THREE.Vector3(...from), [from])
   const toVec = useMemo(() => new THREE.Vector3(...to), [to])
   const doneRef = useRef(false)
+  const elapsedRef = useRef(0)
 
-  useFrame(() => {
+  const texture = useLoader(THREE.TextureLoader, AXE_SHEET_SRC)
+
+  useEffect(() => {
+    /* eslint-disable react-hooks/immutability -- texture config objects are meant to be mutated after load; no ref-based escape hatch exists for non-ref hook results. */
+    texture.magFilter = THREE.NearestFilter
+    texture.minFilter = THREE.NearestFilter
+    texture.colorSpace = THREE.SRGBColorSpace
+    texture.wrapS = THREE.RepeatWrapping
+    texture.wrapT = THREE.RepeatWrapping
+    /* eslint-enable react-hooks/immutability */
+    texture.repeat.set(FRAME_U, 1)
+  }, [texture])
+
+  useFrame((_state, delta) => {
     if (doneRef.current) return
 
     const t = THREE.MathUtils.clamp((Date.now() - startedAt) / durationMs, 0, 1)
     if (groupRef.current) groupRef.current.position.lerpVectors(fromVec, toVec, t)
+
+    elapsedRef.current += delta
+    const frameIndex = Math.floor(elapsedRef.current * SPIN_FPS) % AXE_FRAME_COUNT
+    texture.offset.set(frameIndex * FRAME_U, 0)
 
     if (t >= 1) {
       doneRef.current = true
@@ -53,7 +70,10 @@ export function AxeProjectile({ from, to, startedAt, durationMs, onDone }: AxePr
 
   return (
     <group ref={groupRef} position={from}>
-      <PixelSpriteBillboard sheet={AXE_SHEET} row={0} frameCount={AXE_FRAME_COUNT} fps={24} scale={AXE_SCALE} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[AXE_SIZE, AXE_SIZE]} />
+        <meshBasicMaterial map={texture} transparent alphaTest={0.5} side={THREE.DoubleSide} />
+      </mesh>
     </group>
   )
 }

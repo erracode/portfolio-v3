@@ -20,10 +20,12 @@ function DamageNumber({
   return (
     <span
       aria-hidden="true"
-      className="retro absolute text-[11px] text-red-500 [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]"
+      className={`retro absolute text-[11px] [text-shadow:0_1px_2px_rgba(0,0,0,0.9)] ${
+        event.isMiss ? "text-gray-300" : "text-red-500"
+      }`}
       style={{ animation: `float-damage ${DAMAGE_TEXT_MS}ms ease-out forwards` }}
     >
-      -{event.amount}
+      {event.isMiss ? "¡Falló!" : `-${event.amount}`}
     </span>
   )
 }

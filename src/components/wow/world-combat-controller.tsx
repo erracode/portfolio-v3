@@ -3,8 +3,9 @@ import { useFrame } from "@react-three/fiber"
 import { play } from "cuelume"
 
 import { AxeProjectile } from "@/components/wow/axe-projectile"
-import { useCombatStore } from "@/lib/combat-store"
+import { rollAttack, useCombatStore } from "@/lib/combat-store"
 import { useLogStore } from "@/lib/log-store"
+import { playRandomSound } from "@/lib/sfx"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
 interface ActiveProjectile {
@@ -15,6 +16,12 @@ interface ActiveProjectile {
 }
 
 let nextProjectileId = 1
+
+const WHOOSH_SOUNDS = [
+  "/sounds/mWooshLarge1.ogg",
+  "/sounds/mWooshLarge2.ogg",
+  "/sounds/mWooshLarge3.ogg",
+]
 
 /**
  * Mounted once inside `<Canvas>`. `ActionBar` lives outside the Canvas, so
@@ -50,9 +57,15 @@ export function WorldCombatController() {
       return
     }
 
-    useCombatStore.getState().damageEnemy(targetId, WORLD_CONFIG.axe.damage)
+    const { damageMin, damageMax, hitChance } = WORLD_CONFIG.axe
+    const roll = rollAttack({ min: damageMin, max: damageMax, hitChance })
+    if (roll.hit) {
+      useCombatStore.getState().damageEnemy(targetId, roll.amount)
+    } else {
+      useCombatStore.getState().missEnemy(targetId)
+    }
     useCombatStore.setState({ axeCooldownEndsAt: Date.now() + WORLD_CONFIG.axe.cooldownMs })
-    play("pulse")
+    playRandomSound(WHOOSH_SOUNDS)
 
     const from: [number, number, number] = [
       playerPosition.x,

@@ -22,7 +22,18 @@ export function EnemyHealthBar({ enemyId, yOffset }: EnemyHealthBarProps) {
   const percent = enemy.maxHealth > 0 ? (enemy.health / enemy.maxHealth) * 100 : 0
 
   return (
-    <Html position={[0, yOffset, 0]} center distanceFactor={8} occlude={false}>
+    // No `distanceFactor`: drei's `<Html>` anchors this element's screen
+    // position via the camera's exact projection matrix every frame, always
+    // correct at any distance — but `distanceFactor` re-scales the DOM
+    // element's SIZE with a cheap `2*tan(fov/2)*euclideanDistance` estimate
+    // that only matches the real perspective for an object dead-center on
+    // the camera's optical axis. This orbit camera follows the player, not
+    // each guard, so a guard sitting off-axis (like `guard-duke`, offset in
+    // Z from the other two) gets a plate whose size diverges from that
+    // approximation, reading as "detached" from its own anchor point. A
+    // fixed screen-space size (WoW's actual nameplate behavior) removes the
+    // divergence entirely.
+    <Html position={[0, yOffset, 0]} center occlude={false}>
       <div className="pointer-events-none relative flex w-24 flex-col items-center gap-1 border-y-2 border-foreground bg-card px-2 py-1 dark:border-ring">
         <span className="retro text-[7px] leading-none">{enemy.name}</span>
         <Progress

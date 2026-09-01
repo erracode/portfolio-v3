@@ -22,10 +22,12 @@ function DamageNumber({
 
   return (
     <span
-      className="retro absolute text-[9px] text-yellow-300 [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]"
+      className={`retro absolute text-[9px] [text-shadow:0_1px_2px_rgba(0,0,0,0.9)] ${
+        event.isMiss ? "text-gray-300" : "text-yellow-300"
+      }`}
       style={{ animation: `float-damage ${DAMAGE_TEXT_MS}ms ease-out forwards` }}
     >
-      -{event.amount}
+      {event.isMiss ? "¡Falló!" : `-${event.amount}`}
     </span>
   )
 }
@@ -51,7 +53,10 @@ export function EnemyDamageNumbers({ enemyId, yOffset }: EnemyDamageNumbersProps
   if (events.length === 0) return null
 
   return (
-    <Html position={[0, yOffset, 0]} center distanceFactor={8} occlude={false}>
+    // See `EnemyHealthBar` for why `distanceFactor` is intentionally
+    // omitted — its size approximation diverges from the exact anchor
+    // position for off-axis guards, reading as visual detachment.
+    <Html position={[0, yOffset, 0]} center occlude={false}>
       <div className="pointer-events-none relative flex items-center justify-center">
         {events.map((event) => (
           <DamageNumber key={event.id} event={event} enemyId={enemyId} onExpire={removeEvent} />

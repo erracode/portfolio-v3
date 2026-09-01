@@ -1,18 +1,24 @@
 import { useEffect, useRef, useState } from "react"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
+import { useShallow } from "zustand/react/shallow"
 
 import { EnemyDamageNumbers } from "@/components/wow/enemy-damage-numbers"
 import { EnemyHealthBar } from "@/components/wow/enemy-health-bar"
+import { HitEffect } from "@/components/wow/hit-effect"
 import { PixelSpriteBillboard } from "@/components/wow/pixel-sprite-billboard"
 import type { SpriteSheetConfig } from "@/data/sprites"
-import { useCombatStore } from "@/lib/combat-store"
+import { rollAttack, selectHitEvents, useCombatStore } from "@/lib/combat-store"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
 const GUARD_SCALE = 0.015
 const HIT_FLASH_MS = 150
 const ARRIVAL_EPSILON = 0.05
 const HIT_TINT = "#ff3b3b"
+// Comfortably covers `EnemyDamageNumbers`' 900ms TTL and `HitEffect`'s
+// 600ms burst duration, so the killing blow's number/particles finish
+// playing before the guard's rendered output actually disappears.
+const DEATH_GRACE_MS = 1000
 
 type GuardFsm = "idle" | "aggro" | "leash"
 
@@ -31,11 +37,22 @@ interface WorldGuardProps {
  * `combat-store` — this component only drives position and reacts to it.
  */
 export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
-  const { aggroRadius, leashRadius, attackRange, attackDamage, attackCooldownMs, maxHealth, walkSpeed } =
-    WORLD_CONFIG.guards
+  const {
+    aggroRadius,
+    leashRadius,
+    attackRange,
+    attackDamageMin,
+    attackDamageMax,
+    hitChance,
+    attackCooldownMs,
+    maxHealth,
+    walkSpeed,
+  } = WORLD_CONFIG.guards
 
   const [fsm, setFsm] = useState<GuardFsm>("idle")
   const [hitFlash, setHitFlash] = useState(false)
+  const [trulyGone, setTrulyGone] = useState(false)
+  const deathTimeoutRef = useRef<number | null>(null)
   const groupRef = useRef<THREE.Group>(null)
   const positionRef = useRef(
     new THREE.Vector3(spawnPosition.x, spawnPosition.y, spawnPosition.z)
@@ -51,10 +68,26 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
 
   const enemy = useCombatStore((state) => state.enemies[id])
   const registerEnemy = useCombatStore((state) => state.registerEnemy)
+  const hitEvents = useCombatStore(
+    useShallow((state) => selectHitEvents(state.enemyDamageEvents[id] ?? []))
+  )
 
   useEffect(() => {
     registerEnemy(id, name, maxHealth, positionRef)
   }, [id, name, maxHealth, registerEnemy])
+
+  // Mirrors `hitFlash`'s timeout idiom below: on death, delay the actual
+  // unmount so the killing blow's `EnemyDamageNumbers`/`HitEffect` (which
+  // must stay mounted to render) get their grace period. No reset branch is
+  // needed — a dead guard's `useFrame` always early-returns (see below), so
+  // `isDead` never flips back to false and `trulyGone` never needs to.
+  useEffect(() => {
+    if (!enemy?.isDead) return
+    deathTimeoutRef.current = window.setTimeout(() => setTrulyGone(true), DEATH_GRACE_MS)
+    return () => {
+      if (deathTimeoutRef.current !== null) window.clearTimeout(deathTimeoutRef.current)
+    }
+  }, [enemy?.isDead])
 
   useEffect(() => {
     if (!enemy) return
@@ -93,7 +126,12 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
           attackTimerRef.current += delta
           if (attackTimerRef.current >= attackCooldownMs / 1000) {
             attackTimerRef.current = 0
-            useCombatStore.getState().takePlayerDamage(attackDamage)
+            const roll = rollAttack({ min: attackDamageMin, max: attackDamageMax, hitChance })
+            if (roll.hit) {
+              useCombatStore.getState().takePlayerDamage(roll.amount)
+            } else {
+              useCombatStore.getState().missPlayer()
+            }
           }
         }
       }
@@ -125,24 +163,28 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
     if (groupRef.current) groupRef.current.position.copy(positionRef.current)
   })
 
-  if (enemy?.isDead) return null
+  if (trulyGone) return null
 
   const spriteHeight = skin.frameHeight * GUARD_SCALE
+  const isDead = enemy?.isDead ?? false
 
   return (
     <group ref={groupRef} position={[spawnPosition.x, spawnPosition.y, spawnPosition.z]}>
-      <PixelSpriteBillboard
-        sheet={skin}
-        row={skin.rows.idle.row}
-        frameCount={skin.rows.idle.frameCount}
-        fps={4}
-        scale={GUARD_SCALE}
-        position={[0, spriteHeight / 2, 0]}
-        tint={hitFlash ? HIT_TINT : "#ffffff"}
-        onClick={() => useCombatStore.getState().setTarget(id)}
-      />
-      <EnemyHealthBar enemyId={id} yOffset={spriteHeight + 0.15} />
+      {!isDead && (
+        <PixelSpriteBillboard
+          sheet={skin}
+          row={skin.rows.idle.row}
+          frameCount={skin.rows.idle.frameCount}
+          fps={4}
+          scale={GUARD_SCALE}
+          position={[0, spriteHeight / 2, 0]}
+          tint={hitFlash ? HIT_TINT : "#ffffff"}
+          onClick={() => useCombatStore.getState().setTarget(id)}
+        />
+      )}
+      {!isDead && <EnemyHealthBar enemyId={id} yOffset={spriteHeight + 0.15} />}
       <EnemyDamageNumbers enemyId={id} yOffset={spriteHeight + 0.55} />
+      <HitEffect events={hitEvents} position={[0, spriteHeight / 2, 0]} />
     </group>
   )
 }

@@ -59,6 +59,18 @@
   }
 }
 
+/* Initial loading screen's exit — re-triggered by `initial-loading-screen.tsx`
+   toggling an inline `animation` once world loading finishes, same
+   "animation + matching removal timeout" pattern as `damage-vignette`. */
+@keyframes loading-screen-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /* Dark, square (no border-radius) scrollbars for every internal scrollable
    container — matches the pixel-art frame recipe instead of the browser
    default. Uses theme tokens directly so it stays correct in light/dark. */

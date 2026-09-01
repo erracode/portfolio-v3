@@ -6,7 +6,15 @@ import type * as THREE from "three"
 import { useLogStore } from "@/lib/log-store"
 import { usePlayerStore } from "@/lib/player-store"
 import { useQuestStore } from "@/lib/quest-store"
+import { playRandomSound } from "@/lib/sfx"
 import { WORLD_CONFIG } from "@/lib/world-config"
+
+const PLAYER_HIT_SOUNDS = [
+  "/sounds/1hDaggerHitFleshA.ogg",
+  "/sounds/1hDaggerHitFleshB.ogg",
+  "/sounds/1hDaggerHitFleshC.ogg",
+]
+const PLAYER_DEATH_SOUNDS = ["/sounds/OrcMaleDeath.ogg"]
 
 export interface EnemyCombatState {
   id: string
@@ -26,9 +34,37 @@ export interface DamageEvent {
   id: number
   amount: number
   at: number
+  /** True for a missed attack — rendered as "Miss" text instead of a
+   * numeric amount; `amount` is unused (0) in this case. */
+  isMiss?: boolean
 }
 
 let nextDamageEventId = 1
+
+interface RollAttackArgs {
+  min: number
+  max: number
+  hitChance: number
+}
+
+/** Shared hit-chance + damage-roll formula for any melee/ranged attack
+ * (axe cast, guard melee) — centralized so the roll math isn't duplicated
+ * at each call site. */
+export function rollAttack({ min, max, hitChance }: RollAttackArgs): {
+  hit: boolean
+  amount: number
+} {
+  const hit = Math.random() < hitChance
+  const amount = hit ? Math.floor(min + Math.random() * (max - min + 1)) : 0
+  return { hit, amount }
+}
+
+/** Which damage events should trigger a `HitEffect` particle burst — real
+ * hits only, never a miss. Shared by the player's and each enemy's
+ * `useShallow` selector so the filter logic lives in one place. */
+export function selectHitEvents(events: DamageEvent[]): DamageEvent[] {
+  return events.filter((event) => !event.isMiss)
+}
 
 interface CombatState {
   enemies: Record<string, EnemyCombatState>
@@ -59,8 +95,16 @@ interface CombatState {
   registerPlayerPositionRef: (ref: RefObject<THREE.Vector3>) => void
   setTarget: (id: string | null) => void
   damageEnemy: (id: string, amount: number) => void
+  /** Records a missed axe cast against an enemy — the hit-chance roll
+   * happens at the call site (`WorldCombatController`); this only logs the
+   * miss event, it never touches health. */
+  missEnemy: (id: string) => void
   requestAxeCast: () => void
   takePlayerDamage: (amount: number) => void
+  /** Records a guard's missed melee attack — the hit-chance roll happens at
+   * the call site (`WorldGuard`); this only logs the miss event, it never
+   * touches health or invulnerability. */
+  missPlayer: () => void
   /** Restores health, teleports to spawn, clears `playerDead`, and grants
    * post-respawn invulnerability. The only way out of Game Over. */
   resurrectPlayer: () => void
@@ -111,25 +155,41 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
     set((state) => ({
       enemies: { ...state.enemies, [id]: { ...enemy, health, isDead } },
       targetId: isDead && state.targetId === id ? null : state.targetId,
-      // `WorldGuard` unmounts immediately on death (returns null), which
-      // unmounts `EnemyDamageNumbers` before any still-pending `DamageNumber`
-      // timeout can fire `onExpire` — clear this enemy's events here instead
-      // so none are orphaned in the store for the rest of the session.
-      enemyDamageEvents: isDead
-        ? { ...state.enemyDamageEvents, [id]: [] }
-        : {
-            ...state.enemyDamageEvents,
-            [id]: [
-              ...(state.enemyDamageEvents[id] ?? []),
-              { id: nextDamageEventId++, amount, at: Date.now() },
-            ],
-          },
+      // Always append, killing hit included — this event drives THIS hit's
+      // damage number / HitEffect burst. `WorldGuard` now stays mounted
+      // through a grace period after death so the killing blow's event has
+      // time to render before its own TTL removes it.
+      enemyDamageEvents: {
+        ...state.enemyDamageEvents,
+        [id]: [
+          ...(state.enemyDamageEvents[id] ?? []),
+          { id: nextDamageEventId++, amount, at: Date.now() },
+        ],
+      },
     }))
 
     if (isDead) {
       const allDead = Object.values(get().enemies).every((e) => e.isDead)
       if (allDead) useQuestStore.getState().completeObjectiveIfAccepted("defeat-guards")
     }
+  },
+
+  missEnemy: (id) => {
+    const enemy = get().enemies[id]
+    if (!enemy || enemy.isDead) return
+
+    play("whisper")
+    useLogStore.getState().addLog("system", "¡Fallaste el golpe!")
+
+    set((state) => ({
+      enemyDamageEvents: {
+        ...state.enemyDamageEvents,
+        [id]: [
+          ...(state.enemyDamageEvents[id] ?? []),
+          { id: nextDamageEventId++, amount: 0, at: Date.now(), isMiss: true },
+        ],
+      },
+    }))
   },
 
   requestAxeCast: () => set((state) => ({ castRequestToken: state.castRequestToken + 1 })),
@@ -141,6 +201,7 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
     const { health } = usePlayerStore.getState().player
     const newHealth = health.current - amount
     usePlayerStore.getState().setHealth(newHealth)
+    playRandomSound(PLAYER_HIT_SOUNDS)
     useLogStore.getState().addLog("system", `Recibiste ${amount} de daño de los guardias.`)
 
     set((state) => ({
@@ -154,10 +215,25 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
     if (newHealth <= 0) {
       // Game Over: freeze (movement is gated in WorldPlayer) and show the
       // dialog. No auto-respawn — the player must resurrect explicitly.
+      playRandomSound(PLAYER_DEATH_SOUNDS)
       set({ playerDead: true })
     } else {
       set({ playerInvulnerableUntil: Date.now() + WORLD_CONFIG.combat.invulnerabilityMs })
     }
+  },
+
+  missPlayer: () => {
+    if (get().playerDead) return
+
+    play("whisper")
+    useLogStore.getState().addLog("system", "El guardia falló su ataque.")
+
+    set((state) => ({
+      playerDamageEvents: [
+        ...state.playerDamageEvents,
+        { id: nextDamageEventId++, amount: 0, at: Date.now(), isMiss: true },
+      ],
+    }))
   },
 
   resurrectPlayer: () => {

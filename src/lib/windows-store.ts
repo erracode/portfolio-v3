@@ -56,6 +56,7 @@ const WINDOW_SIZE: Record<SectionId, { width: number; height: number }> = {
   spellbook: { width: 1024, height: 680 },
   achievements: { width: 672, height: 560 },
   social: { width: 448, height: 280 },
+  settings: { width: 400, height: 220 },
 }
 
 // Monotonic counter so every window gets a unique cascade slot on first open.

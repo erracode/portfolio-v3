@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/8bit/tooltip"
 import { AchievementsModal } from "@/components/wow/achievements-modal"
 import { CharacterSheetModal } from "@/components/wow/character-sheet-modal"
+import { SettingsModal } from "@/components/wow/settings-modal"
 import { SocialModal } from "@/components/wow/social-modal"
 import { TalentsModal } from "@/components/wow/talents-modal"
 import { WorkLogModal } from "@/components/wow/work-log-modal"
@@ -37,11 +38,11 @@ function isEditableElement(element: EventTarget | null): boolean {
 
 /**
  * WoW-style micro menu fixed at the bottom-right corner — the single
- * integration point for all five main windows (Character, Work Log,
- * Talents & Stack, Achievements, Social). Each icon and its hotkey
- * (C/L/P/Y/J) toggles the matching window in the shared windows store;
- * several can be open and dragged around at once, same as the rest of the
- * site's windows.
+ * integration point for all six main windows (Character, Work Log,
+ * Talents & Stack, Achievements, Social, Settings). Each icon and its
+ * hotkey (C/L/P/Y/J/O) toggles the matching window in the shared windows
+ * store; several can be open and dragged around at once, same as the rest
+ * of the site's windows.
  */
 export function MicroBar() {
   const isMobile = useIsMobile()
@@ -171,6 +172,10 @@ export function MicroBar() {
       <SocialModal
         isOpen={openIds.includes("social")}
         onClose={() => closeWindow("social")}
+      />
+      <SettingsModal
+        isOpen={openIds.includes("settings")}
+        onClose={() => closeWindow("settings")}
       />
     </>
   )
