@@ -7,21 +7,24 @@ export interface Skill {
   name: string;
   /** Public asset path under /tech */
   icon: string;
+  /** Shown always in the buff bar's always-visible row; unset/false means
+   * it only appears in the "+N" overflow dropdown. */
+  featured?: boolean;
 }
 
 export const skills: readonly Skill[] = [
-  { id: "react", name: "React", icon: "/tech/react-logo.png" },
-  { id: "typescript", name: "TypeScript", icon: "/tech/typescript-logo.png" },
-  { id: "nextjs", name: "Next.js", icon: "/tech/nextjs-logo.png" },
-  { id: "nestjs", name: "NestJS", icon: "/tech/nestjs-logo.png" },
-  { id: "supabase", name: "Supabase", icon: "/tech/supabase-logo.png" },
-  { id: "javascript", name: "JavaScript", icon: "/tech/javascript-logo.png" },
-  { id: "nodejs", name: "Node.js", icon: "/tech/nodejs-logo.png" },
-  { id: "postgres", name: "PostgreSQL", icon: "/tech/postgres-logo.png" },
-  { id: "tailwind", name: "Tailwind CSS", icon: "/tech/tailwind-logo.png" },
-  { id: "trpc", name: "tRPC", icon: "/tech/trpc-logo.png" },
-  { id: "express", name: "Express", icon: "/tech/express-logo.png" },
-  { id: "mongodb", name: "MongoDB", icon: "/tech/mongodb-logo.png" },
+  { id: "react", name: "React", icon: "/tech/react-logo.png", featured: true },
+  { id: "typescript", name: "TypeScript", icon: "/tech/typescript-logo.png", featured: true },
+  { id: "nextjs", name: "Next.js", icon: "/tech/nextjs-logo.png", featured: true },
+  { id: "nestjs", name: "NestJS", icon: "/tech/nestjs-logo.png", featured: true },
+  { id: "supabase", name: "Supabase", icon: "/tech/supabase-logo.png", featured: true },
+  { id: "javascript", name: "JavaScript", icon: "/tech/javascript-logo.png", featured: true },
+  { id: "nodejs", name: "Node.js", icon: "/tech/nodejs-logo.png", featured: true },
+  { id: "postgres", name: "PostgreSQL", icon: "/tech/postgres-logo.png", featured: true },
+  { id: "tailwind", name: "Tailwind CSS", icon: "/tech/tailwind-logo.png", featured: true },
+  { id: "trpc", name: "tRPC", icon: "/tech/trpc-logo.png", featured: true },
+  { id: "express", name: "Express", icon: "/tech/express-logo.png", featured: true },
+  { id: "mongodb", name: "MongoDB", icon: "/tech/mongodb-logo.png", featured: true },
   { id: "python", name: "Python", icon: "/tech/python-logo.png" },
   { id: "java", name: "Java", icon: "/tech/java-logo.png" },
   { id: "php", name: "PHP", icon: "/tech/php-logo.png" },
