@@ -80,7 +80,23 @@ export function MicroBar() {
     <>
       {isMobile ? (
         <div className="fixed right-3 bottom-3 z-40">
-          <DropdownMenu onOpenChange={setMenuOpen}>
+          <DropdownMenu
+            onOpenChange={(open) => {
+              setMenuOpen(open)
+              // Radix's DropdownMenuTrigger calls `event.preventDefault()`
+              // on `pointerdown` specifically for the closed→open
+              // transition (never open→close) — on touch that suppresses
+              // the synthesized `click` cuelume's declarative
+              // `data-cuelume-toggle` binding (still on the Toggle below)
+              // listens for, so opening stayed silent. Only covering the
+              // open side here — closing already plays correctly via that
+              // same click binding whenever the trigger itself is clicked,
+              // and firing this unconditionally also caused a false extra
+              // "toggle" on Escape/outside-click/item-select, none of
+              // which actually click the trigger.
+              if (open) play("toggle")
+            }}
+          >
             <DropdownMenuTrigger asChild>
               <Toggle
                 variant="outline"

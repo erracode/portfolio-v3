@@ -7,24 +7,37 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/8bit/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/8bit/tooltip";
 
 // Pixel frame copied from the 8bitcn Card recipe: border-y on the element,
 // plus a border-x overlay pulled wider (-mx-1.5) so the corners step outward.
 // Image uses the chapter-intro technique (absolute inset-0, object-contain).
 function SkillIcon({ skill }: { skill: Skill }) {
   return (
-    <div className="relative size-11 border-y-6 border-foreground bg-card p-0 dark:border-ring">
-      <img
-        src={skill.icon}
-        alt={skill.name}
-        loading="lazy"
-        className="absolute inset-0 h-full w-full object-contain p-1"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -mx-1.5 border-x-6 border-inherit"
-      />
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="relative size-11 border-y-6 border-foreground bg-card p-0 dark:border-ring">
+          <img
+            src={skill.icon}
+            alt={skill.name}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-contain p-1"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -mx-1.5 border-x-6 border-inherit"
+          />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" font="normal" className="text-[10px]">
+        {skill.name}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -64,7 +77,7 @@ function SkillStackTrigger({ overflow }: { overflow: readonly Skill[] }) {
           />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="bottom">
+      <DropdownMenuContent align="end" side="bottom" className="w-56">
         {overflow.map((skill) => (
           <DropdownMenuItem key={skill.id} className="gap-2 text-[11px]">
             <img
@@ -86,14 +99,16 @@ export function BuffBar() {
   const overflow = skills.filter((skill) => !skill.featured);
 
   return (
-    <nav
-      aria-label="Tech buff icons"
-      className="fixed top-4 right-4 z-40 flex max-w-[calc(100svw-2rem)] flex-row-reverse flex-wrap gap-2"
-    >
-      {overflow.length > 0 && <SkillStackTrigger overflow={overflow} />}
-      {featured.map((skill) => (
-        <SkillIcon key={skill.id} skill={skill} />
-      ))}
-    </nav>
+    <TooltipProvider delayDuration={200}>
+      <nav
+        aria-label="Tech buff icons"
+        className="fixed top-4 right-4 z-40 flex max-w-[calc(100svw-2rem)] flex-row-reverse flex-wrap gap-2"
+      >
+        {overflow.length > 0 && <SkillStackTrigger overflow={overflow} />}
+        {featured.map((skill) => (
+          <SkillIcon key={skill.id} skill={skill} />
+        ))}
+      </nav>
+    </TooltipProvider>
   );
 }

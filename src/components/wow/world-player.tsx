@@ -8,6 +8,7 @@ import { HitEffect } from "@/components/wow/hit-effect"
 import { PixelSpriteBillboard } from "@/components/wow/pixel-sprite-billboard"
 import { PLAYER_SPRITE } from "@/data/sprites"
 import { selectHitEvents, useCombatStore } from "@/lib/combat-store"
+import { isGroundPassable } from "@/lib/ground-collision"
 import type { MovementInput } from "@/lib/use-movement-input"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
@@ -99,7 +100,27 @@ export function WorldPlayer({
       }
 
       input.current.multiplyScalar(WORLD_CONFIG.movement.speed * delta)
-      positionRef.current.add(input.current)
+
+      const fromX = positionRef.current.x
+      const fromZ = positionRef.current.z
+      const toX = fromX + input.current.x
+      const toZ = fromZ + input.current.z
+
+      // Tile-shaped collision against `GROUND_MAP`, not just the rectangular
+      // `bounds` clamp below (that box is a superset of the map's actual
+      // silhouette, so it alone lets the player walk into unrendered gaps —
+      // see world-ground.tsx's `isGroundPassable`). Try the full diagonal
+      // move first; if it lands off-tile, fall back to each axis
+      // independently so the player slides along a gap/coastline edge
+      // instead of stopping dead on a diagonal approach.
+      if (isGroundPassable(toX, toZ)) {
+        positionRef.current.x = toX
+        positionRef.current.z = toZ
+      } else {
+        if (isGroundPassable(toX, fromZ)) positionRef.current.x = toX
+        if (isGroundPassable(fromX, toZ)) positionRef.current.z = toZ
+      }
+
       positionRef.current.x = THREE.MathUtils.clamp(
         positionRef.current.x,
         -WORLD_CONFIG.bounds.halfWidth,

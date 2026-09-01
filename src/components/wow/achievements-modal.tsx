@@ -42,9 +42,9 @@ const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: "sundevs-leadership",
-    title: "Senior Full-Stack Engineer en SunDevs",
-    description: "Rol de liderazgo técnico en el ecosistema Cinemark LATAM.",
-    category: "LIDERAZGO",
+    title: "Promoción a Software Engineer II",
+    description: "Crecimiento interno en SunDevs, dentro del ecosistema Cinemark LATAM.",
+    category: "CRECIMIENTO",
     icon: Crown,
   },
   {

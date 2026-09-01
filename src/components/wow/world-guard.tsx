@@ -49,7 +49,14 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
     walkSpeed,
   } = WORLD_CONFIG.guards
 
-  const [fsm, setFsm] = useState<GuardFsm>("idle")
+  // A ref, not `useState` — `fsm` only ever drives this component's own
+  // `useFrame` branching (never the render output below), and `useState`'s
+  // async-batched updates left a real stale-closure bug: hitting a guard
+  // that was already fleeing (leash) queued the aggro transition for NEXT
+  // frame, so THIS frame's branch still saw the old "leash" value and ran
+  // the walk-home step anyway — a one-frame flicker toward the player
+  // before reverting. A ref is always current within the same frame.
+  const fsmRef = useRef<GuardFsm>("idle")
   const [hitFlash, setHitFlash] = useState(false)
   const [trulyGone, setTrulyGone] = useState(false)
   const deathTimeoutRef = useRef<number | null>(null)
@@ -63,6 +70,7 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
   const attackTimerRef = useRef(0)
   const hitFlashTimeoutRef = useRef<number | null>(null)
   const previousHealthRef = useRef(maxHealth)
+  const aggroHealthRef = useRef(maxHealth)
   const scratchStepRef = useRef(new THREE.Vector3())
   const scratchToSpawnRef = useRef(new THREE.Vector3())
 
@@ -106,15 +114,25 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
   useFrame((_state, delta) => {
     if (!enemy || enemy.isDead) return
 
+    // Taking damage aggros immediately, regardless of distance — real WoW
+    // mobs retaliate against whoever hit them even from outside their aggro
+    // radius. Without this, the axe's range (7) comfortably out-ranging
+    // `aggroRadius` (3.5) let a player poke a guard forever from safety
+    // since proximity was the only aggro trigger. Detected here (not in the
+    // hit-flash effect above) so this runs in `useFrame`, not a React
+    // effect body.
+    if (enemy.health < aggroHealthRef.current) fsmRef.current = "aggro"
+    aggroHealthRef.current = enemy.health
+
     const playerPosition = useCombatStore.getState().playerPositionRef?.current
     if (playerPosition) {
       const distanceToPlayer = positionRef.current.distanceTo(playerPosition)
       const distanceToSpawn = positionRef.current.distanceTo(spawnRef.current)
 
-      if (fsm === "idle" && distanceToPlayer <= aggroRadius) setFsm("aggro")
-      else if (fsm === "aggro" && distanceToSpawn > leashRadius) setFsm("leash")
+      if (fsmRef.current === "idle" && distanceToPlayer <= aggroRadius) fsmRef.current = "aggro"
+      else if (fsmRef.current === "aggro" && distanceToSpawn > leashRadius) fsmRef.current = "leash"
 
-      if (fsm === "aggro") {
+      if (fsmRef.current === "aggro") {
         if (distanceToPlayer > attackRange) {
           const step = scratchStepRef.current.subVectors(playerPosition, positionRef.current)
           step.y = 0
@@ -137,13 +155,13 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
       }
     }
 
-    if (fsm === "leash") {
+    if (fsmRef.current === "leash") {
       const toSpawn = scratchToSpawnRef.current.subVectors(spawnRef.current, positionRef.current)
       const remaining = toSpawn.length()
       if (remaining <= ARRIVAL_EPSILON) {
         positionRef.current.copy(spawnRef.current)
         attackTimerRef.current = 0
-        setFsm("idle")
+        fsmRef.current = "idle"
         useCombatStore.setState((state) => {
           const current = state.enemies[id]
           if (!current) return state

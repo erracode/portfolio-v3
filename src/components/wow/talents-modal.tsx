@@ -428,16 +428,84 @@ function TalentChain({
   )
 }
 
+/** Mobile-only stacked row: icon, name, unlocked status, and description
+ * all visible at once — no hover tooltip (nothing to hover on touch) and
+ * no connecting-line decoration (`TalentChain`'s tree only reads well
+ * once there's room to breathe, i.e. desktop). Same bordered-row recipe
+ * as AchievementCard/WorkItemRow for visual consistency with the rest of
+ * the mobile Drawer content. */
+function TalentNodeMobile({ node }: { node: TalentNodeData }) {
+  const Icon = node.Icon
+
+  return (
+    <div className="relative flex items-start gap-3 border-y-6 border-zinc-400 bg-card p-3 dark:border-zinc-500">
+      <div className="relative flex size-10 shrink-0 items-center justify-center border-y-4 border-foreground bg-background dark:border-ring">
+        {node.image && (
+          <img
+            src={node.image}
+            alt=""
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-contain p-1.5"
+          />
+        )}
+        {Icon && (
+          <Icon
+            className="absolute inset-0 m-auto size-5 text-foreground"
+            aria-hidden="true"
+          />
+        )}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -mx-1 border-x-4 border-inherit"
+        />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-bold">{node.name}</p>
+          <span className="shrink-0 text-[8px] font-bold text-emerald-500 uppercase">
+            Desbloqueado
+          </span>
+        </div>
+        <p className="mt-0.5 font-sans text-[10px] leading-relaxed text-muted-foreground">
+          {node.description}
+        </p>
+      </div>
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -mx-1.5 border-x-6 border-inherit"
+      />
+    </div>
+  )
+}
+
+/** Mobile equivalent of `TalentChain` — a plain vertical stack of
+ * `TalentNodeMobile` rows, same nodes/data, no connecting-line tree. */
+function TalentListMobile({ nodes }: { nodes: TalentNodeData[] }) {
+  return (
+    <div className="flex flex-col gap-2">
+      {nodes.map((node) => (
+        <TalentNodeMobile key={node.id} node={node} />
+      ))}
+    </div>
+  )
+}
+
 /** One bordered box, no seams to fight — badge header, connected chain,
- * description. The full stack breakdown lives on the other tab (StackTab). */
+ * description. The full stack breakdown lives on the other tab (StackTab).
+ * `mobile` swaps the connected-chain preview for the plain stacked-list
+ * presentation (`TalentListMobile`) — same `spec.chain` data either way. */
 function SpecCard({
   spec,
   selected,
   onSelect,
+  mobile = false,
 }: {
   spec: SpecDef
   selected: boolean
   onSelect: () => void
+  mobile?: boolean
 }) {
   const Badge = spec.badgeIcon
 
@@ -471,7 +539,11 @@ function SpecCard({
         )}
       </div>
 
-      <TalentChain nodes={spec.chain} />
+      {mobile ? (
+        <TalentListMobile nodes={spec.chain} />
+      ) : (
+        <TalentChain nodes={spec.chain} />
+      )}
 
       <p className="font-sans text-[10px] leading-relaxed text-muted-foreground">
         {spec.description}
@@ -514,6 +586,33 @@ function StackTab() {
   )
 }
 
+/** Mobile equivalent of `StackTab` — same branch grouping, `TalentListMobile`
+ * instead of a horizontally-scrolling connected chain (a row of icons
+ * linked by lines reads as cramped, not scannable, at phone width). */
+function StackTabMobile() {
+  return (
+    <div className="flex flex-col gap-4">
+      {TALENT_BRANCHES.map((branch) => (
+        <div
+          key={branch.id}
+          className="relative border-y-6 border-foreground bg-card p-3 dark:border-ring"
+        >
+          <h3 className="border-b-4 border-border pb-2 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+            {branch.label}
+          </h3>
+          <div className="mt-3">
+            <TalentListMobile nodes={branch.nodes} />
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -mx-1.5 border-x-6 border-inherit"
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 const TALENTS_TITLE = "STACK & TALENTOS"
 
 /** Title bar — stays pinned above the scrollable body in both shells. */
@@ -530,15 +629,29 @@ function TalentsHeader() {
 
 /* Same hanging-flap recipe as CharacterSheetModal's tab strip. Absolutely
    positioned relative to the enclosing `Tabs` root, so it never scrolls
-   with the body in either shell. */
+   with the body in either shell. Below `md:` the flaps switch to
+   equal-width flex-1 with a shorter "Stack" label and a truncate
+   backstop — "Stack & Talentos" at full length runs past the right edge
+   of a ~375-414px Drawer otherwise (the mobile Drawer never crosses the
+   768px breakpoint per the rest of this file, so `md:` here safely
+   targets desktop only). */
 function TalentsTabsList() {
   return (
-    <TabsList className="absolute -bottom-9 left-3 w-fit">
-      <TabsTrigger value="specialization" data-cuelume-toggle="page">
+    <TabsList className="absolute -bottom-9 left-3 flex w-[calc(100%-1.5rem)] gap-1 md:w-fit">
+      <TabsTrigger
+        value="specialization"
+        data-cuelume-toggle="page"
+        className="min-w-0 flex-1 truncate text-[9px] md:flex-none md:text-sm"
+      >
         Especialización
       </TabsTrigger>
-      <TabsTrigger value="talents" data-cuelume-toggle="page">
-        Stack & Talentos
+      <TabsTrigger
+        value="talents"
+        data-cuelume-toggle="page"
+        className="min-w-0 flex-1 truncate text-[9px] md:flex-none md:text-sm"
+      >
+        <span className="md:hidden">Stack</span>
+        <span className="hidden md:inline">Stack & Talentos</span>
       </TabsTrigger>
     </TabsList>
   )
@@ -592,6 +705,49 @@ function TalentsTabsBody({
   )
 }
 
+/** Mobile equivalent of `TalentsTabsBody` — same spec/branch data, but
+ * `SpecCard`'s `mobile` variant and `StackTabMobile` swap out the
+ * connected-chain tree visual for a plain stacked list (see
+ * `TalentListMobile`). No `TooltipProvider` needed here: the mobile list
+ * rows show the description directly instead of behind a hover tooltip. */
+function TalentsTabsBodyMobile({
+  selectedSpec,
+  onSelectSpec,
+  onShowTalents,
+}: TalentsTabsBodyProps) {
+  return (
+    <>
+      <TabsContent value="specialization" className="mt-0">
+        <div className="flex flex-col gap-4">
+          {(Object.keys(SPECS) as SpecId[]).map((id) => (
+            <SpecCard
+              key={id}
+              spec={SPECS[id]}
+              selected={selectedSpec === id}
+              onSelect={() => onSelectSpec(id)}
+              mobile
+            />
+          ))}
+        </div>
+        <div className="mt-4 flex justify-center">
+          <Button
+            variant="default"
+            onClick={onShowTalents}
+            data-cuelume-press
+            data-cuelume-release
+          >
+            Ver Stack Completo
+          </Button>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="talents" className="mt-0 h-full">
+        <StackTabMobile />
+      </TabsContent>
+    </>
+  )
+}
+
 /** Desktop composition — unchanged layout, only the header/tabs-list/body
  * pieces are now shared with the mobile Drawer composition below. */
 function TalentsDesktopContent() {
@@ -642,7 +798,7 @@ function TalentsMobileContent() {
       >
         <ScrollArea className="min-h-0 flex-1">
           <div className="overflow-x-hidden p-4">
-            <TalentsTabsBody
+            <TalentsTabsBodyMobile
               selectedSpec={selectedSpec}
               onSelectSpec={setSelectedSpec}
               onShowTalents={() => setActiveTab("talents")}

@@ -3,6 +3,7 @@ import { useLoader } from "@react-three/fiber"
 import * as THREE from "three"
 
 import { GROUND_MAP } from "@/data/ground-map"
+import { GROUND_COLS, GROUND_ORIGIN_X, GROUND_ORIGIN_Z, GROUND_ROWS } from "@/lib/ground-collision"
 import { WORLD_CONFIG } from "@/lib/world-config"
 
 interface WorldGroundProps {
@@ -35,16 +36,11 @@ export function WorldGround({ isDark }: WorldGroundProps) {
   }, [texture])
 
   const positions = useMemo(() => {
-    const rows = GROUND_MAP.length
-    const cols = GROUND_MAP[0]?.length ?? 0
-    const originX = -((cols - 1) * cellSize) / 2
-    const originZ = -((rows - 1) * cellSize) / 2
-
     const cells: [number, number][] = []
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
+    for (let r = 0; r < GROUND_ROWS; r++) {
+      for (let c = 0; c < GROUND_COLS; c++) {
         if (GROUND_MAP[r][c] === "1") {
-          cells.push([originX + c * cellSize, originZ + r * cellSize])
+          cells.push([GROUND_ORIGIN_X + c * cellSize, GROUND_ORIGIN_Z + r * cellSize])
         }
       }
     }

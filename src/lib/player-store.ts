@@ -33,7 +33,7 @@ const DEFAULT_PLAYER: PlayerProfile = {
   level: 99,
   portrait: "/social/talk-icon.png",
   // Was 12500 — a flavor number picked before combat existed. Against a
-  // guard's actual attackDamage (240-360/hit, see WORLD_CONFIG.guards),
+  // guard's actual attackDamage (270-390/hit, see WORLD_CONFIG.guards),
   // that made the player nearly unkillable; 2000 keeps a handful of
   // unlucky hits genuinely dangerous while still surviving a real fight.
   health: { current: 2000, max: 2000 },

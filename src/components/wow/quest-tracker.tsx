@@ -1,5 +1,7 @@
 import { sampleNpc } from "@/data/npc"
+import { useCombatStore } from "@/lib/combat-store"
 import { useQuestStore } from "@/lib/quest-store"
+import { cn } from "@/lib/utils"
 
 /** Crisp black outline behind the light text, WoW's own trick for reading
  * the tracker over any background — a border/panel would work too, but
@@ -19,6 +21,7 @@ const TEXT_OUTLINE = {
 export function QuestTracker() {
   const questStatuses = useQuestStore((state) => state.quests)
   const objectiveDone = useQuestStore((state) => state.objectives)
+  const hasTarget = useCombatStore((state) => state.targetId !== null)
 
   const activeQuests = sampleNpc.quests.filter((quest) => {
     const status = questStatuses[quest.id]
@@ -33,7 +36,18 @@ export function QuestTracker() {
   const completedLabel = activeQuests.length === 1 ? "completada" : "completadas"
 
   return (
-    <div className="pointer-events-none fixed top-32 right-3 z-30 flex w-64 max-w-[calc(100svw-2rem)] flex-col gap-3 text-right md:top-28 md:right-4">
+    <div
+      className={cn(
+        // `MobileUnitFrames` stacks a second (target) section below the
+        // player frame only once something is targeted, growing tall
+        // enough to reach this tracker's default `top-32` offset — bump
+        // it clear of that worst case instead of overlapping. Desktop's
+        // `TargetFrame` sits far to the left and never shares this
+        // corner, so `md:top-28` stays fixed regardless of a target.
+        hasTarget ? "top-[150px]" : "top-32",
+        "pointer-events-none fixed right-3 z-30 flex w-64 max-w-[calc(100svw-2rem)] max-h-[calc(100svh-160px)] flex-col gap-2 overflow-hidden text-right md:top-28 md:right-4 md:max-h-none md:gap-3"
+      )}
+    >
       <div className="flex items-baseline justify-between gap-2">
         <p
           className="font-sans text-xs font-bold"
@@ -69,7 +83,7 @@ export function QuestTracker() {
             return (
               <p
                 key={objective.id}
-                className="font-sans text-[11px] leading-snug"
+                className="font-sans text-[10px] leading-snug md:text-[11px]"
                 style={{
                   ...TEXT_OUTLINE,
                   color: done ? "#9ca3af" : "#f5f5f5",

@@ -399,7 +399,10 @@ function ProjectsTab() {
       onSlotClick={handleSlotClick}
       title=""
       showSavedBadge={false}
-      maxVisibleSlots={6}
+      // All slots visible at once — anything less creates a second,
+      // independently-scrolling region nested inside the Drawer's own
+      // ScrollArea, which fights the outer scroll gesture on touch.
+      maxVisibleSlots={PROJECT_SLOTS.length}
       showTimestamp={false}
       layout="vertical"
     />
@@ -509,16 +512,25 @@ function WorkLogHeader() {
   )
 }
 
-/* Same hanging-flap recipe as the other micro-menu windows. Absolutely
-   positioned relative to the enclosing `Tabs` root, so it never scrolls
-   with the body in either shell. */
+/* Same hanging-flap recipe as the other micro-menu windows, and the same
+   width-safe treatment as TalentsModal's tab strip below `md:` — equal-
+   width flex-1 flaps with a truncate backstop instead of an unbounded
+   `w-fit` that can run past the Drawer's right edge. */
 function WorkLogTabsList() {
   return (
-    <TabsList className="absolute -bottom-9 left-3 w-fit">
-      <TabsTrigger value="products" data-cuelume-toggle="page">
+    <TabsList className="absolute -bottom-9 left-3 flex w-[calc(100%-1.5rem)] gap-1 md:w-fit">
+      <TabsTrigger
+        value="products"
+        data-cuelume-toggle="page"
+        className="min-w-0 flex-1 truncate text-[9px] md:flex-none md:text-sm"
+      >
         PROYECTOS
       </TabsTrigger>
-      <TabsTrigger value="trajectory" data-cuelume-toggle="page">
+      <TabsTrigger
+        value="trajectory"
+        data-cuelume-toggle="page"
+        className="min-w-0 flex-1 truncate text-[9px] md:flex-none md:text-sm"
+      >
         EXPERIENCIA
       </TabsTrigger>
     </TabsList>

@@ -18,7 +18,7 @@ export function TargetFrame() {
   return (
     <section
       aria-label="Marco de objetivo"
-      className="fixed top-4 left-72 z-40 flex min-w-[190px] flex-col gap-1.5 border-y-6 border-foreground bg-card p-3 shadow-lg dark:border-ring"
+      className="fixed top-4 left-80 z-40 flex min-w-[190px] flex-col gap-1.5 border-y-6 border-foreground bg-card p-3 shadow-lg dark:border-ring"
     >
       <h3 className="text-sm leading-snug">{target.name}</h3>
       <Progress

@@ -118,12 +118,21 @@ export const WORLD_CONFIG = {
      * gives up and walks back regardless of where the player is. */
     leashRadius: 6,
     attackRange: 1.4,
-    attackDamageMin: 240,
-    attackDamageMax: 360,
+    // Was 240-360 (avg 300) at a 1400ms cooldown. Fixing the aggro-on-hit
+    // gap (guards used to only aggro on proximity, so a ranged axe poke from
+    // outside `aggroRadius` was free damage) already restores real
+    // retaliation risk on its own — a solo guard fight now lands roughly
+    // one third of the player's 2000 HP in damage before it dies to 3 axe
+    // hits. This bump (avg 330, cooldown 1200ms) is a modest ~10-15% push on
+    // top of that, not a from-scratch rebalance — `maxHealth` is left alone
+    // since the aggro fix already did most of the work and inflating it
+    // further would mostly stall the fight rather than add real risk.
+    attackDamageMin: 270,
+    attackDamageMax: 390,
     /** WoW-ish base miss rate — slightly worse than the player's `axe.hitChance`
      * so the player keeps a small edge in a straight trade. */
     hitChance: 0.85,
-    attackCooldownMs: 1400,
+    attackCooldownMs: 1200,
     maxHealth: 1000,
     walkSpeed: 3,
     positions: {
