@@ -3,8 +3,12 @@ import { useCombatStore } from "@/lib/combat-store"
 
 /**
  * Minimal WoW-style target frame — mirrors `PlayerUnitFrame`'s pixel-frame
- * recipe, positioned clear of it. Renders nothing while no guard is
- * targeted.
+ * recipe. Rendered as a flow sibling of `PlayerUnitFrame` inside a shared
+ * `fixed` flex row in `App.tsx` (not independently `fixed`) so its position
+ * tracks the player frame's actual rendered width instead of a hardcoded
+ * pixel offset — `PlayerUnitFrame`'s width varies with player name/title
+ * length, which previously caused this frame to overlap it. Renders
+ * nothing while no guard is targeted.
  */
 export function TargetFrame() {
   const target = useCombatStore((state) =>
@@ -18,7 +22,7 @@ export function TargetFrame() {
   return (
     <section
       aria-label="Marco de objetivo"
-      className="fixed top-4 left-80 z-40 flex min-w-[190px] flex-col gap-1.5 border-y-6 border-foreground bg-card p-3 shadow-lg dark:border-ring"
+      className="relative flex min-w-[190px] flex-col gap-1.5 border-y-6 border-foreground bg-card p-3 shadow-lg dark:border-ring"
     >
       <h3 className="text-sm leading-snug">{target.name}</h3>
       <Progress

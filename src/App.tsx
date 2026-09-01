@@ -35,8 +35,10 @@ export function App() {
         </>
       ) : (
         <>
-          <PlayerUnitFrame />
-          <TargetFrame />
+          <div className="fixed top-4 left-4 z-40 flex items-start gap-3">
+            <PlayerUnitFrame />
+            <TargetFrame />
+          </div>
           <BuffBar />
           <QuestTracker />
           <MicroBar />

@@ -24,7 +24,7 @@ export function PlayerUnitFrame() {
   return (
     <section
       aria-label="Marco de unidad del jugador"
-      className="fixed top-4 left-4 z-40 flex items-center gap-3 border-y-6 border-foreground bg-card p-3 shadow-lg dark:border-ring"
+      className="relative flex items-center gap-3 border-y-6 border-foreground bg-card p-3 shadow-lg dark:border-ring"
     >
       <div className="relative">
         <Avatar variant="default" className="size-14">
