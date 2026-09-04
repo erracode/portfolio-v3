@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { Canvas } from "@react-three/fiber"
 import * as THREE from "three"
 
+import { ControlsHint } from "@/components/wow/controls-hint"
 import { NpcQuestDialog } from "@/components/wow/npc-quest-dialog"
 import { TouchJoystick } from "@/components/wow/touch-joystick"
 import { WorldCameraRig } from "@/components/wow/world-camera-rig"
@@ -138,6 +139,7 @@ export function WorldScene() {
       </div>
 
       <TouchJoystick setExternalFlags={setExternalFlags} />
+      <ControlsHint />
 
       {(isNearNpc || isNearChest) && !isDialogOpen && (
         <InteractPrompt onInteract={() => { interactPressedRef.current = true }} />
