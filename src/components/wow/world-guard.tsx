@@ -47,6 +47,7 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
     attackCooldownMs,
     maxHealth,
     walkSpeed,
+    noLeash,
   } = WORLD_CONFIG.guards
 
   // A ref, not `useState` — `fsm` only ever drives this component's own
@@ -130,7 +131,12 @@ export function WorldGuard({ id, name, skin, spawnPosition }: WorldGuardProps) {
       const distanceToSpawn = positionRef.current.distanceTo(spawnRef.current)
 
       if (fsmRef.current === "idle" && distanceToPlayer <= aggroRadius) fsmRef.current = "aggro"
-      else if (fsmRef.current === "aggro" && distanceToSpawn > leashRadius) fsmRef.current = "leash"
+      // `noLeash` feature flag: once a guard is fighting, it never gives up
+      // and walks home — it keeps chasing past `leashRadius` until someone
+      // dies. Flip the flag in WORLD_CONFIG.guards to restore classic WoW
+      // leash-and-heal behavior.
+      else if (!noLeash && fsmRef.current === "aggro" && distanceToSpawn > leashRadius)
+        fsmRef.current = "leash"
 
       if (fsmRef.current === "aggro") {
         if (distanceToPlayer > attackRange) {

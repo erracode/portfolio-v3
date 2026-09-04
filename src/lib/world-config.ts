@@ -117,6 +117,11 @@ export const WORLD_CONFIG = {
      * classic WoW leash: a guard chases as far as this from home, then
      * gives up and walks back regardless of where the player is. */
     leashRadius: 6,
+    /** Feature flag: when true, a guard that has already aggroed (started
+     * fighting the player) NEVER transitions to "leash" — it keeps chasing
+     * and attacking even past `leashRadius` until either it or the player
+     * dies. Set to false to restore the classic walk-home-and-heal behavior. */
+    noLeash: true,
     attackRange: 1.4,
     // Was 240-360 (avg 300) at a 1400ms cooldown. Fixing the aggro-on-hit
     // gap (guards used to only aggro on proximity, so a ranged axe poke from
@@ -155,7 +160,9 @@ export const WORLD_CONFIG = {
     damageMax: 480,
     /** Base miss rate — a reasonable WoW-ish 90% hit chance, not punishing. */
     hitChance: 0.9,
-    cooldownMs: 2500,
+    // 2500 → 1500: faster reload per user request. The cooldown-wipe
+    // animation in ActionBar reads this same constant, so it stays in sync.
+    cooldownMs: 1500,
     // Out-ranges a guard's own aggro trigger distance (3.5) comfortably
     // without being absurd relative to leashRadius (6).
     range: 7,

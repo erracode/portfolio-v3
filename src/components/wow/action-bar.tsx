@@ -2,6 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { play } from "cuelume"
 
 import { Toggle } from "@/components/ui/8bit/toggle"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/8bit/tooltip"
 import { useCombatStore } from "@/lib/combat-store"
 import { useLogStore } from "@/lib/log-store"
 import { useIsMobile } from "@/lib/use-is-mobile"
@@ -109,43 +115,74 @@ export function ActionBar() {
   }, [activate])
 
   return (
-    <nav
-      aria-label="Barra de acciones"
-      className={`fixed left-1/2 z-40 flex -translate-x-1/2 ${
-        // Mobile: pushed well above the joystick/chat-toggle column
-        // (bottom-3 + 104px + 12px gap + 40px + 12px gap = 192px, see
-        // `WORLD_CONFIG.mobile.joystick`) with a 12px gap above `XpBarHud`
-        // so the two never overlap and stay visibly separated.
-        isMobile ? "bottom-[200px] gap-1" : "bottom-7 gap-2"
-      }`}
-    >
-      {Array.from({ length: SLOT_COUNT }, (_, i) => i + 1).map((index) => (
-        <div key={index} className="relative">
-          <Toggle
-            variant="outline"
-            aria-label={`Ranura de acción ${index}`}
-            pressed={activeSlot === index}
-            onPressedChange={() => activate(index)}
-            className={isMobile ? "size-8" : "size-10"}
-            data-cuelume-toggle
-          />
-          {index === AXE_SLOT_INDEX && (
-            <>
-              <AxeIcon size={isMobile ? AXE_ICON_SIZE.mobile : AXE_ICON_SIZE.desktop} />
-              <CooldownOverlay
-                cooldownEndsAt={axeCooldownEndsAt}
-                size={isMobile ? AXE_ICON_SIZE.mobile : AXE_ICON_SIZE.desktop}
-              />
-            </>
-          )}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1 right-1 z-10 text-[8px] leading-none text-muted-foreground"
-          >
-            {index}
-          </span>
-        </div>
-      ))}
-    </nav>
+    <TooltipProvider delayDuration={200}>
+      <nav
+        aria-label="Barra de acciones"
+        className={`fixed left-1/2 z-40 flex -translate-x-1/2 ${
+          // Mobile: pushed well above the joystick/chat-toggle column
+          // (bottom-3 + 104px + 12px gap + 40px + 12px gap = 192px, see
+          // `WORLD_CONFIG.mobile.joystick`) with a 12px gap above `XpBarHud`
+          // so the two never overlap and stay visibly separated.
+          isMobile ? "bottom-[200px] gap-1" : "bottom-7 gap-2"
+        }`}
+      >
+        {Array.from({ length: SLOT_COUNT }, (_, i) => i + 1).map((index) => {
+          const slot = index === AXE_SLOT_INDEX
+          const tooltipContent = slot
+            ? {
+                title: "Lanzar Hacha",
+                description: `Lanza tu hacha contra el objetivo. Recarga: ${WORLD_CONFIG.axe.cooldownMs / 1000}s.`,
+              }
+            : {
+                title: `Ranura ${index}`,
+                description: "Ranura vacía — se asignará desde el Grimorio.",
+              }
+
+          const toggle = (
+            <Toggle
+              variant="outline"
+              aria-label={`Ranura de acción ${index}`}
+              pressed={activeSlot === index}
+              onPressedChange={() => activate(index)}
+              className={isMobile ? "size-8" : "size-10"}
+              data-cuelume-toggle
+            />
+          )
+
+          return (
+            <div key={index} className="relative">
+              {isMobile ? (
+                toggle
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>{toggle}</TooltipTrigger>
+                  <TooltipContent side="top" font="normal" className="max-w-44">
+                    <p className="text-xs font-bold">{tooltipContent.title}</p>
+                    <p className="mt-0.5 font-sans text-xs leading-snug text-muted-foreground">
+                      {tooltipContent.description}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              {slot && (
+                <>
+                  <AxeIcon size={isMobile ? AXE_ICON_SIZE.mobile : AXE_ICON_SIZE.desktop} />
+                  <CooldownOverlay
+                    cooldownEndsAt={axeCooldownEndsAt}
+                    size={isMobile ? AXE_ICON_SIZE.mobile : AXE_ICON_SIZE.desktop}
+                  />
+                </>
+              )}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1 right-1 z-10 text-[10px] leading-none text-muted-foreground"
+              >
+                {index}
+              </span>
+            </div>
+          )
+        })}
+      </nav>
+    </TooltipProvider>
   )
 }
