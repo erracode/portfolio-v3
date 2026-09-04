@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { play } from "cuelume"
 import {
   ArrowLeft,
+  Award,
   Building2,
   ExternalLink,
   Layers,
@@ -75,7 +76,11 @@ const PROJECTS: ProjectEntry[] = [
       "shadcn/ui",
       "Supabase",
     ],
-    images: ["/placeholder.svg"],
+    images: [
+      "/projects/aquetienda-1.webp",
+      "/projects/aquetienda-2.png",
+      "/projects/aquetienda-3.webp",
+    ],
     icon: Store,
     logo: "/projects/aquetienda-logo.webp",
   },
@@ -89,7 +94,10 @@ const PROJECTS: ProjectEntry[] = [
     architecture:
       "Aplicación Next.js con Supabase como backend (Postgres + Realtime), usada para sincronizar en vivo un mapa interactivo de reportes. Estado de UI manejado con Zustand, animaciones con GSAP y contenido editorial servido como MDX.",
     stack: ["Next.js", "Supabase", "Zustand", "GSAP", "MDX", "shadcn/ui"],
-    images: ["/placeholder.svg"],
+    images: [
+      "/projects/petsosciety-1.webp",
+      "/projects/petsosciety-2.webp",
+    ],
     icon: MapPin,
     logo: "/projects/petsosciety-logo.webp",
   },
@@ -103,7 +111,11 @@ const PROJECTS: ProjectEntry[] = [
     architecture:
       "Landing site construido en Astro para maximizar el rendimiento de la primera carga, desacoplado de una aplicación móvil independiente en React Native que consume la misma fuente de tasas.",
     stack: ["Astro", "React Native"],
-    images: ["/placeholder.svg"],
+    images: [
+      "/projects/aquetasa-1.webp",
+      "/projects/aquetasa-2.webp",
+      "/projects/aquetasa-3.webp",
+    ],
     icon: TrendingUp,
     logo: "/projects/aquetasa-logo.webp",
   },
@@ -138,6 +150,23 @@ const PROJECTS: ProjectEntry[] = [
     images: ["/placeholder.svg"],
     icon: Search,
   },
+  {
+    id: "engram-contest",
+    name: "Engram Landing Contest",
+    domain: "engram-landing-34c.pages.dev",
+    liveUrl: "https://engram-landing-34c.pages.dev",
+    category: "Contest / Landing Page",
+    summary:
+      "Landing para Engram, memoria persistente para agentes de IA — presentada en un concurso de landings.",
+    architecture:
+      "Landing en Astro con escena 3D de React Three Fiber, estilos con Tailwind CSS v4 y animaciones con Framer Motion, desplegada en Cloudflare Pages.",
+    stack: ["Astro", "React 19", "Three.js", "Tailwind CSS v4", "Cloudflare Pages"],
+    images: [
+      "/projects/engram-contest-1.webp",
+      "/projects/engram-contest-2.webp",
+    ],
+    icon: Award,
+  },
 ]
 
 const PROJECT_SLOTS: SaveSlot[] = [
@@ -162,6 +191,9 @@ interface WorkItem {
   title: string
   description: string
   image?: string
+  /** Optional gallery for work items with multiple screenshots. When set,
+   * `WorkItemRow` renders a small carousel instead of the single thumb. */
+  images?: string[]
 }
 
 interface EmployerEntry {
@@ -241,6 +273,40 @@ const WORK_HISTORY: EmployerEntry[] = [
         description: "Cliente — eliasonlaw.org.",
         image: "/projects/eliason-law-1.png",
       },
+      {
+        id: "backup-system",
+        title: "Backup System",
+        description:
+          "Sistema full-stack de respaldo: plugin de WordPress construido con CodeIgniter, más una web para gestionar, programar y descargar respaldos, con pagos por suscripción. El plugin fue publicado y aprobado en el directorio oficial de WordPress.",
+        image: "/projects/backup-system-1.png",
+        images: ["/projects/backup-system-1.png", "/projects/backup-system-2.png"],
+      },
+      {
+        id: "gta-faction",
+        title: "GTA Faction",
+        description:
+          "Dashboard MERN para administrar un servidor de roleplay de GTA 5: pines de mapa, gestión de recursos, administración de clases y más.",
+        image: "/projects/gta-faction-1.png",
+        images: [
+          "/projects/gta-faction-1.png",
+          "/projects/gta-faction-2.png",
+          "/projects/gta-faction-3.png",
+        ],
+      },
+      {
+        id: "enchanted-thoughts",
+        title: "Enchanted Thoughts",
+        description:
+          "Página full-stack (Next.js + Express + motor de IA) de 2022: un wizard para generar cartas personalizadas con IA para familiares y niños.",
+        image: "/projects/enchanted-thoughts-1.png",
+        images: ["/projects/enchanted-thoughts-1.png", "/projects/enchanted-thoughts-2.jpg"],
+      },
+      {
+        id: "indeleble-gifts",
+        title: "Indeleble Gifts",
+        description: "Landing page de regalos con Astro.",
+        image: "/projects/indeleble-gifts-1.png",
+      },
     ],
   },
   {
@@ -256,6 +322,20 @@ const WORK_HISTORY: EmployerEntry[] = [
         description:
           "Sitios y plataformas para numerosos clientes en Latinoamérica y Panamá, entre ellos Gran Fondo (granfondo.probidsida.org), Grupo Romarin (gruporomarin.com) y Legal Food Panama (legalfoodpa.com).",
         image: "/projects/studio73-1.png",
+        images: [
+          "/projects/studio73-1.png",
+          "/projects/studio73-2.png",
+          "/projects/studio73-3.png",
+          "/projects/studio73-4.png",
+          "/projects/studio73-5.png",
+          "/projects/studio73-6.png",
+          "/projects/studio73-7.png",
+          "/projects/studio73-8.png",
+          "/projects/studio73-9.png",
+          "/projects/studio73-10.png",
+          "/projects/studio73-11.png",
+          "/projects/studio73-12.png",
+        ],
       },
     ],
   },
@@ -269,7 +349,7 @@ const WORK_HISTORY: EmployerEntry[] = [
         id: "kaironyx",
         title: "Kaironyx Labs",
         description: "kaironyx-labs-landing.pages.dev.",
-        image: "/projects/kaironyx-logo.webp",
+        image: "/projects/kaironyx-1.webp",
       },
       {
         id: "catatumbo",
@@ -287,6 +367,7 @@ const WORK_HISTORY: EmployerEntry[] = [
         id: "pixieplayevents",
         title: "PixiePlayEvents.com",
         description: "Sitio de gestión de eventos.",
+        image: "/projects/pixie-play-2.webp",
       },
     ],
   },
@@ -344,7 +425,7 @@ function ProjectDetailView({
         )}
       </Carousel>
 
-      <p className="font-sans text-[10px] leading-relaxed text-muted-foreground">
+      <p className="font-sans text-xs leading-relaxed text-muted-foreground">
         {project.architecture}
       </p>
 
@@ -354,7 +435,7 @@ function ProjectDetailView({
             key={tech}
             variant="outline"
             font="normal"
-            className="px-1.5 py-0.5 text-[9px]"
+            className="px-1.5 py-0.5 text-[11px]"
           >
             {tech}
           </Badge>
@@ -434,9 +515,27 @@ function WorkItemRow({ item }: { item: WorkItem }) {
 
       <div className="min-w-0 flex-1">
         <p className="text-xs font-bold">{item.title}</p>
-        <p className="mt-0.5 font-sans text-[10px] leading-relaxed text-muted-foreground">
+        <p className="mt-0.5 font-sans text-xs leading-relaxed text-muted-foreground">
           {item.description}
         </p>
+        {item.images && item.images.length > 1 && (
+          <Carousel className="mt-2 px-8">
+            <CarouselContent>
+              {item.images.map((image, index) => (
+                <CarouselItem key={image + index}>
+                  <img
+                    src={image}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-video w-full border-y-4 border-foreground bg-background object-cover dark:border-ring"
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        )}
       </div>
     </div>
   )
@@ -460,15 +559,15 @@ function EmployerSection({ employer }: { employer: EmployerEntry }) {
           />
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[10px] font-bold tracking-wide uppercase">
+          <p className="truncate text-xs font-bold tracking-wide uppercase">
             {employer.name}
           </p>
-          <p className="truncate font-sans text-[9px] text-muted-foreground">
+          <p className="truncate font-sans text-[11px] text-muted-foreground">
             {employer.role}
           </p>
         </div>
         {employer.period && (
-          <span className="shrink-0 font-sans text-[9px] text-muted-foreground">
+          <span className="shrink-0 font-sans text-[11px] text-muted-foreground">
             {employer.period}
           </span>
         )}
@@ -522,14 +621,14 @@ function WorkLogTabsList() {
       <TabsTrigger
         value="products"
         data-cuelume-toggle="page"
-        className="min-w-0 flex-1 truncate text-[9px] md:flex-none md:text-sm"
+        className="min-w-0 flex-1 truncate text-[11px] md:flex-none md:text-sm"
       >
         PROYECTOS
       </TabsTrigger>
       <TabsTrigger
         value="trajectory"
         data-cuelume-toggle="page"
-        className="min-w-0 flex-1 truncate text-[9px] md:flex-none md:text-sm"
+        className="min-w-0 flex-1 truncate text-[11px] md:flex-none md:text-sm"
       >
         EXPERIENCIA
       </TabsTrigger>
