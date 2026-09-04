@@ -56,7 +56,7 @@ export function QuestTracker() {
           Misiones
         </p>
         <p
-          className="font-sans text-[10px] font-bold"
+          className="font-sans text-xs font-bold"
           style={{ ...TEXT_OUTLINE, color: "#f5f5f5" }}
         >
           {readyCount}/{activeQuests.length} {completedLabel}
@@ -72,7 +72,7 @@ export function QuestTracker() {
           </p>
           {questStatuses[quest.id] === "ready" && (
             <p
-              className="font-sans text-[10px] font-bold"
+              className="font-sans text-xs font-bold"
               style={{ ...TEXT_OUTLINE, color: "#ffd100" }}
             >
               ¡Lista para entregar!
@@ -83,7 +83,7 @@ export function QuestTracker() {
             return (
               <p
                 key={objective.id}
-                className="font-sans text-[10px] leading-snug md:text-[11px]"
+                className="font-sans text-xs leading-snug md:text-xs"
                 style={{
                   ...TEXT_OUTLINE,
                   color: done ? "#9ca3af" : "#f5f5f5",

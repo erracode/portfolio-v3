@@ -33,14 +33,14 @@ export function ChatBox() {
 
       <div ref={scrollRef} className="max-h-32 overflow-y-auto p-2">
         {logs.map((entry) => (
-          <p key={entry.id} className="text-[10px] leading-relaxed break-words">
+          <p key={entry.id} className="text-xs leading-relaxed break-words">
             <span className={`font-semibold ${CHANNEL_COLOR[entry.channel]}`}>
               [{CHANNEL_LABEL[entry.channel]}]
             </span>{" "}
             {entry.message}
           </p>
         ))}
-        <p className="animate-pulse text-[10px] text-foreground">{">"} _</p>
+        <p className="animate-pulse text-xs text-foreground">{">"} _</p>
       </div>
 
       {/* Pixel-frame recipe: side borders step outward past the top/bottom ones. */}

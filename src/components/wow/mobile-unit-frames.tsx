@@ -53,7 +53,7 @@ export function MobileUnitFrames() {
           aria-label="Marco de objetivo"
           className="flex flex-col gap-1 border-y-4 border-foreground bg-card p-2 shadow-lg dark:border-ring"
         >
-          <h3 className="truncate text-[10px] leading-snug">{target.name}</h3>
+          <h3 className="truncate text-xs leading-snug">{target.name}</h3>
           <StatBar
             label="Vida del objetivo"
             stat={{ current: target.health, max: target.maxHealth }}

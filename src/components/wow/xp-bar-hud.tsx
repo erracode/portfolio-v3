@@ -27,7 +27,7 @@ export function XpBarHud() {
       }`}
       style={{ width: isMobile ? WORLD_CONFIG.mobile.actionBarWidth : ACTION_BAR_WIDTH }}
     >
-      <span className="font-sans text-[9px] font-bold text-muted-foreground">
+      <span className="font-sans text-[11px] font-bold text-muted-foreground">
         Nv. {level}
       </span>
       <XpBar value={progress} className="h-2 flex-1" />

@@ -37,7 +37,7 @@ export function PlayerUnitFrame() {
         </Avatar>
         {/* <Badge
           variant="outline"
-          className="absolute -bottom-1.5 -left-2 z-10 bg-card text-[9px] leading-none"
+          className="absolute -bottom-1.5 -left-2 z-10 bg-card text-[11px] leading-none"
         >
           Lv. {player.level}
         </Badge> */}

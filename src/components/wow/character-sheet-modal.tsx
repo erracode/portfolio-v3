@@ -163,7 +163,7 @@ function GearSlotBox({ item, label }: { item?: GearItem; label: string }) {
           />
         </div>
       </TooltipTrigger>
-      <TooltipContent side="top" font="normal" className="text-[10px]">
+      <TooltipContent side="top" font="normal" className="text-xs">
         {item ? item.name : "Slot vacío — próximamente"}
       </TooltipContent>
     </Tooltip>
@@ -183,7 +183,7 @@ function GearColumn({ labels }: { labels: readonly string[] }) {
 function AttributeRow({ attribute }: { attribute: Attribute }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="font-sans text-[10px] font-bold tracking-wide uppercase">
+      <span className="font-sans text-xs font-bold tracking-wide uppercase">
         {attribute.label}
       </span>
       <div className="flex gap-0.5" aria-hidden="true">
@@ -218,14 +218,14 @@ function AttributesPanel() {
         </p>
 
         <div>
-          <h3 className="font-sans text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+          <h3 className="font-sans text-xs font-bold tracking-widest text-muted-foreground uppercase">
             Bio
           </h3>
           <p className="mt-1 font-sans text-xs leading-relaxed">{BIO_TEXT}</p>
         </div>
 
         <div>
-          <h3 className="font-sans text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+          <h3 className="font-sans text-xs font-bold tracking-widest text-muted-foreground uppercase">
             Atributos
           </h3>
           <div className="mt-2 flex flex-col gap-1.5">
@@ -236,7 +236,7 @@ function AttributesPanel() {
         </div>
 
         <div>
-          <h3 className="font-sans text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+          <h3 className="font-sans text-xs font-bold tracking-widest text-muted-foreground uppercase">
             Liderazgo
           </h3>
           <p className="mt-1 font-sans text-xs leading-relaxed">
@@ -327,7 +327,7 @@ function DownloadsTab() {
               <Download className="size-4" aria-hidden="true" />
               {item.label}
             </span>
-            <span className="text-[10px] font-bold text-primary uppercase">
+            <span className="text-xs font-bold text-primary uppercase">
               {item.lang}
             </span>
           </a>

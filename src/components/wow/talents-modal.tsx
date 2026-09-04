@@ -370,10 +370,10 @@ function TalentNode({ node }: { node: TalentNodeData }) {
               className="pointer-events-none absolute inset-0 -mx-1.5 border-x-6 border-inherit"
             />
           </div>
-          <span className="max-w-16 text-center text-[9px] leading-tight font-bold">
+          <span className="max-w-16 text-center text-[11px] leading-tight font-bold">
             {node.name}
           </span>
-          <span className="text-[8px] font-bold text-emerald-500 uppercase">
+          <span className="text-xs font-bold text-emerald-500 uppercase">
             Desbloqueado
           </span>
         </div>
@@ -386,7 +386,7 @@ function TalentNode({ node }: { node: TalentNodeData }) {
         className="max-w-52 flex-col items-start gap-1"
       >
         <p className="text-[11px] font-bold">{node.name}</p>
-        <p className="text-[10px] leading-snug text-background/70">
+        <p className="text-xs leading-snug text-background/70">
           {node.description}
         </p>
       </TooltipContent>
@@ -463,11 +463,11 @@ function TalentNodeMobile({ node }: { node: TalentNodeData }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-bold">{node.name}</p>
-          <span className="shrink-0 text-[8px] font-bold text-emerald-500 uppercase">
+          <span className="shrink-0 text-xs font-bold text-emerald-500 uppercase">
             Desbloqueado
           </span>
         </div>
-        <p className="mt-0.5 font-sans text-[10px] leading-relaxed text-muted-foreground">
+        <p className="mt-0.5 font-sans text-xs leading-relaxed text-muted-foreground">
           {node.description}
         </p>
       </div>
@@ -526,12 +526,12 @@ function SpecCard({
           style={{ color: spec.badgeColor }}
           aria-hidden="true"
         />
-        <span className="min-w-0 text-[10px] font-bold tracking-wide uppercase">
+        <span className="min-w-0 text-xs font-bold tracking-wide uppercase">
           {spec.label}
         </span>
         {selected && (
           <span
-            className="ml-auto shrink-0 text-[9px] font-bold"
+            className="ml-auto shrink-0 text-[11px] font-bold"
             style={{ color: spec.badgeColor }}
           >
             ACTIVA
@@ -545,7 +545,7 @@ function SpecCard({
         <TalentChain nodes={spec.chain} />
       )}
 
-      <p className="font-sans text-[10px] leading-relaxed text-muted-foreground">
+      <p className="font-sans text-xs leading-relaxed text-muted-foreground">
         {spec.description}
       </p>
 
@@ -570,7 +570,7 @@ function StackTab() {
           key={branch.id}
           className="relative border-y-6 border-foreground bg-card p-3 dark:border-ring"
         >
-          <h3 className="border-b-4 border-border pb-2 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+          <h3 className="border-b-4 border-border pb-2 text-xs font-bold tracking-widest text-muted-foreground uppercase">
             {branch.label}
           </h3>
           <div className="mt-3 overflow-x-auto pb-1">
@@ -597,7 +597,7 @@ function StackTabMobile() {
           key={branch.id}
           className="relative border-y-6 border-foreground bg-card p-3 dark:border-ring"
         >
-          <h3 className="border-b-4 border-border pb-2 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+          <h3 className="border-b-4 border-border pb-2 text-xs font-bold tracking-widest text-muted-foreground uppercase">
             {branch.label}
           </h3>
           <div className="mt-3">
@@ -641,14 +641,14 @@ function TalentsTabsList() {
       <TabsTrigger
         value="specialization"
         data-cuelume-toggle="page"
-        className="min-w-0 flex-1 truncate text-[9px] md:flex-none md:text-sm"
+        className="min-w-0 flex-1 truncate text-[11px] md:flex-none md:text-sm"
       >
         Especialización
       </TabsTrigger>
       <TabsTrigger
         value="talents"
         data-cuelume-toggle="page"
-        className="min-w-0 flex-1 truncate text-[9px] md:flex-none md:text-sm"
+        className="min-w-0 flex-1 truncate text-[11px] md:flex-none md:text-sm"
       >
         <span className="md:hidden">Stack</span>
         <span className="hidden md:inline">Stack & Talentos</span>

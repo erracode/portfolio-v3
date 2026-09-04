@@ -33,12 +33,12 @@ function ContactRow({ link }: { link: ContactLink }) {
 
       <div className="min-w-0 flex-1">
         <p className="text-xs font-bold">{link.name}</p>
-        <p className="truncate font-sans text-[10px] text-muted-foreground">
+        <p className="truncate font-sans text-xs text-muted-foreground">
           {link.handle}
         </p>
       </div>
 
-      <span className="shrink-0 font-sans text-[9px] text-muted-foreground">
+      <span className="shrink-0 font-sans text-[11px] text-muted-foreground">
         {link.description}
       </span>
 
@@ -60,7 +60,7 @@ function SocialHeader() {
       className="cursor-move touch-none border-b-4 border-border px-4 py-3 pr-12 select-none"
     >
       <h2 className="retro text-xs leading-snug">{SOCIAL_TITLE}</h2>
-      <p className="mt-0.5 font-sans text-[10px] text-muted-foreground">
+      <p className="mt-0.5 font-sans text-xs text-muted-foreground">
         Canales de comunicación y presencia profesional
       </p>
     </header>

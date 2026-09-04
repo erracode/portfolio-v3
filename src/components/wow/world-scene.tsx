@@ -58,14 +58,14 @@ function InteractPrompt({ onInteract }: { onInteract: () => void }) {
         }}
         className={positionClassName}
       >
-        <p className="retro text-[10px]">Interactuar</p>
+        <p className="retro text-xs">Interactuar</p>
       </button>
     )
   }
 
   return (
     <div className={`pointer-events-none ${positionClassName}`}>
-      <p className="retro text-[10px]">Presiona E</p>
+      <p className="retro text-xs">Presiona E</p>
     </div>
   )
 }

@@ -50,7 +50,7 @@ export function MobileChatBox() {
             {logs.map((entry) => (
               <p
                 key={entry.id}
-                className="px-2 py-0.5 text-[10px] leading-relaxed break-words"
+                className="px-2 py-0.5 text-xs leading-relaxed break-words"
               >
                 <span className={`font-semibold ${CHANNEL_COLOR[entry.channel]}`}>
                   [{CHANNEL_LABEL[entry.channel]}]

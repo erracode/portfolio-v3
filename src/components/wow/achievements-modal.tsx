@@ -100,12 +100,12 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
           <Badge
             variant="outline"
             font="normal"
-            className="shrink-0 px-1.5 py-0.5 text-[8px]"
+            className="shrink-0 px-1.5 py-0.5 text-xs"
           >
             {achievement.category}
           </Badge>
         </div>
-        <p className="mt-0.5 font-sans text-[10px] leading-relaxed text-muted-foreground">
+        <p className="mt-0.5 font-sans text-xs leading-relaxed text-muted-foreground">
           {achievement.description}
         </p>
       </div>

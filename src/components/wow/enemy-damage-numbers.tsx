@@ -22,7 +22,7 @@ function DamageNumber({
 
   return (
     <span
-      className={`retro absolute text-[9px] [text-shadow:0_1px_2px_rgba(0,0,0,0.9)] ${
+      className={`retro absolute text-[11px] [text-shadow:0_1px_2px_rgba(0,0,0,0.9)] ${
         event.isMiss ? "text-gray-300" : "text-yellow-300"
       }`}
       style={{ animation: `float-damage ${DAMAGE_TEXT_MS}ms ease-out forwards` }}

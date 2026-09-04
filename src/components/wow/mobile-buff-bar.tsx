@@ -52,7 +52,7 @@ export function MobileBuffBar() {
               ))}
             </span>
             {restCount > 0 && (
-              <span className="retro text-[8px] leading-none">+{restCount}</span>
+              <span className="retro text-xs leading-none">+{restCount}</span>
             )}
             <div
               aria-hidden="true"
@@ -62,7 +62,7 @@ export function MobileBuffBar() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" side="bottom">
           {skills.map((skill) => (
-            <DropdownMenuItem key={skill.id} className="gap-2 text-[10px]">
+            <DropdownMenuItem key={skill.id} className="gap-2 text-xs">
               <img
                 src={skill.icon}
                 alt=""

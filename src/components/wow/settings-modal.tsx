@@ -25,7 +25,7 @@ function SettingsHeader() {
       className="cursor-move touch-none border-b-4 border-border px-4 py-3 pr-12 select-none"
     >
       <h2 className="retro text-xs leading-snug">{SETTINGS_TITLE}</h2>
-      <p className="mt-0.5 font-sans text-[10px] text-muted-foreground">
+      <p className="mt-0.5 font-sans text-xs text-muted-foreground">
         Controles de audio
       </p>
     </header>
@@ -45,7 +45,7 @@ function SettingsBody() {
             non-interactive Root wrapper, not the focusable Thumb — the
             Thumb gets its accessible name via `aria-label` instead (see
             `components/ui/8bit/slider.tsx`). */}
-        <Label className="text-[10px]">Volumen</Label>
+        <Label className="text-xs">Volumen</Label>
         <Slider
           aria-label="Volumen"
           value={[Math.round(volume * 100)]}
@@ -57,7 +57,7 @@ function SettingsBody() {
       </div>
 
       <div className="flex items-center justify-between">
-        <Label htmlFor="settings-muted" className="text-[10px]">
+        <Label htmlFor="settings-muted" className="text-xs">
           Silenciar
         </Label>
         <Switch

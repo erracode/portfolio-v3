@@ -34,7 +34,7 @@ function SkillIcon({ skill }: { skill: Skill }) {
           />
         </div>
       </TooltipTrigger>
-      <TooltipContent side="bottom" font="normal" className="text-[10px]">
+      <TooltipContent side="bottom" font="normal" className="text-xs">
         {skill.name}
       </TooltipContent>
     </Tooltip>
@@ -71,7 +71,7 @@ function SkillStackTrigger({ overflow }: { overflow: readonly Skill[] }) {
               />
             ))}
           </span>
-          <span className="retro text-[8px] leading-none">+{overflow.length}</span>
+          <span className="retro text-[10px] leading-none">+{overflow.length}</span>
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 -mx-1.5 border-x-6 border-inherit"

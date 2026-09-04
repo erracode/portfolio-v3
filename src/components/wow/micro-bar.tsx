@@ -117,7 +117,7 @@ export function MicroBar() {
                     key={section.id}
                     aria-label={hint}
                     onSelect={() => toggleWindow(section.id)}
-                    className="gap-2 text-[10px]"
+                    className="gap-2 text-xs"
                     data-cuelume-press
                     data-cuelume-release
                   >
@@ -152,7 +152,7 @@ export function MicroBar() {
                       <Icon aria-hidden="true" />
                     </Toggle>
                   </TooltipTrigger>
-                  <TooltipContent side="top" font="normal" className="text-[10px]">
+                  <TooltipContent side="top" font="normal" className="text-xs">
                     {hint}
                   </TooltipContent>
                 </Tooltip>

@@ -43,7 +43,7 @@ export function StatBar({ label, stat, progressBg, alwaysShowValue, barClassName
       />
       <span
         className={cn(
-          "pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] leading-none font-semibold tabular-nums text-white opacity-0 transition-opacity [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]",
+          "pointer-events-none absolute inset-0 flex items-center justify-center text-xs leading-none font-semibold tabular-nums text-white opacity-0 transition-opacity [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]",
           alwaysShowValue ? "opacity-100" : "group-hover:opacity-100"
         )}
       >
