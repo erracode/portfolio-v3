@@ -156,8 +156,12 @@ export const WORLD_CONFIG = {
     interactRadius: 2,
   },
   axe: {
-    damageMin: 320,
-    damageMax: 480,
+    // 320-480 → 240-360 (avg 400 → 300): the cooldown dropped to 1500ms, so
+    // per-hit damage came down to keep DPS from spiking ~67%. Net effect is
+    // same-ish total damage but with faster, lighter hits — and a guard
+    // (1000 HP) now takes ~4 hits instead of ~3.
+    damageMin: 240,
+    damageMax: 360,
     /** Base miss rate — a reasonable WoW-ish 90% hit chance, not punishing. */
     hitChance: 0.9,
     // 2500 → 1500: faster reload per user request. The cooldown-wipe
