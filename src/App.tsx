@@ -15,10 +15,22 @@ import { QuestTracker } from "@/components/wow/quest-tracker"
 import { TargetFrame } from "@/components/wow/target-frame"
 import { WorldScene } from "@/components/wow/world-scene"
 import { XpBarHud } from "@/components/wow/xp-bar-hud"
+import { ResumePage } from "@/components/resume/resume-page"
 import { useIsMobile } from "@/lib/use-is-mobile"
+
+/** `?resume` swaps the whole game for a traditional CV page — a query flag
+ * rather than a `/resume` path, since a path route would 404 on a hard
+ * refresh without a server-side rewrite this static host may not have. */
+function wantsResumeView(): boolean {
+  return new URLSearchParams(window.location.search).has("resume")
+}
 
 export function App() {
   const isMobile = useIsMobile()
+
+  if (wantsResumeView()) {
+    return <ResumePage />
+  }
 
   return (
     <div className="flex min-h-svh p-6">

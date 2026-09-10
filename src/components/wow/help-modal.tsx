@@ -110,6 +110,14 @@ function HelpBody() {
           a la vez y arrastralas por la pantalla.
         </p>
       </div>
+
+      <p className="font-sans text-xs text-muted-foreground">
+        ¿Preferís el CV tradicional?{" "}
+        <a href="/?resume" className="text-foreground hover:underline">
+          Vé directo al currículum
+        </a>
+        .
+      </p>
     </div>
   )
 }
