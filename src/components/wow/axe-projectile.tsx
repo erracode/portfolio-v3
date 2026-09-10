@@ -4,6 +4,14 @@ import * as THREE from "three"
 
 const AXE_FRAME_COUNT = 8
 const AXE_SHEET_SRC = "/game/axe-sheet.png"
+
+// Warms `useLoader`'s cache as soon as this module evaluates (Canvas mount,
+// via `WorldCombatController`'s static import), not on the player's first
+// actual cast. Without this, the first `useLoader` call below happens
+// inside `<Canvas>`'s own implicit Suspense boundary with no fallback —
+// R3F unmounts the *entire* scene while the texture loads, which read as
+// the whole screen blanking out for a frame on the first axe throw.
+useLoader.preload(THREE.TextureLoader, AXE_SHEET_SRC)
 const FRAME_U = 1 / AXE_FRAME_COUNT // 220x220 square frames, single row
 const SPIN_FPS = 24
 // World-unit footprint — sized against the player/guards' own ~1.5-unit

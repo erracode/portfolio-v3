@@ -120,8 +120,18 @@ export const WORLD_CONFIG = {
     /** Feature flag: when true, a guard that has already aggroed (started
      * fighting the player) NEVER transitions to "leash" — it keeps chasing
      * and attacking even past `leashRadius` until either it or the player
-     * dies. Set to false to restore the classic walk-home-and-heal behavior. */
-    noLeash: true,
+     * dies. Set to false to restore the classic walk-home-and-heal behavior.
+     *
+     * Back to false: with no player healing and Ferris/Gopher's aggro
+     * circles overlapping right at the chest (so fighting there pulls both
+     * at once), `noLeash: true` left no way out of a bad pull — the fight
+     * was to the death, full stop. Restoring leash gives the player an
+     * escape valve (run past `leashRadius` and the guard(s) break off) at
+     * the cost of reopening the classic hit-and-retreat kiting exploit —
+     * an acceptable trade for a portfolio piece, where "recruiter gets
+     * stuck in an unwinnable fight" is a worse outcome than "someone
+     * cheeses the guards". */
+    noLeash: false,
     attackRange: 1.4,
     // Was 240-360 (avg 300) at a 1400ms cooldown. Fixing the aggro-on-hit
     // gap (guards used to only aggro on proximity, so a ranged axe poke from

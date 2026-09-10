@@ -15,6 +15,11 @@ const PLAYER_HIT_SOUNDS = [
   "/sounds/1hDaggerHitFleshC.ogg",
 ]
 const PLAYER_DEATH_SOUNDS = ["/sounds/OrcMaleDeath.ogg"]
+const ENEMY_HIT_SOUNDS = [
+  "/sounds/m1hAxeHitFlesh1a.ogg",
+  "/sounds/m1hAxeHitFlesh1b.ogg",
+  "/sounds/m1hAxeHitFlesh1c.ogg",
+]
 
 export interface EnemyCombatState {
   id: string
@@ -165,6 +170,7 @@ export const useCombatStore = create<CombatState>()((set, get) => ({
 
     const health = Math.max(enemy.health - amount, 0)
     const isDead = health <= 0
+    playRandomSound(ENEMY_HIT_SOUNDS)
     if (isDead) play("chime")
 
     set((state) => ({
