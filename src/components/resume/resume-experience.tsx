@@ -1,5 +1,6 @@
 import { ResumeSection } from "@/components/resume/resume-section"
-import { RESUME, type ResumeWorkEntry } from "@/data/resume"
+import type { ResumeWorkEntry } from "@/data/resume"
+import { useResumeContent } from "@/lib/use-resume-content"
 
 function WorkEntry({ entry }: { entry: ResumeWorkEntry }) {
   return (
@@ -25,9 +26,11 @@ function WorkEntry({ entry }: { entry: ResumeWorkEntry }) {
 }
 
 export function ResumeExperience() {
+  const { resume, labels } = useResumeContent()
+
   return (
-    <ResumeSection title="Experience">
-      {RESUME.work.map((entry) => (
+    <ResumeSection title={labels.experience}>
+      {resume.work.map((entry) => (
         <WorkEntry key={entry.company} entry={entry} />
       ))}
     </ResumeSection>

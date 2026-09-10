@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Command, Printer, Gamepad2 } from "lucide-react"
+import { Command, Languages, Printer, Gamepad2 } from "lucide-react"
 
 import { Button } from "@/components/ui/8bit/button"
 import {
@@ -12,6 +12,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/8bit/command"
 import { CONTACT_LINKS } from "@/data/sections"
+import { useResumeContent } from "@/lib/use-resume-content"
 
 /** Cmd/Ctrl+K command palette — same idea as the reference site's
  * `KeyboardManager`, rebuilt on the project's own `@8bitcn/command`
@@ -19,6 +20,7 @@ import { CONTACT_LINKS } from "@/data/sections"
  * dialog on the site instead of adding a one-off dependency. */
 export function ResumeCommandPalette() {
   const [open, setOpen] = useState(false)
+  const { toggleLocale, labels } = useResumeContent()
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -44,35 +46,38 @@ export function ResumeCommandPalette() {
           this is just a discoverable trigger for anyone without a
           keyboard, same role as the reference site's mobile floating
           button. */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => setOpen(true)}
-        title="Open commands"
-        className="fixed top-4 right-4 z-30 print:hidden"
-      >
-        <Command />
-      </Button>
+      <div className="fixed top-4 right-4 z-30 flex gap-2 print:hidden">
+        <Button variant="outline" size="icon" onClick={toggleLocale} title={labels.language}>
+          <Languages />
+        </Button>
+        <Button variant="outline" size="icon" onClick={() => setOpen(true)} title={labels.openCommands}>
+          <Command />
+        </Button>
+      </div>
 
       <p className="fixed bottom-4 left-1/2 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
-        Press <CommandShortcut className="mx-1">Ctrl/Cmd + K</CommandShortcut> for commands
+        <CommandShortcut className="mx-1">Ctrl/Cmd + K</CommandShortcut> {labels.pressForCommands}
       </p>
 
-      <CommandDialog open={open} onOpenChange={setOpen} title="Commands" description="Print, go back, or reach out">
-        <CommandInput placeholder="Search a command..." />
+      <CommandDialog open={open} onOpenChange={setOpen} title={labels.openCommands} description={labels.searchCommand}>
+        <CommandInput placeholder={labels.searchCommand} />
         <CommandList>
-          <CommandEmpty>No matching command.</CommandEmpty>
-          <CommandGroup heading="Actions">
+          <CommandEmpty>{labels.noMatch}</CommandEmpty>
+          <CommandGroup heading={labels.actions}>
             <CommandItem onSelect={() => run(() => window.print())}>
               <Printer />
-              Print / Save as PDF
+              {labels.print}
             </CommandItem>
             <CommandItem onSelect={() => run(() => { window.location.href = "/" })}>
               <Gamepad2 />
-              Back to portfolio
+              {labels.backToPortfolio}
+            </CommandItem>
+            <CommandItem onSelect={() => run(toggleLocale)}>
+              <Languages />
+              {labels.language}
             </CommandItem>
           </CommandGroup>
-          <CommandGroup heading="Contact">
+          <CommandGroup heading={labels.contact}>
             {CONTACT_LINKS.map((link) => {
               // GitHub's mark is solid black-on-transparent — it needs a
               // white backing or it vanishes in dark mode, unlike

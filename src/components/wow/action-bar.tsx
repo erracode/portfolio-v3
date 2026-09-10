@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { play } from "cuelume"
+import { FileUser } from "lucide-react"
 
 import { Toggle } from "@/components/ui/8bit/toggle"
 import {
@@ -15,6 +16,10 @@ import { WORLD_CONFIG } from "@/lib/world-config"
 
 const SLOT_COUNT = 9
 const AXE_SLOT_INDEX = 1
+/** A non-combat "ability" — jumps to the traditional resume escape hatch
+ * (see `ResumePage`), for visitors who'd rather read a CV than fight
+ * guards. */
+const RESUME_SLOT_INDEX = 2
 /** axe-sheet.png is 8 square frames (1760/220) in a single row. Sizing the
  * background as a percentage of the icon's OWN box keeps frame 0 exactly
  * filling that box — but the box itself must be pinned to an EXPLICIT
@@ -92,6 +97,7 @@ export function ActionBar() {
     setActiveSlot(index)
     useLogStore.getState().addLog("system", `Ranura de acción ${index} activada`)
     if (index === AXE_SLOT_INDEX) useCombatStore.getState().requestAxeCast()
+    if (index === RESUME_SLOT_INDEX) window.location.href = "/?resume"
     if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current)
     timeoutRef.current = window.setTimeout(() => setActiveSlot(null), 150)
   }, [])
@@ -128,15 +134,21 @@ export function ActionBar() {
       >
         {Array.from({ length: SLOT_COUNT }, (_, i) => i + 1).map((index) => {
           const slot = index === AXE_SLOT_INDEX
+          const resumeSlot = index === RESUME_SLOT_INDEX
           const tooltipContent = slot
             ? {
                 title: "Lanzar Hacha",
                 description: `Lanza tu hacha contra el objetivo. Recarga: ${WORLD_CONFIG.axe.cooldownMs / 1000}s.`,
               }
-            : {
-                title: `Ranura ${index}`,
-                description: "Ranura vacía — se asignará desde el Grimorio.",
-              }
+            : resumeSlot
+              ? {
+                  title: "Ver CV",
+                  description: "Salí del juego y mirá el currículum tradicional.",
+                }
+              : {
+                  title: `Ranura ${index}`,
+                  description: "Ranura vacía — se asignará desde el Grimorio.",
+                }
 
           const toggle = (
             <Toggle
@@ -172,6 +184,12 @@ export function ActionBar() {
                     size={isMobile ? AXE_ICON_SIZE.mobile : AXE_ICON_SIZE.desktop}
                   />
                 </>
+              )}
+              {resumeSlot && (
+                <FileUser
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 m-auto size-4"
+                />
               )}
               <span
                 aria-hidden="true"

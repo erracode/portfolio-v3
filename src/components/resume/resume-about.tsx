@@ -1,10 +1,12 @@
 import { ResumeSection } from "@/components/resume/resume-section"
-import { RESUME } from "@/data/resume"
+import { useResumeContent } from "@/lib/use-resume-content"
 
 export function ResumeAbout() {
+  const { resume, labels } = useResumeContent()
+
   return (
-    <ResumeSection title="Summary">
-      <p className="font-sans text-xs leading-relaxed">{RESUME.summary}</p>
+    <ResumeSection title={labels.summary}>
+      <p className="font-sans text-xs leading-relaxed">{resume.summary}</p>
     </ResumeSection>
   )
 }

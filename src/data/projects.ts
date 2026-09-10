@@ -7,6 +7,9 @@ export interface ProjectEntry {
   liveUrl?: string
   category: string
   summary: string
+  /** English translation of `summary` — only the resume page's EN view
+   * uses this; `WorkLogModal` (in-game) always renders `summary` (Spanish). */
+  summaryEn: string
   architecture: string
   stack: string[]
   images: string[]
@@ -26,6 +29,7 @@ export const PROJECTS: ProjectEntry[] = [
     category: "Producto SaaS",
     summary:
       "Sheet-to-Store Engine — motor de tiendas online generadas a partir de hojas de cálculo.",
+    summaryEn: "Sheet-to-Store Engine — turns a Google Sheet into a real online store.",
     architecture:
       "Monorepo desplegado en Cloudflare Workers, con backend en Hono sobre runtime Bun y frontend en React 19 + Tailwind CSS v4. Persistencia y autenticación vía Supabase. Incluye un dashboard de gestión de catálogo y un módulo linktree independiente (paugurumi.aquetienda.com/links) que comparte el mismo monorepo y pipeline de despliegue.",
     stack: [
@@ -52,6 +56,7 @@ export const PROJECTS: ProjectEntry[] = [
     liveUrl: "https://petsosciety.app",
     category: "Plataforma Comunitaria",
     summary: "Red comunitaria para reporte y búsqueda de mascotas perdidas.",
+    summaryEn: "Community network for reporting and finding lost pets.",
     architecture:
       "Aplicación Next.js con Supabase como backend (Postgres + Realtime), usada para sincronizar en vivo un mapa interactivo de reportes. Estado de UI manejado con Zustand, animaciones con GSAP y contenido editorial servido como MDX.",
     stack: ["Next.js", "Supabase", "Zustand", "GSAP", "MDX", "shadcn/ui"],
@@ -69,6 +74,7 @@ export const PROJECTS: ProjectEntry[] = [
     liveUrl: "https://aquetasa.app",
     category: "App + Landing",
     summary: "Monitor de tasas de cambio con landing informativa y app móvil.",
+    summaryEn: "Exchange-rate monitor with an informational landing page and a mobile app.",
     architecture:
       "Landing site construido en Astro para maximizar el rendimiento de la primera carga, desacoplado de una aplicación móvil independiente en React Native que consume la misma fuente de tasas.",
     stack: ["Astro", "React Native"],
@@ -88,6 +94,7 @@ export const PROJECTS: ProjectEntry[] = [
     category: "Herramienta Interna",
     summary:
       "Herramienta de estimación ágil (planning poker) adoptada internamente por equipos de ingeniería.",
+    summaryEn: "Agile estimation tool (planning poker), adopted internally by engineering teams.",
     architecture:
       "SPA en React + TypeScript con componentes de Radix UI, sin backend propio: la sincronización de sesiones se resuelve completamente en el cliente. Adoptada como herramienta de facto en ceremonias de estimación de varios equipos.",
     stack: ["React", "TypeScript", "Radix UI"],
@@ -105,6 +112,7 @@ export const PROJECTS: ProjectEntry[] = [
     domain: "Servidor MCP",
     category: "Servidor MCP",
     summary: "Servidor MCP con búsqueda semántica sobre notas de Obsidian.",
+    summaryEn: "MCP server with semantic search over Obsidian notes.",
     architecture:
       "Servidor que implementa el Model Context Protocol (MCP), exponiendo búsqueda semántica (RAG) sobre un vault de Obsidian e integrándola con work items de Azure DevOps, para consultar contexto de notas técnicas directamente durante el flujo de trabajo.",
     stack: ["MCP", "RAG", "Azure DevOps"],
@@ -119,6 +127,7 @@ export const PROJECTS: ProjectEntry[] = [
     category: "Contest / Landing Page",
     summary:
       "Landing para Engram, memoria persistente para agentes de IA — presentada en un concurso de landings.",
+    summaryEn: "Landing page for Engram, persistent memory for AI agents — submitted to a landing-page contest.",
     architecture:
       "Landing en Astro con escena 3D de React Three Fiber, estilos con Tailwind CSS v4 y animaciones con Framer Motion, desplegada en Cloudflare Pages.",
     stack: ["Astro", "React 19", "Three.js", "Tailwind CSS v4", "Cloudflare Pages"],

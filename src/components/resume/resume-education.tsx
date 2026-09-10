@@ -1,11 +1,13 @@
 import { ResumeSection } from "@/components/resume/resume-section"
-import { RESUME } from "@/data/resume"
+import { useResumeContent } from "@/lib/use-resume-content"
 
 export function ResumeEducation() {
+  const { resume, labels } = useResumeContent()
+
   return (
-    <ResumeSection title="Education">
+    <ResumeSection title={labels.education}>
       <p className="font-sans text-xs leading-relaxed">
-        {RESUME.education.degree} — {RESUME.education.school} ({RESUME.education.period})
+        {resume.educationDegree} — {resume.education.school} ({resume.education.period})
       </p>
     </ResumeSection>
   )

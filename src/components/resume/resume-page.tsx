@@ -26,9 +26,9 @@ export function ResumePage() {
         <ResumeHero />
         <ResumeAbout />
         <ResumeExperience />
+        <ResumeEducation />
         <ResumeProjects />
         <ResumeSkills />
-        <ResumeEducation />
       </div>
 
       <ResumeCommandPalette />
