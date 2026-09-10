@@ -20,35 +20,43 @@ export function ResumeHero() {
           {/* Hover/focus flips from the real photo to the in-game NPC
                 sprite ("Guardián del Portfolio", modeled on the user) — a
                 small wink back to the portfolio this page is an escape
-                hatch from. */}
-          <PixelTransition
-            firstContent={
-              <img
-                src={resume.photo}
-                alt={resume.name}
-                className="h-full w-full object-cover"
-              />
-            }
-            secondContent={
-              <div className="flex h-full w-full items-center justify-center bg-card">
-                <SpriteAnimation
-                  src={NPC_SPRITE.src}
-                  frameWidth={NPC_SPRITE.frameWidth}
-                  frameHeight={NPC_SPRITE.frameHeight}
-                  frameCount={NPC_SPRITE.rows.idle.frameCount}
-                  sheetWidth={NPC_SPRITE.sheetWidth}
-                  sheetHeight={NPC_SPRITE.sheetHeight}
-                  fps={2}
-                  scale={AVATAR_SIZE / NPC_SPRITE.frameWidth}
-                  aria-label={`${resume.name} — in-game avatar`}
+                hatch from.
+                `isolate` traps PixelTransition's internal z-index (its
+                "active" layer sits at z-index:2) inside this box — without
+                it, that z-index has no stacking context to stop at (the
+                Avatar root is only `position:relative`, no z-index of its
+                own) and escapes to paint over the Avatar's own pixel-border
+                decorations, which sit right outside as plain siblings. */}
+          <div className="relative isolate h-full w-full">
+            <PixelTransition
+              firstContent={
+                <img
+                  src={resume.photo}
+                  alt={resume.name}
+                  className="h-full w-full object-cover"
                 />
-              </div>
-            }
-            gridSize={8}
-            pixelColor="var(--foreground)"
-            animationStepDuration={0.35}
-            className="!h-full !w-full !rounded-none !border-0 !bg-transparent"
-          />
+              }
+              secondContent={
+                <div className="flex h-full w-full items-center justify-center bg-card">
+                  <SpriteAnimation
+                    src={NPC_SPRITE.src}
+                    frameWidth={NPC_SPRITE.frameWidth}
+                    frameHeight={NPC_SPRITE.frameHeight}
+                    frameCount={NPC_SPRITE.rows.idle.frameCount}
+                    sheetWidth={NPC_SPRITE.sheetWidth}
+                    sheetHeight={NPC_SPRITE.sheetHeight}
+                    fps={2}
+                    scale={AVATAR_SIZE / NPC_SPRITE.frameWidth}
+                    aria-label={`${resume.name} — in-game avatar`}
+                  />
+                </div>
+              }
+              gridSize={8}
+              pixelColor="var(--foreground)"
+              animationStepDuration={0.35}
+              className="!h-full !w-full !rounded-none !border-0 !bg-transparent"
+            />
+          </div>
         </Avatar>
 
         <div className="min-w-0">
