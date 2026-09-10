@@ -1,4 +1,4 @@
-import { BookOpen, ScrollText, Settings, Trophy, User, Users } from "lucide-react"
+import { BookOpen, CircleHelp, ScrollText, Settings, Trophy, User, Users } from "lucide-react"
 
 export const SECTIONS = [
   { id: "character", label: "Hoja de Personaje", hotkey: "c", icon: User },
@@ -11,6 +11,7 @@ export const SECTIONS = [
   { id: "spellbook", label: "Stack & Talentos", hotkey: "p", icon: BookOpen },
   { id: "achievements", label: "Logros & Hitos", hotkey: "y", icon: Trophy },
   { id: "social", label: "Redes & Contacto", hotkey: "j", icon: Users },
+  { id: "help", label: "Guía & Controles", hotkey: "h", icon: CircleHelp },
   { id: "settings", label: "Opciones", hotkey: "o", icon: Settings },
 ] as const
 

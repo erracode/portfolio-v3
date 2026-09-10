@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/8bit/tooltip"
 import { AchievementsModal } from "@/components/wow/achievements-modal"
 import { CharacterSheetModal } from "@/components/wow/character-sheet-modal"
+import { HelpModal } from "@/components/wow/help-modal"
 import { SettingsModal } from "@/components/wow/settings-modal"
 import { SocialModal } from "@/components/wow/social-modal"
 import { TalentsModal } from "@/components/wow/talents-modal"
@@ -36,6 +37,10 @@ function isEditableElement(element: EventTarget | null): boolean {
   )
 }
 
+/** First-visit gate for auto-opening the Help window — persists once the
+ * visitor has seen (or manually closed) it, matching `ControlsHint`. */
+const HELP_SEEN_STORAGE_KEY = "wow-help-seen"
+
 /**
  * WoW-style micro menu fixed at the bottom-right corner — the single
  * integration point for all six main windows (Character, Work Log,
@@ -49,8 +54,19 @@ export function MicroBar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const openIds = useOpenWindowIds()
   const toggleWindow = useWindowsStore((state) => state.toggleWindow)
+  const openWindow = useWindowsStore((state) => state.openWindow)
   const closeWindow = useWindowsStore((state) => state.closeWindow)
   const closeFocused = useWindowsStore((state) => state.closeFocused)
+
+  // First visit only: open the Help window once so new visitors see the
+  // controls. Seen/dismissed visitors are remembered via localStorage, same
+  // persistence pattern as `ControlsHint`. Opening is fully in the windows
+  // store's hands afterward (H hotkey / micro-menu icon).
+  useEffect(() => {
+    if (window.localStorage.getItem(HELP_SEEN_STORAGE_KEY) === "true") return
+    window.localStorage.setItem(HELP_SEEN_STORAGE_KEY, "true")
+    openWindow("help")
+  }, [openWindow])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -188,6 +204,10 @@ export function MicroBar() {
       <SocialModal
         isOpen={openIds.includes("social")}
         onClose={() => closeWindow("social")}
+      />
+      <HelpModal
+        isOpen={openIds.includes("help")}
+        onClose={() => closeWindow("help")}
       />
       <SettingsModal
         isOpen={openIds.includes("settings")}

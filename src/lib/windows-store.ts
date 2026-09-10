@@ -56,6 +56,7 @@ const WINDOW_SIZE: Record<SectionId, { width: number; height: number }> = {
   spellbook: { width: 1024, height: 680 },
   achievements: { width: 672, height: 560 },
   social: { width: 448, height: 280 },
+  help: { width: 512, height: 520 },
   settings: { width: 400, height: 220 },
 }
 
