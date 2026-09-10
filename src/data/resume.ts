@@ -7,16 +7,17 @@ export interface ResumeWorkEntry {
   highlights: string[]
 }
 
-export interface ResumeProjectEntry {
+export interface ResumeSkillItem {
   name: string
-  description: string
-  stack: string
-  url?: string
+  /** Path under `public/tech/` — same logos `TalentsModal` uses. Left
+   * unset for tools with no logo asset (testing libs, payment gateways,
+   * architecture concepts) — the pill just renders without an icon. */
+  icon?: string
 }
 
 export interface ResumeSkillGroup {
   label: string
-  items: string
+  items: ResumeSkillItem[]
 }
 
 /**
@@ -79,55 +80,96 @@ export const RESUME = {
     },
   ] satisfies ResumeWorkEntry[],
 
-  projects: [
-    {
-      name: "aquetienda.com",
-      description: "Sheet-to-Store engine — turns a Google Sheet into a real online store.",
-      stack: "React 19, Bun, Hono, Tailwind CSS 4, shadcn/ui, Supabase, Turborepo",
-      url: "https://aquetienda.com",
-    },
-    {
-      name: "Story Point Poker",
-      description: "Agile estimation tool, in active use by multiple teams at SunDevs for sprint planning.",
-      stack: "React, TypeScript, Radix UI",
-    },
-    {
-      name: "petsosciety.app",
-      description: "Consumer pet-care platform.",
-      stack: "Next.js, GSAP, MDX",
-      url: "https://petsosciety.app",
-    },
-    {
-      name: "opencode-obsidian",
-      description: "MCP server connecting Obsidian notes to RAG semantic search and Azure DevOps automation.",
-      stack: "TypeScript, MCP",
-    },
-  ] satisfies ResumeProjectEntry[],
-
   skills: [
     {
       label: "Front-End",
-      items:
-        "React (17/18/19), TypeScript, Next.js, Redux Toolkit/Saga, Ant Design (v3→v5), Radix UI, shadcn/ui, Tailwind CSS, Styled Components, GSAP, @dnd-kit, CKEditor, Monaco Editor, SSR/SSG, i18n",
+      items: [
+        { name: "React (17/18/19)", icon: "/tech/react-logo.png" },
+        { name: "TypeScript", icon: "/tech/typescript-logo.png" },
+        { name: "Next.js", icon: "/tech/nextjs-logo.png" },
+        { name: "Redux Toolkit/Saga", icon: "/tech/redux-logo.png" },
+        { name: "Ant Design (v3→v5)" },
+        { name: "Radix UI" },
+        { name: "shadcn/ui" },
+        { name: "Tailwind CSS", icon: "/tech/tailwind-logo.png" },
+        { name: "Styled Components" },
+        { name: "GSAP" },
+        { name: "@dnd-kit" },
+        { name: "CKEditor" },
+        { name: "Monaco Editor" },
+        { name: "SSR/SSG" },
+        { name: "i18n" },
+      ],
     },
     {
       label: "Back-End",
-      items: "NestJS, Express, Hono, Node.js, PostgreSQL, MongoDB, TypeORM, Mongoose, Redis, Serverless (AWS Lambda)",
+      items: [
+        { name: "NestJS", icon: "/tech/nestjs-logo.png" },
+        { name: "Express", icon: "/tech/express-logo.png" },
+        { name: "Hono" },
+        { name: "Node.js", icon: "/tech/nodejs-logo.png" },
+        { name: "PostgreSQL", icon: "/tech/postgres-logo.png" },
+        { name: "MongoDB", icon: "/tech/mongodb-logo.png" },
+        { name: "TypeORM" },
+        { name: "Mongoose" },
+        { name: "Redis" },
+        { name: "Serverless (AWS Lambda)" },
+      ],
     },
-    { label: "Testing", items: "Jest, React Testing Library, Cypress (E2E), Vitest" },
+    {
+      label: "Testing",
+      items: [
+        { name: "Jest" },
+        { name: "React Testing Library" },
+        { name: "Cypress (E2E)" },
+        { name: "Vitest" },
+      ],
+    },
     {
       label: "Payments & Fintech",
-      items:
-        "9 gateways (PayU, Paymentez, CyberSource, Transbank, BCP QR, Khipu, Bancard, Credomatic, Authorize.net), card tokenization, recurring billing, electronic invoicing",
+      items: [
+        { name: "PayU" },
+        { name: "Paymentez" },
+        { name: "CyberSource" },
+        { name: "Transbank" },
+        { name: "BCP QR" },
+        { name: "Khipu" },
+        { name: "Bancard" },
+        { name: "Credomatic" },
+        { name: "Authorize.net" },
+        { name: "Card tokenization" },
+        { name: "Recurring billing" },
+        { name: "Electronic invoicing" },
+      ],
     },
     {
       label: "Infrastructure",
-      items:
-        "AWS (Lambda, CodeArtifact, API Gateway, DynamoDB, Step Functions, SNS/SQS), Azure DevOps, Bitbucket Pipelines, OpenTelemetry, Vite, Bun, Turborepo",
+      items: [
+        { name: "AWS Lambda" },
+        { name: "AWS CodeArtifact" },
+        { name: "AWS API Gateway" },
+        { name: "DynamoDB" },
+        { name: "Step Functions" },
+        { name: "SNS/SQS" },
+        { name: "Azure DevOps" },
+        { name: "Bitbucket Pipelines" },
+        { name: "OpenTelemetry" },
+        { name: "Vite" },
+        { name: "Bun" },
+        { name: "Turborepo" },
+      ],
     },
     {
       label: "Architecture",
-      items: "Shared library authoring, component library design, microservices, ADRs, circuit breakers, monorepos, SDD workflow",
+      items: [
+        { name: "Shared library authoring" },
+        { name: "Component library design" },
+        { name: "Microservices" },
+        { name: "ADRs" },
+        { name: "Circuit breakers" },
+        { name: "Monorepos" },
+        { name: "SDD workflow" },
+      ],
     },
   ] satisfies ResumeSkillGroup[],
 

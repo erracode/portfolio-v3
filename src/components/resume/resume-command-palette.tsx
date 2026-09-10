@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
-import { Printer, Gamepad2 } from "lucide-react"
+import { Command, Printer, Gamepad2 } from "lucide-react"
 
+import { Button } from "@/components/ui/8bit/button"
 import {
   CommandDialog,
   CommandEmpty,
@@ -38,6 +39,21 @@ export function ResumeCommandPalette() {
 
   return (
     <>
+      {/* Replaces the old always-visible "Back to portfolio" / "Print" row
+          — both actions (plus contact links) live in the palette below;
+          this is just a discoverable trigger for anyone without a
+          keyboard, same role as the reference site's mobile floating
+          button. */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => setOpen(true)}
+        title="Open commands"
+        className="fixed top-4 right-4 z-30 print:hidden"
+      >
+        <Command />
+      </Button>
+
       <p className="fixed bottom-4 left-1/2 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
         Press <CommandShortcut className="mx-1">Ctrl/Cmd + K</CommandShortcut> for commands
       </p>

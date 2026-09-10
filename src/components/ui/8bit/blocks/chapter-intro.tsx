@@ -9,6 +9,11 @@ export interface ChapterIntroProps extends React.ComponentProps<"div"> {
   align?: "left" | "center" | "right";
   height?: "sm" | "md" | "lg";
   darken?: number;
+  /** Forces `image-rendering: pixelated` on the background — correct for
+   * an actual pixel-art sprite, wrong for a real screenshot (blows it up
+   * into blocky artifacts instead of scaling it cleanly). Off by default;
+   * opt in for pixel-art backgrounds. */
+  pixelated?: boolean;
 }
 
 export default function ChapterIntro({
@@ -19,6 +24,7 @@ export default function ChapterIntro({
   align = "center",
   height = "md",
   darken = 0.5,
+  pixelated = false,
   ...props
 }: ChapterIntroProps) {
   const heightClass =
@@ -27,6 +33,13 @@ export default function ChapterIntro({
       : height === "sm"
         ? "min-h-[240px] md:min-h-[360px]"
         : "min-h-[320px] md:min-h-[480px]";
+
+  const titleClass =
+    height === "sm"
+      ? "text-lg md:text-2xl"
+      : height === "lg"
+        ? "text-2xl md:text-4xl lg:text-5xl"
+        : "text-xl md:text-3xl";
 
   const alignClass =
     align === "left"
@@ -44,7 +57,7 @@ export default function ChapterIntro({
             src={backgroundSrc}
             alt=""
             className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.7]"
-            style={{ imageRendering: "pixelated" }}
+            style={pixelated ? { imageRendering: "pixelated" } : undefined}
           />
 
           {/* Darken/gradient overlay for readability */}
@@ -72,7 +85,7 @@ export default function ChapterIntro({
             )}
           >
             <div className="mx-auto max-w-3xl">
-              <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight drop-shadow-[0_3px_0_rgba(0,0,0,0.8)]">
+              <h1 className={cn(titleClass, "font-bold leading-tight drop-shadow-[0_3px_0_rgba(0,0,0,0.8)]")}>
                 {title}
               </h1>
               {subtitle && (

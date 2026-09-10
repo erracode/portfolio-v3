@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/8bit/button"
 import { ResumeAbout } from "@/components/resume/resume-about"
 import { ResumeCommandPalette } from "@/components/resume/resume-command-palette"
 import { ResumeEducation } from "@/components/resume/resume-education"
@@ -24,15 +23,6 @@ export function ResumePage() {
   return (
     <div className="min-h-screen bg-background pb-20 text-foreground print:bg-white print:text-black print:pb-4">
       <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-12 print:gap-4 print:py-4">
-        <div className="flex flex-wrap gap-3 print:hidden">
-          <Button variant="outline" size="sm" onClick={() => { window.location.href = "/" }}>
-            Back to portfolio
-          </Button>
-          <Button variant="default" size="sm" onClick={() => window.print()}>
-            Print / Save as PDF
-          </Button>
-        </div>
-
         <ResumeHero />
         <ResumeAbout />
         <ResumeExperience />
