@@ -26,6 +26,7 @@ export interface ResumeSkillGroup {
  */
 export const RESUME = {
   name: "Jesus Diaz",
+  photo: "/images/jesus-diaz.jpg",
   title: "Senior Software Engineer",
   tagline: "Full-Stack — React, Next.js, Node.js/NestJS, TypeScript",
   email: "jdiaz.97ma@gmail.com",
