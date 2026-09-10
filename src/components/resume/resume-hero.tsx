@@ -3,7 +3,7 @@ import { Avatar } from "@/components/ui/8bit/avatar"
 import { Card, CardContent } from "@/components/ui/8bit/card"
 import { SpriteAnimation } from "@/components/wow/sprite-animation"
 import { CONTACT_LINKS } from "@/data/sections"
-import { PLAYER_SPRITE } from "@/data/sprites"
+import { NPC_SPRITE } from "@/data/sprites"
 import { useResumeContent } from "@/lib/use-resume-content"
 
 const AVATAR_SIZE = 96
@@ -18,10 +18,11 @@ export function ResumeHero() {
     <Card className="print:border print:border-black print:bg-white">
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
-          <Avatar variant="pixel" className="size-24 shrink-0">
-            {/* Hover/focus flips from the real photo to the in-game
-                pixel avatar — a small wink back to the portfolio this
-                page is an escape hatch from. */}
+          <Avatar variant="default" className="size-24 shrink-0">
+            {/* Hover/focus flips from the real photo to the in-game NPC
+                sprite ("Guardián del Portfolio", modeled on the user) — a
+                small wink back to the portfolio this page is an escape
+                hatch from. */}
             <PixelTransition
               firstContent={
                 <img src={resume.photo} alt={resume.name} className="h-full w-full object-cover" />
@@ -29,14 +30,14 @@ export function ResumeHero() {
               secondContent={
                 <div className="flex h-full w-full items-center justify-center bg-card">
                   <SpriteAnimation
-                    src={PLAYER_SPRITE.src}
-                    frameWidth={PLAYER_SPRITE.frameWidth}
-                    frameHeight={PLAYER_SPRITE.frameHeight}
-                    frameCount={PLAYER_SPRITE.rows.idle.frameCount}
-                    sheetWidth={PLAYER_SPRITE.sheetWidth}
-                    sheetHeight={PLAYER_SPRITE.sheetHeight}
+                    src={NPC_SPRITE.src}
+                    frameWidth={NPC_SPRITE.frameWidth}
+                    frameHeight={NPC_SPRITE.frameHeight}
+                    frameCount={NPC_SPRITE.rows.idle.frameCount}
+                    sheetWidth={NPC_SPRITE.sheetWidth}
+                    sheetHeight={NPC_SPRITE.sheetHeight}
                     fps={2}
-                    scale={AVATAR_SIZE / PLAYER_SPRITE.frameWidth}
+                    scale={AVATAR_SIZE / NPC_SPRITE.frameWidth}
                     aria-label={`${resume.name} — in-game avatar`}
                   />
                 </div>

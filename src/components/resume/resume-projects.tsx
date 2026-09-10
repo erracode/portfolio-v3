@@ -9,7 +9,9 @@ import { useResumeContent } from "@/lib/use-resume-content"
 const FEATURED_IDS = ["aquetienda", "point-party", "petsosciety", "aquetasa", "opencode-obsidian"]
 
 function ProjectCard({ project, summary, visitLabel }: { project: ProjectEntry; summary: string; visitLabel: string }) {
-  const thumbnail = project.logo ?? project.images[0]
+  // Real screenshot as the thumbnail, not the logo — the logo is just a
+  // small mark next to the link below.
+  const thumbnail = project.images[0]
 
   const card = (
     <Card className="h-full transition-transform group-hover:-translate-y-0.5">
@@ -33,7 +35,10 @@ function ProjectCard({ project, summary, visitLabel }: { project: ProjectEntry; 
           ))}
         </ul>
         {project.liveUrl && (
-          <p className="font-sans text-xs font-bold group-hover:underline">{visitLabel} ↗</p>
+          <p className="flex items-center gap-1.5 font-sans text-xs font-bold group-hover:underline">
+            {project.logo && <img src={project.logo} alt="" className="size-4 object-contain" />}
+            {visitLabel} ↗
+          </p>
         )}
       </CardContent>
     </Card>

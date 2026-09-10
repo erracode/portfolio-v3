@@ -20,7 +20,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/8bit/dialog";
 
 import "@/components/ui/8bit/styles/retro.css";
 
