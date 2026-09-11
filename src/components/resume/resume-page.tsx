@@ -6,6 +6,7 @@ import { ResumeHero } from "@/components/resume/resume-hero"
 import { ResumeProjects } from "@/components/resume/resume-projects"
 import { ResumeSkills } from "@/components/resume/resume-skills"
 import { ResumeWalker } from "@/components/resume/resume-walker"
+import { ResumeZergRush } from "@/components/resume/resume-zerg-rush"
 
 /**
  * The "I don't want to play a game, just show me the resume" escape hatch —
@@ -32,6 +33,7 @@ export function ResumePage() {
 
       <ResumeCommandPalette />
       <ResumeWalker />
+      <ResumeZergRush />
     </div>
   )
 }

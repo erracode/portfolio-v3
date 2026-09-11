@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
-import { Command, Languages, Printer, Gamepad2 } from "lucide-react"
+import { Bug, Command, Languages, Printer, Gamepad2 } from "lucide-react"
 
 import { Button } from "@/components/ui/8bit/button"
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/8bit/command"
 import { CONTACT_LINKS } from "@/data/sections"
 import { useResumeContent } from "@/lib/use-resume-content"
+import { useResumeZergStore } from "@/lib/resume-zerg-store"
 
 /** Cmd/Ctrl+K command palette — same idea as the reference site's
  * `KeyboardManager`, rebuilt on the project's own `@8bitcn/command`
@@ -23,6 +24,7 @@ export function ResumeCommandPalette() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const { toggleLocale, labels } = useResumeContent()
+  const startZergRush = useResumeZergStore((state) => state.start)
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -77,6 +79,10 @@ export function ResumeCommandPalette() {
             <CommandItem onSelect={() => run(toggleLocale)}>
               <Languages />
               {labels.language}
+            </CommandItem>
+            <CommandItem value="zerg rush" onSelect={() => run(startZergRush)}>
+              <Bug />
+              Zerg Rush
             </CommandItem>
           </CommandGroup>
           <CommandGroup heading={labels.contact}>
