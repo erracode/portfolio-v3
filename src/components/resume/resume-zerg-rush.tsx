@@ -19,6 +19,19 @@ const ARRIVE_EPSILON = 6
 const ATTACK_RANGE = 180
 const ATTACK_COOLDOWN_MS = 1500
 const CONTACT_RADIUS = 40
+const PROJECTILE_DURATION_MS = 200
+const PROJECTILE_SCALE = 0.15
+
+// Same sprite sheet as the 3D game's `AxeProjectile` — 8 square frames,
+// single row.
+const AXE_SHEET = {
+  src: "/game/axe-sheet.png",
+  frameWidth: 220,
+  frameHeight: 220,
+  sheetWidth: 220 * 8,
+  sheetHeight: 220,
+  frameCount: 8,
+}
 
 const WHOOSH_SOUNDS = ["/sounds/mWooshLarge1.ogg", "/sounds/mWooshLarge2.ogg", "/sounds/mWooshLarge3.ogg"]
 const AXE_HIT_SOUNDS = [
@@ -45,7 +58,19 @@ interface Enemy {
   hp: number
 }
 
+interface Projectile {
+  id: number
+  x: number
+  y: number
+  fromX: number
+  fromY: number
+  toX: number
+  toY: number
+  startedAt: number
+}
+
 let nextId = 1
+let nextProjectileId = 1
 
 /** Enters from a random screen edge, same idea as Google's own "zerg
  * rush" easter egg — the invaders start off camera, not already
@@ -73,10 +98,12 @@ function spawnPoint() {
  */
 export function ResumeZergRush() {
   const [enemies, setEnemies] = useState<Enemy[]>([])
+  const [projectiles, setProjectiles] = useState<Projectile[]>([])
   const [kills, setKills] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
   const [running, setRunning] = useState(false)
   const enemiesRef = useRef<Enemy[]>([])
+  const projectilesRef = useRef<Projectile[]>([])
   const killsRef = useRef(0)
   const frameRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number | null>(null)
@@ -95,7 +122,9 @@ export function ResumeZergRush() {
     if (endTimeoutRef.current !== null) window.clearTimeout(endTimeoutRef.current)
     const survivors = enemiesRef.current.length
     enemiesRef.current = []
+    projectilesRef.current = []
     setEnemies([])
+    setProjectiles([])
     setRunning(false)
     setMessage(
       reason === "defeated"
@@ -125,9 +154,11 @@ export function ResumeZergRush() {
         }
       })
       enemiesRef.current = wave
+      projectilesRef.current = []
       attackTimerRef.current = 0
       killsRef.current = 0
       setEnemies(wave)
+      setProjectiles([])
       setKills(0)
       setMessage(null)
       setRunning(true)
@@ -182,6 +213,19 @@ export function ResumeZergRush() {
           if (useResumeZergStore.getState().playerHp < before) playRandom(PLAYER_HIT_SOUNDS)
         }
 
+        if (projectilesRef.current.length > 0) {
+          projectilesRef.current = projectilesRef.current
+            .filter((projectile) => time - projectile.startedAt < PROJECTILE_DURATION_MS)
+            .map((projectile) => {
+              const t = (time - projectile.startedAt) / PROJECTILE_DURATION_MS
+              return {
+                ...projectile,
+                x: projectile.fromX + (projectile.toX - projectile.fromX) * t,
+                y: projectile.fromY + (projectile.toY - projectile.fromY) * t,
+              }
+            })
+        }
+
         attackTimerRef.current += delta
         if (attackTimerRef.current >= ATTACK_COOLDOWN_MS / 1000) {
           let nearest: Enemy | null = null
@@ -196,6 +240,19 @@ export function ResumeZergRush() {
           if (nearest) {
             attackTimerRef.current = 0
             playRandom(WHOOSH_SOUNDS)
+            projectilesRef.current = [
+              ...projectilesRef.current,
+              {
+                id: nextProjectileId++,
+                x: player.x,
+                y: player.y,
+                fromX: player.x,
+                fromY: player.y,
+                toX: nearest.x,
+                toY: nearest.y,
+                startedAt: time,
+              },
+            ]
             const targetId = nearest.id
             window.setTimeout(() => {
               const stillThere = enemiesRef.current.find((enemy) => enemy.id === targetId)
@@ -212,12 +269,13 @@ export function ResumeZergRush() {
               }
               setEnemies(enemiesRef.current)
               if (enemiesRef.current.length === 0) endWave("cleared")
-            }, 200)
+            }, PROJECTILE_DURATION_MS)
           }
         }
       }
 
       setEnemies(enemiesRef.current)
+      setProjectiles(projectilesRef.current)
       frameRef.current = requestAnimationFrame(step)
     }
 
@@ -285,6 +343,26 @@ export function ResumeZergRush() {
             scale={SCALE}
           />
         </button>
+      ))}
+
+      {projectiles.map((projectile) => (
+        <div
+          key={projectile.id}
+          aria-hidden="true"
+          className="pointer-events-none fixed z-20 print:hidden"
+          style={{ left: projectile.x, top: projectile.y, transform: "translate(-50%, -50%)" }}
+        >
+          <SpriteAnimation
+            src={AXE_SHEET.src}
+            frameWidth={AXE_SHEET.frameWidth}
+            frameHeight={AXE_SHEET.frameHeight}
+            frameCount={AXE_SHEET.frameCount}
+            sheetWidth={AXE_SHEET.sheetWidth}
+            sheetHeight={AXE_SHEET.sheetHeight}
+            fps={24}
+            scale={PROJECTILE_SCALE}
+          />
+        </div>
       ))}
     </>
   )
