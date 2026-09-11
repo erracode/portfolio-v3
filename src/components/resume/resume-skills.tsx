@@ -40,7 +40,14 @@ export function ResumeSkills() {
       ))}
 
       {hasMore && (
-        <Button variant="outline" size="sm" onClick={() => setExpanded((current) => !current)} className="self-start">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setExpanded((current) => !current)}
+          className="self-start"
+          data-cuelume-press
+          data-cuelume-release
+        >
           {expanded ? labels.showLess : labels.showMore}
         </Button>
       )}

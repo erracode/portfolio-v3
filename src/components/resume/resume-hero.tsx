@@ -71,6 +71,8 @@ export function ResumeHero() {
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
+              data-cuelume-press
+              data-cuelume-release
             >
               {resume.linkedin}
             </a>
@@ -89,6 +91,8 @@ export function ResumeHero() {
             rel={link.href.startsWith("https:") ? "noreferrer" : undefined}
             title={link.name}
             className="flex size-9 items-center justify-center border-2 border-foreground bg-background transition-colors hover:bg-accent dark:border-ring"
+            data-cuelume-press
+            data-cuelume-release
           >
             {/* GitHub's mark is solid black-on-transparent (no light/dark
                   variant) — it needs its own white backing or it vanishes

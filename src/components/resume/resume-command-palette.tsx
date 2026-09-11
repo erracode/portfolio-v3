@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
+import { play } from "cuelume"
 import { Bug, Command, Languages, Printer, Gamepad2 } from "lucide-react"
 
 import { Button } from "@/components/ui/8bit/button"
@@ -26,6 +27,14 @@ export function ResumeCommandPalette() {
   const { toggleLocale, labels } = useResumeContent()
   const startZergRush = useResumeZergStore((state) => state.start)
 
+  // Same "ready" cue every other window/dialog plays on open (see
+  // `HelpModal`, `SocialModal`, etc.) — fires whether `open` was flipped by
+  // the trigger button's click or the Cmd/Ctrl+K shortcut below, since it's
+  // keyed off the resulting state rather than the input that caused it.
+  useEffect(() => {
+    if (open) play("ready")
+  }, [open])
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() !== "k") return
@@ -51,10 +60,24 @@ export function ResumeCommandPalette() {
           keyboard, same role as the reference site's mobile floating
           button. */}
       <div className="fixed top-4 right-4 z-30 flex gap-2 print:hidden">
-        <Button variant="outline" size="icon" onClick={toggleLocale} title={labels.language}>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleLocale}
+          title={labels.language}
+          data-cuelume-press
+          data-cuelume-release
+        >
           <Languages />
         </Button>
-        <Button variant="outline" size="icon" onClick={() => setOpen(true)} title={labels.openCommands}>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setOpen(true)}
+          title={labels.openCommands}
+          data-cuelume-press
+          data-cuelume-release
+        >
           <Command />
         </Button>
       </div>
@@ -68,19 +91,28 @@ export function ResumeCommandPalette() {
         <CommandList>
           <CommandEmpty>{labels.noMatch}</CommandEmpty>
           <CommandGroup heading={labels.actions}>
-            <CommandItem onSelect={() => run(() => window.print())}>
+            <CommandItem onSelect={() => run(() => window.print())} data-cuelume-press data-cuelume-release>
               <Printer />
               {labels.print}
             </CommandItem>
-            <CommandItem onSelect={() => run(() => navigate({ to: "/" }))}>
+            <CommandItem
+              onSelect={() => run(() => navigate({ to: "/" }))}
+              data-cuelume-press
+              data-cuelume-release
+            >
               <Gamepad2 />
               {labels.backToPortfolio}
             </CommandItem>
-            <CommandItem onSelect={() => run(toggleLocale)}>
+            <CommandItem onSelect={() => run(toggleLocale)} data-cuelume-press data-cuelume-release>
               <Languages />
               {labels.language}
             </CommandItem>
-            <CommandItem value="zerg rush" onSelect={() => run(startZergRush)}>
+            <CommandItem
+              value="zerg rush"
+              onSelect={() => run(startZergRush)}
+              data-cuelume-press
+              data-cuelume-release
+            >
               <Bug />
               Zerg Rush
             </CommandItem>
@@ -94,7 +126,12 @@ export function ResumeCommandPalette() {
               const icon = <img src={link.icon} alt="" className="size-3.5 object-contain" />
 
               return (
-                <CommandItem key={link.name} onSelect={() => run(() => window.open(link.href, "_blank"))}>
+                <CommandItem
+                  key={link.name}
+                  onSelect={() => run(() => window.open(link.href, "_blank"))}
+                  data-cuelume-press
+                  data-cuelume-release
+                >
                   {link.name === "GitHub" ? (
                     <span className="flex size-4 items-center justify-center rounded-xs bg-white">{icon}</span>
                   ) : (

@@ -47,7 +47,14 @@ function ProjectCard({ project, summary, visitLabel }: { project: ProjectEntry; 
   if (!project.liveUrl) return card
 
   return (
-    <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="group block">
+    <a
+      href={project.liveUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block"
+      data-cuelume-press
+      data-cuelume-release
+    >
       {card}
     </a>
   )
