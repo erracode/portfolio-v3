@@ -5,6 +5,7 @@ import { bind } from "cuelume"
 
 import "./index.css"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
+import { Toaster } from "@/components/ui/sonner"
 import { logConsoleGreeting } from "@/lib/console-easter-egg"
 import { prefetchMicroMenuImages } from "@/lib/prefetch-images"
 import { router } from "./router.tsx"
@@ -13,6 +14,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
       <RouterProvider router={router} />
+      <Toaster />
     </ThemeProvider>
   </StrictMode>
 )

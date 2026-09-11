@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { play } from "cuelume"
 
+import { toast } from "@/components/ui/8bit/toast"
 import { SpriteAnimation } from "@/components/wow/sprite-animation"
 import { DUKE_SPRITE, FERRIS_SPRITE, GOPHER_SPRITE } from "@/data/guard-sprites"
 import type { SpriteSheetConfig } from "@/data/sprites"
@@ -150,7 +151,6 @@ export function ResumeZergRush() {
   const [enemies, setEnemies] = useState<Enemy[]>([])
   const [projectiles, setProjectiles] = useState<Projectile[]>([])
   const [kills, setKills] = useState(0)
-  const [message, setMessage] = useState<string | null>(null)
   const [running, setRunning] = useState(false)
   const enemiesRef = useRef<Enemy[]>([])
   const projectilesRef = useRef<Projectile[]>([])
@@ -165,7 +165,6 @@ export function ResumeZergRush() {
    * `interactPressedRef`. */
   const attackRequestedRef = useRef(false)
   const cursorRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
-  const messageTimeoutRef = useRef<number | null>(null)
   const playerHp = useResumeZergStore((state) => state.playerHp)
   const maxPlayerHp = useResumeZergStore((state) => state.maxPlayerHp)
 
@@ -182,7 +181,7 @@ export function ResumeZergRush() {
     setEnemies([])
     setProjectiles([])
     setRunning(false)
-    setMessage(
+    toast(
       reason === "defeated"
         ? `Te alcanzaron los invasores — ${killsRef.current}/${WAVE_SIZE} derrotados antes de caer.`
         : `¡Portafolio defendido! ${WAVE_SIZE}/${WAVE_SIZE} derrotados.`
@@ -209,7 +208,6 @@ export function ResumeZergRush() {
       setEnemies([first])
       setProjectiles([])
       setKills(0)
-      setMessage(null)
       setRunning(true)
     })
 
@@ -392,33 +390,13 @@ export function ResumeZergRush() {
     }
   }, [running])
 
-  useEffect(() => {
-    return () => {
-      if (messageTimeoutRef.current !== null) window.clearTimeout(messageTimeoutRef.current)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!message) return
-    if (messageTimeoutRef.current !== null) window.clearTimeout(messageTimeoutRef.current)
-    messageTimeoutRef.current = window.setTimeout(() => setMessage(null), 4000)
-  }, [message])
-
-  if (enemies.length === 0 && !message) return null
+  if (enemies.length === 0) return null
 
   return (
     <>
-      {enemies.length > 0 && (
-        <p className="fixed top-16 left-1/2 z-30 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
-          Vida: {playerHp}/{maxPlayerHp} · Invasores derrotados: {kills}/{WAVE_SIZE} · Apuntá con el mouse, ESPACIO para lanzar
-        </p>
-      )}
-
-      {message && (
-        <p className="fixed top-16 left-1/2 z-30 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
-          {message}
-        </p>
-      )}
+      <p className="fixed top-16 left-1/2 z-30 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
+        Vida: {playerHp}/{maxPlayerHp} · Invasores derrotados: {kills}/{WAVE_SIZE} · Apuntá con el mouse, ESPACIO para lanzar
+      </p>
 
       {enemies.map((enemy) => (
         <div
