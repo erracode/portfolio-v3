@@ -7,23 +7,27 @@ import type { SpriteSheetConfig } from "@/data/sprites"
 import { useResumeZergStore } from "@/lib/resume-zerg-store"
 
 const SPRITES = [FERRIS_SPRITE, GOPHER_SPRITE, DUKE_SPRITE]
-const WAVE_SIZE = 24
-/** Trickle enemies in one at a time instead of dropping all 24 on the
- * player at once — spreads the whole wave across ~12s, well inside
- * `RUSH_DURATION_MS`. */
-const SPAWN_INTERVAL_MS = 500
+const WAVE_SIZE = 12
+/** Trickle enemies in one at a time instead of dropping the whole wave on
+ * the player at once. */
+const SPAWN_INTERVAL_MS = 1000
 const ENEMY_SPEED = 130 // px/second — slower than ResumeWalker's 220, so kiting is actually possible
 const ENEMY_HP = 2
 const SCALE = 0.4
 const RUSH_DURATION_MS = 25000
 const ARRIVE_EPSILON = 6
 
-// Player's auto-attack — a thrown axe, same idea (and cooldown) as the
-// game's own axe ability (`WORLD_CONFIG.axe.cooldownMs`).
+// Player's attack — a thrown axe, same idea (and cooldown) as the game's
+// own axe ability (`WORLD_CONFIG.axe.cooldownMs`). Manually triggered
+// (Space) rather than auto-firing, so kiting is an actual input — move to
+// reposition, press to throw when you're ready — not just standing there
+// while it fires itself.
 const ATTACK_RANGE = 180
 const ATTACK_COOLDOWN_MS = 1500
 const CONTACT_RADIUS = 40
-const PROJECTILE_DURATION_MS = 200
+// Slow enough that the axe's flight is actually visible, not just a
+// sound effect with a teleporting hit.
+const PROJECTILE_DURATION_MS = 450
 const PROJECTILE_SCALE = 0.15
 
 // Same sprite sheet as the 3D game's `AxeProjectile` — 8 square frames,
@@ -125,6 +129,10 @@ export function ResumeZergRush() {
   const frameRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number | null>(null)
   const attackTimerRef = useRef(0)
+  /** Edge-triggered by the Space keydown handler below, consumed once per
+   * press in the step loop — same pattern as the game's own
+   * `interactPressedRef`. */
+  const attackRequestedRef = useRef(false)
   const endTimeoutRef = useRef<number | null>(null)
   const messageTimeoutRef = useRef<number | null>(null)
   const playerHp = useResumeZergStore((state) => state.playerHp)
@@ -197,6 +205,20 @@ export function ResumeZergRush() {
   }, [])
 
   useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code !== "Space" || event.repeat) return
+      if (!running) return
+      // Space scrolls the page by default — this is the one key this
+      // page repurposes while a wave is active.
+      event.preventDefault()
+      attackRequestedRef.current = true
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [running])
+
+  useEffect(() => {
     if (!running) return
 
     const step = (time: number) => {
@@ -248,51 +270,54 @@ export function ResumeZergRush() {
         }
 
         attackTimerRef.current += delta
-        if (attackTimerRef.current >= ATTACK_COOLDOWN_MS / 1000) {
-          let nearest: Enemy | null = null
-          let nearestDistance = ATTACK_RANGE
-          for (const enemy of enemiesRef.current) {
-            const d = Math.hypot(player.x - enemy.x, player.y - enemy.y)
-            if (d <= nearestDistance) {
-              nearest = enemy
-              nearestDistance = d
+        if (attackRequestedRef.current) {
+          attackRequestedRef.current = false
+          if (attackTimerRef.current >= ATTACK_COOLDOWN_MS / 1000) {
+            let nearest: Enemy | null = null
+            let nearestDistance = ATTACK_RANGE
+            for (const enemy of enemiesRef.current) {
+              const d = Math.hypot(player.x - enemy.x, player.y - enemy.y)
+              if (d <= nearestDistance) {
+                nearest = enemy
+                nearestDistance = d
+              }
             }
-          }
-          if (nearest) {
-            attackTimerRef.current = 0
-            playRandom(WHOOSH_SOUNDS)
-            projectilesRef.current = [
-              ...projectilesRef.current,
-              {
-                id: nextProjectileId++,
-                x: player.x,
-                y: player.y,
-                fromX: player.x,
-                fromY: player.y,
-                toX: nearest.x,
-                toY: nearest.y,
-                startedAt: time,
-              },
-            ]
-            const targetId = nearest.id
-            window.setTimeout(() => {
-              const stillThere = enemiesRef.current.find((enemy) => enemy.id === targetId)
-              if (!stillThere) return
-              playRandom(AXE_HIT_SOUNDS)
-              if (stillThere.hp <= 1) {
-                enemiesRef.current = enemiesRef.current.filter((enemy) => enemy.id !== targetId)
-                addKill()
-                play("chime")
-              } else {
-                enemiesRef.current = enemiesRef.current.map((enemy) =>
-                  enemy.id === targetId ? { ...enemy, hp: enemy.hp - 1 } : enemy
-                )
-              }
-              setEnemies(enemiesRef.current)
-              if (enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE) {
-                endWave("cleared")
-              }
-            }, PROJECTILE_DURATION_MS)
+            if (nearest) {
+              attackTimerRef.current = 0
+              playRandom(WHOOSH_SOUNDS)
+              projectilesRef.current = [
+                ...projectilesRef.current,
+                {
+                  id: nextProjectileId++,
+                  x: player.x,
+                  y: player.y,
+                  fromX: player.x,
+                  fromY: player.y,
+                  toX: nearest.x,
+                  toY: nearest.y,
+                  startedAt: time,
+                },
+              ]
+              const targetId = nearest.id
+              window.setTimeout(() => {
+                const stillThere = enemiesRef.current.find((enemy) => enemy.id === targetId)
+                if (!stillThere) return
+                playRandom(AXE_HIT_SOUNDS)
+                if (stillThere.hp <= 1) {
+                  enemiesRef.current = enemiesRef.current.filter((enemy) => enemy.id !== targetId)
+                  addKill()
+                  play("chime")
+                } else {
+                  enemiesRef.current = enemiesRef.current.map((enemy) =>
+                    enemy.id === targetId ? { ...enemy, hp: enemy.hp - 1 } : enemy
+                  )
+                }
+                setEnemies(enemiesRef.current)
+                if (enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE) {
+                  endWave("cleared")
+                }
+              }, PROJECTILE_DURATION_MS)
+            }
           }
         }
       }
@@ -337,7 +362,7 @@ export function ResumeZergRush() {
     <>
       {enemies.length > 0 && (
         <p className="fixed top-16 left-1/2 z-30 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
-          Vida: {playerHp}/{maxPlayerHp} · Invasores derrotados: {kills}/{WAVE_SIZE}
+          Vida: {playerHp}/{maxPlayerHp} · Invasores derrotados: {kills}/{WAVE_SIZE} · ESPACIO para lanzar el hacha
         </p>
       )}
 

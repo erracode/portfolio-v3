@@ -27,7 +27,7 @@ const DESKTOP_CONTROLS: ControlBinding[] = [
   { action: "Caminar hacia adelante", key: "Click izq. + der. juntos" },
   { action: "Girar la cámara", key: "Arrastrar con click izquierdo" },
   { action: "Interactuar (NPC / cofre)", key: "E" },
-  { action: "Atacar — lanzar hacha", key: "2" },
+  { action: "Atacar — lanzar hacha", key: "1" },
   { action: "Abrir la ventana actual", key: "C · L · P · Y · J · H · O" },
   { action: "Cerrar ventana enfocada", key: "Esc" },
 ]
