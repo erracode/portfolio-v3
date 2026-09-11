@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react"
 
 import { SpriteAnimation } from "@/components/wow/sprite-animation"
 import { PLAYER_SPRITE } from "@/data/sprites"
+import { useResumeZergStore } from "@/lib/resume-zerg-store"
 
 const SCALE = 0.2
 const SPEED = 220 // px/second
 const ARRIVE_EPSILON = 4
 const FLIP_THRESHOLD = 2
+const VIGNETTE_MS = 450
 
 function isInteractiveTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
@@ -21,6 +23,11 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
  * `SpriteAnimation`'s pure-CSS frame-stepping and the same idle/walk
  * player sprite the game itself uses. Walks in a straight line over the
  * page content (no pathfinding/collision) — it's a companion, not a unit.
+ *
+ * Registers its own position ref into `resume-zerg-store` so a Zerg Rush
+ * wave (see `ResumeZergRush`) knows where to chase and can land contact
+ * damage — same "component owns the ref, store just points at it"
+ * pattern `combat-store.ts` uses for the 3D game's player.
  */
 export function ResumeWalker() {
   const [position, setPosition] = useState(() => ({
@@ -33,6 +40,12 @@ export function ResumeWalker() {
   const targetRef = useRef(position)
   const frameRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number | null>(null)
+  const lastPlayerHitAt = useResumeZergStore((state) => state.lastPlayerHitAt)
+  const registerPlayerPositionRef = useResumeZergStore((state) => state.registerPlayerPositionRef)
+
+  useEffect(() => {
+    registerPlayerPositionRef(positionRef)
+  }, [registerPlayerPositionRef])
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -82,26 +95,40 @@ export function ResumeWalker() {
   const activeRow = moving ? PLAYER_SPRITE.rows.walk : PLAYER_SPRITE.rows.idle
 
   return (
-    <div
-      className="pointer-events-none fixed z-20 print:hidden"
-      style={{
-        left: position.x,
-        top: position.y,
-        transform: `translate(-50%, -100%) scaleX(${flipX ? -1 : 1})`,
-      }}
-    >
-      <SpriteAnimation
-        src={PLAYER_SPRITE.src}
-        frameWidth={PLAYER_SPRITE.frameWidth}
-        frameHeight={PLAYER_SPRITE.frameHeight}
-        frameCount={activeRow.frameCount}
-        sheetWidth={PLAYER_SPRITE.sheetWidth}
-        sheetHeight={PLAYER_SPRITE.sheetHeight}
-        row={activeRow.row}
-        fps={moving ? 6 : 2}
-        scale={SCALE}
-        aria-label="Personaje del portfolio — hacé click en cualquier parte para que camine hasta ahí"
-      />
-    </div>
+    <>
+      {lastPlayerHitAt > 0 && (
+        <div
+          key={lastPlayerHitAt}
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-40 print:hidden"
+          style={{
+            animation: `damage-vignette ${VIGNETTE_MS}ms ease-out forwards`,
+            background: "radial-gradient(ellipse at center, transparent 40%, rgba(220,38,38,0.35) 100%)",
+          }}
+        />
+      )}
+
+      <div
+        className="pointer-events-none fixed z-20 print:hidden"
+        style={{
+          left: position.x,
+          top: position.y,
+          transform: `translate(-50%, -100%) scaleX(${flipX ? -1 : 1})`,
+        }}
+      >
+        <SpriteAnimation
+          src={PLAYER_SPRITE.src}
+          frameWidth={PLAYER_SPRITE.frameWidth}
+          frameHeight={PLAYER_SPRITE.frameHeight}
+          frameCount={activeRow.frameCount}
+          sheetWidth={PLAYER_SPRITE.sheetWidth}
+          sheetHeight={PLAYER_SPRITE.sheetHeight}
+          row={activeRow.row}
+          fps={moving ? 6 : 2}
+          scale={SCALE}
+          aria-label="Personaje del portfolio — hacé click en cualquier parte para que camine hasta ahí"
+        />
+      </div>
+    </>
   )
 }
