@@ -16,20 +16,25 @@ const ENEMY_HP = 2
 const SCALE = 0.4
 const ARRIVE_EPSILON = 6
 
-// Player's attack — a thrown axe, same idea (and cooldown) as the game's
-// own axe ability (`WORLD_CONFIG.axe.cooldownMs`). Manually triggered
-// (Space) rather than auto-firing, so kiting is an actual input — move to
-// reposition, press to throw when you're ready — not just standing there
-// while it fires itself. Aimed at the cursor (desktop only — there's no
-// pointer to aim with on touch), not auto-targeted: it can miss.
+// Player's attack — a thrown axe. Manually triggered (Space) rather than
+// auto-firing, so kiting is an actual input — move to reposition, press
+// to throw when you're ready — not just standing there while it fires
+// itself. Aimed at the cursor (desktop only — there's no pointer to aim
+// with on touch), not auto-targeted: it can miss.
 //
 // No fixed max range — it flies straight until it exits the viewport,
 // same as the wave itself having no timer: distance is now the cursor's
 // job, not a constant. Travel time scales with distance at a constant
 // speed instead of a fixed duration, so a short throw isn't crawling and
 // a cross-screen one isn't teleporting.
+//
+// Multiple axes can be in flight at once — nothing here limits it to one;
+// the only real gate is the cooldown below. Kept short (not the 3D
+// game's 1500ms `WORLD_CONFIG.axe.cooldownMs`) so that's actually visible
+// instead of every throw finishing its (now fast) flight before the next
+// one is even allowed.
 const AXE_SPEED = 1600 // px/second
-const ATTACK_COOLDOWN_MS = 1500
+const ATTACK_COOLDOWN_MS = 400
 const HIT_RADIUS = 55 // how close the landing point needs to be to an enemy to connect
 const CONTACT_RADIUS = 40
 const PROJECTILE_SCALE = 0.15
