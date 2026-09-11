@@ -57,6 +57,21 @@ export function ResumeWalker() {
     return () => window.removeEventListener("pointerdown", handlePointerDown)
   }, [])
 
+  // Throwing (Space, see `ResumeZergRush`) plants the character in place —
+  // it cancels whatever walk order is in progress instead of letting you
+  // freely move and attack at the same time. That's what actually makes
+  // kiting a skill: you have to choose the moment to stop and swing, not
+  // just hold a move order and spam the axe for free.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code !== "Space") return
+      targetRef.current = positionRef.current
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [])
+
   useEffect(() => {
     const step = (time: number) => {
       const last = lastTimeRef.current ?? time
