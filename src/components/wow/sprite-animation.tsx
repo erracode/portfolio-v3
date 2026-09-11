@@ -14,6 +14,10 @@ interface SpriteAnimationProps {
    * the background lines up instead of being scaled to the frame box. */
   sheetWidth: number
   sheetHeight: number
+  /** Which row to animate, 0-indexed — only that row's `frameCount` frames
+   * step; `background-position-y` stays a fixed offset into it while the
+   * `sprite-step` keyframe animates `background-position-x` alone. */
+  row?: number
   fps?: number
   /** Uniform display scale, e.g. 0.25 to shrink a 250px frame into a 56px
    * avatar. The animation math stays in native pixels either way — this
@@ -36,6 +40,7 @@ export function SpriteAnimation({
   frameCount,
   sheetWidth,
   sheetHeight,
+  row = 0,
   fps = 6,
   scale = 1,
   className,
@@ -59,6 +64,7 @@ export function SpriteAnimation({
             backgroundImage: `url(${src})`,
             backgroundRepeat: "no-repeat",
             backgroundSize: `${sheetWidth}px ${sheetHeight}px`,
+            backgroundPositionY: -(row * frameHeight),
             animation: `sprite-step ${duration}s steps(${frameCount}) infinite`,
             transform: `scale(${scale})`,
             transformOrigin: "top left",
