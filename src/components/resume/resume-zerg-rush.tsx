@@ -28,11 +28,18 @@ const ARRIVE_EPSILON = 6
 // job, not a constant. Travel time scales with distance at a constant
 // speed instead of a fixed duration, so a short throw isn't crawling and
 // a cross-screen one isn't teleporting.
-const AXE_SPEED = 900 // px/second
+const AXE_SPEED = 1600 // px/second
 const ATTACK_COOLDOWN_MS = 1500
 const HIT_RADIUS = 55 // how close the landing point needs to be to an enemy to connect
 const CONTACT_RADIUS = 40
 const PROJECTILE_SCALE = 0.15
+
+// `ResumeWalker` anchors its sprite at the feet (translate(-50%, -100%) at
+// playerPositionRef), not the center — its rendered height is
+// PLAYER_SPRITE.frameHeight (250) * its own SCALE (0.2) = 50px, so the
+// visual center sits 25px above that anchor. Throwing from the raw
+// position would spawn the axe at ground level, not from the character.
+const PLAYER_VISUAL_OFFSET_Y = -25
 
 // Same sprite sheet as the 3D game's `AxeProjectile` — 8 square frames,
 // single row.
@@ -334,25 +341,30 @@ export function ResumeZergRush() {
             playRandom(WHOOSH_SOUNDS)
 
             // Aimed at the cursor, flying until it exits the screen — not
-            // "nearest enemy": this can miss if you aim badly.
+            // "nearest enemy": this can miss if you aim badly. Thrown from
+            // the character's visual center, not the feet-anchored
+            // position ref, so it actually looks like it comes from the
+            // player instead of the ground beneath them.
+            const originX = player.x
+            const originY = player.y + PLAYER_VISUAL_OFFSET_Y
             const cursor = cursorRef.current
-            const dx = cursor.x - player.x
-            const dy = cursor.y - player.y
+            const dx = cursor.x - originX
+            const dy = cursor.y - originY
             const cursorDistance = Math.hypot(dx, dy)
             const [dirX, dirY] = cursorDistance > 0 ? [dx / cursorDistance, dy / cursorDistance] : [0, -1]
-            const travel = distanceToScreenEdge(player.x, player.y, dirX, dirY)
-            const landX = player.x + dirX * travel
-            const landY = player.y + dirY * travel
+            const travel = distanceToScreenEdge(originX, originY, dirX, dirY)
+            const landX = originX + dirX * travel
+            const landY = originY + dirY * travel
             const durationMs = (travel / AXE_SPEED) * 1000
 
             projectilesRef.current = [
               ...projectilesRef.current,
               {
                 id: nextProjectileId++,
-                x: player.x,
-                y: player.y,
-                fromX: player.x,
-                fromY: player.y,
+                x: originX,
+                y: originY,
+                fromX: originX,
+                fromY: originY,
                 toX: landX,
                 toY: landY,
                 startedAt: time,
@@ -387,16 +399,6 @@ export function ResumeZergRush() {
     messageTimeoutRef.current = window.setTimeout(() => setMessage(null), 4000)
   }, [message])
 
-  const squish = (id: number) => {
-    enemiesRef.current = enemiesRef.current.filter((enemy) => enemy.id !== id)
-    setEnemies(enemiesRef.current)
-    addKill()
-    play("chime")
-    if (enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE && running) {
-      endWave("cleared")
-    }
-  }
-
   if (enemies.length === 0 && !message) return null
 
   return (
@@ -414,12 +416,10 @@ export function ResumeZergRush() {
       )}
 
       {enemies.map((enemy) => (
-        <button
+        <div
           key={enemy.id}
-          type="button"
-          onClick={() => squish(enemy.id)}
-          aria-label="Aplastar invasor"
-          className="fixed z-20 cursor-crosshair print:hidden"
+          aria-hidden="true"
+          className="pointer-events-none fixed z-20 print:hidden"
           style={{ left: enemy.x, top: enemy.y, transform: "translate(-50%, -50%)" }}
         >
           <SpriteAnimation
@@ -433,7 +433,7 @@ export function ResumeZergRush() {
             fps={6}
             scale={SCALE}
           />
-        </button>
+        </div>
       ))}
 
       {projectiles.map((projectile) => (
