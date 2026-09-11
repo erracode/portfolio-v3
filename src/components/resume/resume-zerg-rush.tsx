@@ -14,7 +14,6 @@ const SPAWN_INTERVAL_MS = 1000
 const ENEMY_SPEED = 130 // px/second — slower than ResumeWalker's 220, so kiting is actually possible
 const ENEMY_HP = 2
 const SCALE = 0.4
-const RUSH_DURATION_MS = 25000
 const ARRIVE_EPSILON = 6
 
 // Player's attack — a thrown axe, same idea (and cooldown) as the game's
@@ -23,13 +22,16 @@ const ARRIVE_EPSILON = 6
 // reposition, press to throw when you're ready — not just standing there
 // while it fires itself. Aimed at the cursor (desktop only — there's no
 // pointer to aim with on touch), not auto-targeted: it can miss.
-const ATTACK_RANGE = 180 // max throw distance — aiming past this just lands short
+//
+// No fixed max range — it flies straight until it exits the viewport,
+// same as the wave itself having no timer: distance is now the cursor's
+// job, not a constant. Travel time scales with distance at a constant
+// speed instead of a fixed duration, so a short throw isn't crawling and
+// a cross-screen one isn't teleporting.
+const AXE_SPEED = 900 // px/second
 const ATTACK_COOLDOWN_MS = 1500
 const HIT_RADIUS = 55 // how close the landing point needs to be to an enemy to connect
 const CONTACT_RADIUS = 40
-// Slow enough that the axe's flight is actually visible, not just a
-// sound effect with a teleporting hit.
-const PROJECTILE_DURATION_MS = 450
 const PROJECTILE_SCALE = 0.15
 
 // Same sprite sheet as the 3D game's `AxeProjectile` — 8 square frames,
@@ -77,10 +79,25 @@ interface Projectile {
   toX: number
   toY: number
   startedAt: number
+  durationMs: number
 }
 
 let nextId = 1
 let nextProjectileId = 1
+
+/** Distance from (x, y) along direction (dirX, dirY) until the ray exits
+ * the viewport — the axe's actual max range, since it flies until it's
+ * off camera rather than stopping at a fixed distance. */
+function distanceToScreenEdge(x: number, y: number, dirX: number, dirY: number): number {
+  const w = window.innerWidth
+  const h = window.innerHeight
+  let distance = Infinity
+  if (dirX > 0) distance = Math.min(distance, (w - x) / dirX)
+  else if (dirX < 0) distance = Math.min(distance, (0 - x) / dirX)
+  if (dirY > 0) distance = Math.min(distance, (h - y) / dirY)
+  else if (dirY < 0) distance = Math.min(distance, (0 - y) / dirY)
+  return distance
+}
 
 function spawnEnemy(): Enemy {
   const spawn = spawnPoint()
@@ -136,7 +153,6 @@ export function ResumeZergRush() {
    * `interactPressedRef`. */
   const attackRequestedRef = useRef(false)
   const cursorRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
-  const endTimeoutRef = useRef<number | null>(null)
   const messageTimeoutRef = useRef<number | null>(null)
   const playerHp = useResumeZergStore((state) => state.playerHp)
   const maxPlayerHp = useResumeZergStore((state) => state.maxPlayerHp)
@@ -146,9 +162,9 @@ export function ResumeZergRush() {
     setKills(killsRef.current)
   }
 
-  const endWave = (reason: "cleared" | "timeout" | "defeated") => {
-    if (endTimeoutRef.current !== null) window.clearTimeout(endTimeoutRef.current)
-    const survivors = enemiesRef.current.length
+  // No timeout branch anymore — a wave only ends by being cleared or by
+  // the player going down, so survivors are always 0 by the time this runs.
+  const endWave = (reason: "cleared" | "defeated") => {
     enemiesRef.current = []
     projectilesRef.current = []
     setEnemies([])
@@ -157,9 +173,7 @@ export function ResumeZergRush() {
     setMessage(
       reason === "defeated"
         ? `Te alcanzaron los invasores — ${killsRef.current}/${WAVE_SIZE} derrotados antes de caer.`
-        : survivors === 0
-          ? `¡Portafolio defendido! ${WAVE_SIZE}/${WAVE_SIZE} derrotados.`
-          : `Se retiraron los invasores — ${WAVE_SIZE - survivors}/${WAVE_SIZE} derrotados.`
+        : `¡Portafolio defendido! ${WAVE_SIZE}/${WAVE_SIZE} derrotados.`
     )
   }
 
@@ -185,9 +199,6 @@ export function ResumeZergRush() {
       setKills(0)
       setMessage(null)
       setRunning(true)
-
-      if (endTimeoutRef.current !== null) window.clearTimeout(endTimeoutRef.current)
-      endTimeoutRef.current = window.setTimeout(() => endWave("timeout"), RUSH_DURATION_MS)
     })
 
     const unsubHp = useResumeZergStore.subscribe((state, prevState) => {
@@ -198,12 +209,6 @@ export function ResumeZergRush() {
     return () => {
       unsubWave()
       unsubHp()
-    }
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (endTimeoutRef.current !== null) window.clearTimeout(endTimeoutRef.current)
     }
   }, [])
 
@@ -268,17 +273,57 @@ export function ResumeZergRush() {
           if (useResumeZergStore.getState().playerHp < before) playRandom(PLAYER_HIT_SOUNDS)
         }
 
+        // Advance every in-flight axe and hit-test it against live enemy
+        // positions on every frame — not just once when it reaches its
+        // final resting point. With no fixed range, the axe can travel
+        // the length of the screen, so a hit has to be resolved wherever
+        // it actually crosses an enemy along the way, not only at the
+        // endpoint (which is usually empty air past the screen edge).
         if (projectilesRef.current.length > 0) {
-          projectilesRef.current = projectilesRef.current
-            .filter((projectile) => time - projectile.startedAt < PROJECTILE_DURATION_MS)
-            .map((projectile) => {
-              const t = (time - projectile.startedAt) / PROJECTILE_DURATION_MS
-              return {
-                ...projectile,
-                x: projectile.fromX + (projectile.toX - projectile.fromX) * t,
-                y: projectile.fromY + (projectile.toY - projectile.fromY) * t,
+          let killedThisFrame = false
+          const survivingProjectiles: Projectile[] = []
+
+          for (const projectile of projectilesRef.current) {
+            if (time - projectile.startedAt >= projectile.durationMs) continue
+
+            const t = (time - projectile.startedAt) / projectile.durationMs
+            const x = projectile.fromX + (projectile.toX - projectile.fromX) * t
+            const y = projectile.fromY + (projectile.toY - projectile.fromY) * t
+
+            let targetId: number | null = null
+            let hitDistance = HIT_RADIUS
+            for (const enemy of enemiesRef.current) {
+              const d = Math.hypot(x - enemy.x, y - enemy.y)
+              if (d <= hitDistance) {
+                targetId = enemy.id
+                hitDistance = d
               }
-            })
+            }
+
+            if (targetId === null) {
+              survivingProjectiles.push({ ...projectile, x, y })
+              continue
+            }
+
+            // Consumed on impact — it doesn't keep flying through the target.
+            playRandom(AXE_HIT_SOUNDS)
+            const target = enemiesRef.current.find((enemy) => enemy.id === targetId)
+            if (target && target.hp <= 1) {
+              enemiesRef.current = enemiesRef.current.filter((enemy) => enemy.id !== targetId)
+              addKill()
+              killedThisFrame = true
+              play("chime")
+            } else {
+              enemiesRef.current = enemiesRef.current.map((enemy) =>
+                enemy.id === targetId ? { ...enemy, hp: enemy.hp - 1 } : enemy
+              )
+            }
+          }
+
+          projectilesRef.current = survivingProjectiles
+          if (killedThisFrame && enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE) {
+            endWave("cleared")
+          }
         }
 
         attackTimerRef.current += delta
@@ -288,16 +333,17 @@ export function ResumeZergRush() {
             attackTimerRef.current = 0
             playRandom(WHOOSH_SOUNDS)
 
-            // Aimed at the cursor, capped at ATTACK_RANGE — not "nearest
-            // enemy": this can miss if you aim badly.
+            // Aimed at the cursor, flying until it exits the screen — not
+            // "nearest enemy": this can miss if you aim badly.
             const cursor = cursorRef.current
             const dx = cursor.x - player.x
             const dy = cursor.y - player.y
-            const distance = Math.hypot(dx, dy)
-            const travel = Math.min(distance, ATTACK_RANGE)
-            const [dirX, dirY] = distance > 0 ? [dx / distance, dy / distance] : [0, -1]
+            const cursorDistance = Math.hypot(dx, dy)
+            const [dirX, dirY] = cursorDistance > 0 ? [dx / cursorDistance, dy / cursorDistance] : [0, -1]
+            const travel = distanceToScreenEdge(player.x, player.y, dirX, dirY)
             const landX = player.x + dirX * travel
             const landY = player.y + dirY * travel
+            const durationMs = (travel / AXE_SPEED) * 1000
 
             projectilesRef.current = [
               ...projectilesRef.current,
@@ -310,36 +356,9 @@ export function ResumeZergRush() {
                 toX: landX,
                 toY: landY,
                 startedAt: time,
+                durationMs,
               },
             ]
-            window.setTimeout(() => {
-              let hit: Enemy | null = null
-              let hitDistance = HIT_RADIUS
-              for (const enemy of enemiesRef.current) {
-                const d = Math.hypot(landX - enemy.x, landY - enemy.y)
-                if (d <= hitDistance) {
-                  hit = enemy
-                  hitDistance = d
-                }
-              }
-              if (!hit) return
-
-              const targetId = hit.id
-              playRandom(AXE_HIT_SOUNDS)
-              if (hit.hp <= 1) {
-                enemiesRef.current = enemiesRef.current.filter((enemy) => enemy.id !== targetId)
-                addKill()
-                play("chime")
-              } else {
-                enemiesRef.current = enemiesRef.current.map((enemy) =>
-                  enemy.id === targetId ? { ...enemy, hp: enemy.hp - 1 } : enemy
-                )
-              }
-              setEnemies(enemiesRef.current)
-              if (enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE) {
-                endWave("cleared")
-              }
-            }, PROJECTILE_DURATION_MS)
           }
         }
       }
