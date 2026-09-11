@@ -8,6 +8,10 @@ import { useResumeZergStore } from "@/lib/resume-zerg-store"
 
 const SPRITES = [FERRIS_SPRITE, GOPHER_SPRITE, DUKE_SPRITE]
 const WAVE_SIZE = 24
+/** Trickle enemies in one at a time instead of dropping all 24 on the
+ * player at once — spreads the whole wave across ~12s, well inside
+ * `RUSH_DURATION_MS`. */
+const SPAWN_INTERVAL_MS = 500
 const ENEMY_SPEED = 130 // px/second — slower than ResumeWalker's 220, so kiting is actually possible
 const ENEMY_HP = 2
 const SCALE = 0.4
@@ -72,6 +76,17 @@ interface Projectile {
 let nextId = 1
 let nextProjectileId = 1
 
+function spawnEnemy(): Enemy {
+  const spawn = spawnPoint()
+  return {
+    id: nextId++,
+    sprite: SPRITES[Math.floor(Math.random() * SPRITES.length)],
+    x: spawn.x,
+    y: spawn.y,
+    hp: ENEMY_HP,
+  }
+}
+
 /** Enters from a random screen edge, same idea as Google's own "zerg
  * rush" easter egg — the invaders start off camera, not already
  * standing on the page. */
@@ -105,6 +120,8 @@ export function ResumeZergRush() {
   const enemiesRef = useRef<Enemy[]>([])
   const projectilesRef = useRef<Projectile[]>([])
   const killsRef = useRef(0)
+  const spawnedCountRef = useRef(0)
+  const spawnTimerRef = useRef(0)
   const frameRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number | null>(null)
   const attackTimerRef = useRef(0)
@@ -143,21 +160,16 @@ export function ResumeZergRush() {
     const unsubWave = useResumeZergStore.subscribe((state, prevState) => {
       if (state.waveToken === prevState.waveToken) return
 
-      const wave = Array.from({ length: WAVE_SIZE }, () => {
-        const spawn = spawnPoint()
-        return {
-          id: nextId++,
-          sprite: SPRITES[Math.floor(Math.random() * SPRITES.length)],
-          x: spawn.x,
-          y: spawn.y,
-          hp: ENEMY_HP,
-        }
-      })
-      enemiesRef.current = wave
+      // First one shows up immediately — the rest trickle in via the step
+      // loop's spawn timer, not all 24 dropped on the player at once.
+      const first = spawnEnemy()
+      enemiesRef.current = [first]
       projectilesRef.current = []
       attackTimerRef.current = 0
+      spawnedCountRef.current = 1
+      spawnTimerRef.current = 0
       killsRef.current = 0
-      setEnemies(wave)
+      setEnemies([first])
       setProjectiles([])
       setKills(0)
       setMessage(null)
@@ -191,6 +203,15 @@ export function ResumeZergRush() {
       const last = lastTimeRef.current ?? time
       const delta = Math.min((time - last) / 1000, 0.1)
       lastTimeRef.current = time
+
+      if (spawnedCountRef.current < WAVE_SIZE) {
+        spawnTimerRef.current += delta
+        if (spawnTimerRef.current >= SPAWN_INTERVAL_MS / 1000) {
+          spawnTimerRef.current = 0
+          spawnedCountRef.current += 1
+          enemiesRef.current = [...enemiesRef.current, spawnEnemy()]
+        }
+      }
 
       const player = useResumeZergStore.getState().playerPositionRef?.current
 
@@ -268,7 +289,9 @@ export function ResumeZergRush() {
                 )
               }
               setEnemies(enemiesRef.current)
-              if (enemiesRef.current.length === 0) endWave("cleared")
+              if (enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE) {
+                endWave("cleared")
+              }
             }, PROJECTILE_DURATION_MS)
           }
         }
@@ -303,7 +326,9 @@ export function ResumeZergRush() {
     setEnemies(enemiesRef.current)
     addKill()
     play("chime")
-    if (enemiesRef.current.length === 0 && running) endWave("cleared")
+    if (enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE && running) {
+      endWave("cleared")
+    }
   }
 
   if (enemies.length === 0 && !message) return null
