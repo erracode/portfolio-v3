@@ -10,11 +10,9 @@ import { ResumeSkills } from "@/components/resume/resume-skills"
  * The "I don't want to play a game, just show me the resume" escape hatch —
  * a traditional, print-friendly page reusing the same content as
  * `cv-senior-software-engineer.md`, styled with the site's pixel-art system
- * instead of the WoW HUD/3D world. Rendered by `App.tsx` in place of the
- * game when the URL carries `?resume` (a query flag, not a `/resume` path,
- * since there's no server-side rewrite configured for a SPA path route on
- * whatever static host this ends up on — a query string never hits the
- * server, so it can't 404 on a hard refresh).
+ * instead of the WoW HUD/3D world. Routed at `/resume` (see `router.tsx`) —
+ * `public/_redirects` gives Cloudflare Pages a SPA fallback so that path
+ * survives a hard refresh.
  *
  * Organized like midudev's minimalist-portfolio-json reference (one section
  * per file, Cmd+K command palette) rather than one big component.

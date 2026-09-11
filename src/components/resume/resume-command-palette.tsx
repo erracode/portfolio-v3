@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { Command, Languages, Printer, Gamepad2 } from "lucide-react"
 
 import { Button } from "@/components/ui/8bit/button"
@@ -20,6 +21,7 @@ import { useResumeContent } from "@/lib/use-resume-content"
  * dialog on the site instead of adding a one-off dependency. */
 export function ResumeCommandPalette() {
   const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
   const { toggleLocale, labels } = useResumeContent()
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export function ResumeCommandPalette() {
               <Printer />
               {labels.print}
             </CommandItem>
-            <CommandItem onSelect={() => run(() => { window.location.href = "/" })}>
+            <CommandItem onSelect={() => run(() => navigate({ to: "/" }))}>
               <Gamepad2 />
               {labels.backToPortfolio}
             </CommandItem>

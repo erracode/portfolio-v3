@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { Link } from "@tanstack/react-router"
 import { play } from "cuelume"
 import { X } from "lucide-react"
 
@@ -113,9 +114,9 @@ function HelpBody() {
 
       <p className="font-sans text-xs text-muted-foreground">
         ¿Preferís el CV tradicional?{" "}
-        <a href="/?resume" className="text-foreground hover:underline">
+        <Link to="/resume" className="text-foreground hover:underline">
           Vé directo al currículum
-        </a>
+        </Link>
         .
       </p>
     </div>

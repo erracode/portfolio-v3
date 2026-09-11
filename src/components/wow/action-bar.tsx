@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { play } from "cuelume"
 import { FileUser } from "lucide-react"
 
@@ -89,18 +90,22 @@ function isEditableElement(element: EventTarget | null): boolean {
  */
 export function ActionBar() {
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
   const [activeSlot, setActiveSlot] = useState<number | null>(null)
   const timeoutRef = useRef<number | null>(null)
   const axeCooldownEndsAt = useCombatStore((state) => state.axeCooldownEndsAt)
 
-  const activate = useCallback((index: number) => {
-    setActiveSlot(index)
-    useLogStore.getState().addLog("system", `Ranura de acción ${index} activada`)
-    if (index === AXE_SLOT_INDEX) useCombatStore.getState().requestAxeCast()
-    if (index === RESUME_SLOT_INDEX) window.location.href = "/?resume"
-    if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current)
-    timeoutRef.current = window.setTimeout(() => setActiveSlot(null), 150)
-  }, [])
+  const activate = useCallback(
+    (index: number) => {
+      setActiveSlot(index)
+      useLogStore.getState().addLog("system", `Ranura de acción ${index} activada`)
+      if (index === AXE_SLOT_INDEX) useCombatStore.getState().requestAxeCast()
+      if (index === RESUME_SLOT_INDEX) navigate({ to: "/resume" })
+      if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current)
+      timeoutRef.current = window.setTimeout(() => setActiveSlot(null), 150)
+    },
+    [navigate]
+  )
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
