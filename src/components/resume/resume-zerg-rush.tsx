@@ -21,9 +21,11 @@ const ARRIVE_EPSILON = 6
 // own axe ability (`WORLD_CONFIG.axe.cooldownMs`). Manually triggered
 // (Space) rather than auto-firing, so kiting is an actual input — move to
 // reposition, press to throw when you're ready — not just standing there
-// while it fires itself.
-const ATTACK_RANGE = 180
+// while it fires itself. Aimed at the cursor (desktop only — there's no
+// pointer to aim with on touch), not auto-targeted: it can miss.
+const ATTACK_RANGE = 180 // max throw distance — aiming past this just lands short
 const ATTACK_COOLDOWN_MS = 1500
+const HIT_RADIUS = 55 // how close the landing point needs to be to an enemy to connect
 const CONTACT_RADIUS = 40
 // Slow enough that the axe's flight is actually visible, not just a
 // sound effect with a teleporting hit.
@@ -133,6 +135,7 @@ export function ResumeZergRush() {
    * press in the step loop — same pattern as the game's own
    * `interactPressedRef`. */
   const attackRequestedRef = useRef(false)
+  const cursorRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
   const endTimeoutRef = useRef<number | null>(null)
   const messageTimeoutRef = useRef<number | null>(null)
   const playerHp = useResumeZergStore((state) => state.playerHp)
@@ -219,6 +222,15 @@ export function ResumeZergRush() {
   }, [running])
 
   useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      cursorRef.current = { x: event.clientX, y: event.clientY }
+    }
+
+    window.addEventListener("pointermove", handlePointerMove)
+    return () => window.removeEventListener("pointermove", handlePointerMove)
+  }, [])
+
+  useEffect(() => {
     if (!running) return
 
     const step = (time: number) => {
@@ -273,51 +285,61 @@ export function ResumeZergRush() {
         if (attackRequestedRef.current) {
           attackRequestedRef.current = false
           if (attackTimerRef.current >= ATTACK_COOLDOWN_MS / 1000) {
-            let nearest: Enemy | null = null
-            let nearestDistance = ATTACK_RANGE
-            for (const enemy of enemiesRef.current) {
-              const d = Math.hypot(player.x - enemy.x, player.y - enemy.y)
-              if (d <= nearestDistance) {
-                nearest = enemy
-                nearestDistance = d
+            attackTimerRef.current = 0
+            playRandom(WHOOSH_SOUNDS)
+
+            // Aimed at the cursor, capped at ATTACK_RANGE — not "nearest
+            // enemy": this can miss if you aim badly.
+            const cursor = cursorRef.current
+            const dx = cursor.x - player.x
+            const dy = cursor.y - player.y
+            const distance = Math.hypot(dx, dy)
+            const travel = Math.min(distance, ATTACK_RANGE)
+            const [dirX, dirY] = distance > 0 ? [dx / distance, dy / distance] : [0, -1]
+            const landX = player.x + dirX * travel
+            const landY = player.y + dirY * travel
+
+            projectilesRef.current = [
+              ...projectilesRef.current,
+              {
+                id: nextProjectileId++,
+                x: player.x,
+                y: player.y,
+                fromX: player.x,
+                fromY: player.y,
+                toX: landX,
+                toY: landY,
+                startedAt: time,
+              },
+            ]
+            window.setTimeout(() => {
+              let hit: Enemy | null = null
+              let hitDistance = HIT_RADIUS
+              for (const enemy of enemiesRef.current) {
+                const d = Math.hypot(landX - enemy.x, landY - enemy.y)
+                if (d <= hitDistance) {
+                  hit = enemy
+                  hitDistance = d
+                }
               }
-            }
-            if (nearest) {
-              attackTimerRef.current = 0
-              playRandom(WHOOSH_SOUNDS)
-              projectilesRef.current = [
-                ...projectilesRef.current,
-                {
-                  id: nextProjectileId++,
-                  x: player.x,
-                  y: player.y,
-                  fromX: player.x,
-                  fromY: player.y,
-                  toX: nearest.x,
-                  toY: nearest.y,
-                  startedAt: time,
-                },
-              ]
-              const targetId = nearest.id
-              window.setTimeout(() => {
-                const stillThere = enemiesRef.current.find((enemy) => enemy.id === targetId)
-                if (!stillThere) return
-                playRandom(AXE_HIT_SOUNDS)
-                if (stillThere.hp <= 1) {
-                  enemiesRef.current = enemiesRef.current.filter((enemy) => enemy.id !== targetId)
-                  addKill()
-                  play("chime")
-                } else {
-                  enemiesRef.current = enemiesRef.current.map((enemy) =>
-                    enemy.id === targetId ? { ...enemy, hp: enemy.hp - 1 } : enemy
-                  )
-                }
-                setEnemies(enemiesRef.current)
-                if (enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE) {
-                  endWave("cleared")
-                }
-              }, PROJECTILE_DURATION_MS)
-            }
+              if (!hit) return
+
+              const targetId = hit.id
+              playRandom(AXE_HIT_SOUNDS)
+              if (hit.hp <= 1) {
+                enemiesRef.current = enemiesRef.current.filter((enemy) => enemy.id !== targetId)
+                addKill()
+                play("chime")
+              } else {
+                enemiesRef.current = enemiesRef.current.map((enemy) =>
+                  enemy.id === targetId ? { ...enemy, hp: enemy.hp - 1 } : enemy
+                )
+              }
+              setEnemies(enemiesRef.current)
+              if (enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE) {
+                endWave("cleared")
+              }
+            }, PROJECTILE_DURATION_MS)
           }
         }
       }
@@ -362,7 +384,7 @@ export function ResumeZergRush() {
     <>
       {enemies.length > 0 && (
         <p className="fixed top-16 left-1/2 z-30 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
-          Vida: {playerHp}/{maxPlayerHp} · Invasores derrotados: {kills}/{WAVE_SIZE} · ESPACIO para lanzar el hacha
+          Vida: {playerHp}/{maxPlayerHp} · Invasores derrotados: {kills}/{WAVE_SIZE} · Apuntá con el mouse, ESPACIO para lanzar
         </p>
       )}
 
