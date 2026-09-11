@@ -45,6 +45,23 @@
   }
 }
 
+/* DOM/CSS equivalent of the 3D game's `HitEffect` particle burst
+   (hit-effect.tsx's useFrame-driven Three.js group) for the resume page's
+   plain-DOM combat, which deliberately has no react-three-fiber canvas.
+   Each particle supplies its own `--hit-burst-dx`/`--hit-burst-dy` (a
+   random outward direction, computed once per burst), same idiom as
+   `sprite-step`'s `--sprite-end`. */
+@keyframes hit-burst {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--hit-burst-dx), var(--hit-burst-dy));
+    opacity: 0;
+  }
+}
+
 /* Floating "-N" combat text — rises and fades, classic WoW damage-number
    convention. Shared by the player's DOM combat text and a guard's
    in-Canvas (`<Html>`) combat text. */

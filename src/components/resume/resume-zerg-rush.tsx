@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { play } from "cuelume"
 
+import { HIT_BURST_DURATION_MS, HitBurst } from "@/components/resume/hit-burst"
 import { toast } from "@/components/ui/8bit/toast"
 import { SpriteAnimation } from "@/components/wow/sprite-animation"
 import { DUKE_SPRITE, FERRIS_SPRITE, GOPHER_SPRITE } from "@/data/guard-sprites"
@@ -39,6 +40,13 @@ const ATTACK_COOLDOWN_MS = 400
 const HIT_RADIUS = 55 // how close the landing point needs to be to an enemy to connect
 const CONTACT_RADIUS = 40
 const PROJECTILE_SCALE = 0.15
+
+// Same tint/duration as the 3D game's own hit-flash (`HIT_TINT`/`HIT_FLASH_MS`
+// in world-guard.tsx) — applied here as a `mix-blend-mode: multiply` overlay
+// instead of a Three.js sprite-material color, since it's the plain-CSS way
+// to get the same "multiply the texture by this color" tint on a DOM sprite.
+const HIT_TINT = "#ff3b3b"
+const HIT_FLASH_MS = 150
 
 // `ResumeWalker` anchors its sprite at the feet (translate(-50%, -100%) at
 // playerPositionRef), not the center — its rendered height is
@@ -81,6 +89,20 @@ interface Enemy {
   x: number
   y: number
   hp: number
+  hitFlashUntil: number
+  /** Derived from `hitFlashUntil` once per frame in the step loop — render
+   * reads this, never `hitFlashUntil` directly: calling `performance.now()`
+   * during render is an impure read the rules of React (and this project's
+   * lint config) flag, since it can produce a different result across
+   * re-renders of the same commit. */
+  flashing: boolean
+}
+
+interface HitBurstState {
+  id: number
+  x: number
+  y: number
+  startedAt: number
 }
 
 interface Projectile {
@@ -97,6 +119,7 @@ interface Projectile {
 
 let nextId = 1
 let nextProjectileId = 1
+let nextHitBurstId = 1
 
 /** Distance from (x, y) along direction (dirX, dirY) until the ray exits
  * the viewport — the axe's actual max range, since it flies until it's
@@ -120,6 +143,8 @@ function spawnEnemy(): Enemy {
     x: spawn.x,
     y: spawn.y,
     hp: ENEMY_HP,
+    hitFlashUntil: 0,
+    flashing: false,
   }
 }
 
@@ -150,10 +175,12 @@ function spawnPoint() {
 export function ResumeZergRush() {
   const [enemies, setEnemies] = useState<Enemy[]>([])
   const [projectiles, setProjectiles] = useState<Projectile[]>([])
+  const [hitBursts, setHitBursts] = useState<HitBurstState[]>([])
   const [kills, setKills] = useState(0)
   const [running, setRunning] = useState(false)
   const enemiesRef = useRef<Enemy[]>([])
   const projectilesRef = useRef<Projectile[]>([])
+  const hitBurstsRef = useRef<HitBurstState[]>([])
   const killsRef = useRef(0)
   const spawnedCountRef = useRef(0)
   const spawnTimerRef = useRef(0)
@@ -178,8 +205,10 @@ export function ResumeZergRush() {
   const endWave = (reason: "cleared" | "defeated") => {
     enemiesRef.current = []
     projectilesRef.current = []
+    hitBurstsRef.current = []
     setEnemies([])
     setProjectiles([])
+    setHitBursts([])
     setRunning(false)
     toast(
       reason === "defeated"
@@ -201,12 +230,14 @@ export function ResumeZergRush() {
       const first = spawnEnemy()
       enemiesRef.current = [first]
       projectilesRef.current = []
+      hitBurstsRef.current = []
       attackTimerRef.current = 0
       spawnedCountRef.current = 1
       spawnTimerRef.current = 0
       killsRef.current = 0
       setEnemies([first])
       setProjectiles([])
+      setHitBursts([])
       setKills(0)
       setRunning(true)
     })
@@ -270,17 +301,29 @@ export function ResumeZergRush() {
           const dx = player.x - enemy.x
           const dy = player.y - enemy.y
           const distance = Math.hypot(dx, dy)
+          const flashing = time < enemy.hitFlashUntil
 
           if (distance <= CONTACT_RADIUS) hitPlayer = true
-          if (distance <= ARRIVE_EPSILON) return enemy
+          if (distance <= ARRIVE_EPSILON) return { ...enemy, flashing }
 
           const travel = Math.min(distance, ENEMY_SPEED * delta)
-          return { ...enemy, x: enemy.x + (dx / distance) * travel, y: enemy.y + (dy / distance) * travel }
+          return {
+            ...enemy,
+            x: enemy.x + (dx / distance) * travel,
+            y: enemy.y + (dy / distance) * travel,
+            flashing,
+          }
         })
         if (hitPlayer) {
           const before = useResumeZergStore.getState().playerHp
           useResumeZergStore.getState().takePlayerDamage()
-          if (useResumeZergStore.getState().playerHp < before) playRandom(PLAYER_HIT_SOUNDS)
+          if (useResumeZergStore.getState().playerHp < before) {
+            playRandom(PLAYER_HIT_SOUNDS)
+            hitBurstsRef.current = [
+              ...hitBurstsRef.current,
+              { id: nextHitBurstId++, x: player.x, y: player.y + PLAYER_VISUAL_OFFSET_Y, startedAt: time },
+            ]
+          }
         }
 
         // Advance every in-flight axe and hit-test it against live enemy
@@ -317,6 +360,7 @@ export function ResumeZergRush() {
 
             // Consumed on impact — it doesn't keep flying through the target.
             playRandom(AXE_HIT_SOUNDS)
+            hitBurstsRef.current = [...hitBurstsRef.current, { id: nextHitBurstId++, x, y, startedAt: time }]
             const target = enemiesRef.current.find((enemy) => enemy.id === targetId)
             if (target && target.hp <= 1) {
               enemiesRef.current = enemiesRef.current.filter((enemy) => enemy.id !== targetId)
@@ -325,7 +369,7 @@ export function ResumeZergRush() {
               play("chime")
             } else {
               enemiesRef.current = enemiesRef.current.map((enemy) =>
-                enemy.id === targetId ? { ...enemy, hp: enemy.hp - 1 } : enemy
+                enemy.id === targetId ? { ...enemy, hp: enemy.hp - 1, hitFlashUntil: time + HIT_FLASH_MS } : enemy
               )
             }
           }
@@ -334,6 +378,12 @@ export function ResumeZergRush() {
           if (killedThisFrame && enemiesRef.current.length === 0 && spawnedCountRef.current >= WAVE_SIZE) {
             endWave("cleared")
           }
+        }
+
+        if (hitBurstsRef.current.length > 0) {
+          hitBurstsRef.current = hitBurstsRef.current.filter(
+            (burst) => time - burst.startedAt < HIT_BURST_DURATION_MS
+          )
         }
 
         attackTimerRef.current += delta
@@ -380,6 +430,7 @@ export function ResumeZergRush() {
 
       setEnemies(enemiesRef.current)
       setProjectiles(projectilesRef.current)
+      setHitBursts(hitBurstsRef.current)
       frameRef.current = requestAnimationFrame(step)
     }
 
@@ -416,7 +467,14 @@ export function ResumeZergRush() {
             fps={6}
             scale={SCALE}
           />
+          {enemy.flashing && (
+            <div className="absolute inset-0" style={{ backgroundColor: HIT_TINT, mixBlendMode: "multiply" }} />
+          )}
         </div>
+      ))}
+
+      {hitBursts.map((burst) => (
+        <HitBurst key={burst.id} x={burst.x} y={burst.y} />
       ))}
 
       {projectiles.map((projectile) => (
