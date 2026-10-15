@@ -1,11 +1,57 @@
+import fs from "node:fs"
 import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
+import { defineConfig, type Plugin } from "vite"
+
+import { renderResumeStaticHtml, renderSeoHead, SEO_HEAD_END, SEO_HEAD_START } from "./src/seo/prerender"
+import { ROUTE_META } from "./src/seo/route-meta"
+
+/**
+ * Per-route static HTML for crawlers that don't run JS (LinkedIn, Slack,
+ * most social scrapers). Injects the "/" SEO tags into index.html (dev and
+ * build), then after the build copies dist/index.html to dist/resume.html
+ * with the "/resume" tags, `lang`, and a static version of the resume inside
+ * #root. Cloudflare Pages serves `resume.html` at /resume directly (200, no
+ * redirect); a `resume/index.html` folder would make it 308 /resume to
+ * /resume/. There is deliberately no `public/_redirects`: Pages flags both
+ * `/resume -> /resume.html` and the classic `/* /index.html 200` as infinite
+ * loops and ignores them, and its built-in SPA fallback (active while the
+ * build has no top-level 404.html) already serves index.html for every
+ * other path.
+ */
+function seoPrerender(): Plugin {
+  let outDir = ""
+  let isBuild = false
+
+  return {
+    name: "seo-prerender",
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir)
+      isBuild = config.command === "build"
+    },
+    transformIndexHtml(html) {
+      return html.replace("<!--seo-head-->", renderSeoHead("/"))
+    },
+    closeBundle() {
+      if (!isBuild) return
+      const html = fs.readFileSync(path.join(outDir, "index.html"), "utf8")
+      const start = html.indexOf(SEO_HEAD_START)
+      const end = html.indexOf(SEO_HEAD_END)
+      if (start === -1 || end === -1) throw new Error("seo-prerender: SEO markers missing from dist/index.html")
+
+      const resumeHtml = (html.slice(0, start) + renderSeoHead("/resume") + html.slice(end + SEO_HEAD_END.length))
+        .replace(/<html lang="[^"]*">/, `<html lang="${ROUTE_META["/resume"].lang}">`)
+        .replace('<div id="root"></div>', `<div id="root">${renderResumeStaticHtml()}</div>`)
+
+      fs.writeFileSync(path.join(outDir, "resume.html"), resumeHtml)
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), seoPrerender()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

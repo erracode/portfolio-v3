@@ -24,14 +24,15 @@ export const PROJECTS: ProjectEntry[] = [
   {
     id: "aquetienda",
     name: "aquetienda.com",
-    domain: "app.aquetienda.com",
-    liveUrl: "https://app.aquetienda.com",
+    domain: "aquetienda.com",
+    liveUrl: "https://aquetienda.com",
     category: "Producto SaaS",
     summary:
-      "Sheet-to-Store Engine — motor de tiendas online generadas a partir de hojas de cálculo.",
-    summaryEn: "Sheet-to-Store Engine — turns a Google Sheet into a real online store.",
+      "Plataforma para crear tiendas online gratis, sin código y sin comisiones, con pedidos que llegan directo a WhatsApp.",
+    summaryEn:
+      "Platform for building free online stores, no code and no commissions, with orders delivered straight to WhatsApp.",
     architecture:
-      "Monorepo desplegado en Cloudflare Workers, con backend en Hono sobre runtime Bun y frontend en React 19 + Tailwind CSS v4. Persistencia y autenticación vía Supabase. Incluye un dashboard de gestión de catálogo y un módulo linktree independiente (paugurumi.aquetienda.com/links) que comparte el mismo monorepo y pipeline de despliegue.",
+      "Multi-tenant: cada negocio obtiene su tienda en su propio subdominio, con catálogo cargado a mano o importado por CSV, 32 temas personalizables, checkout que arma el pedido y lo envía por WhatsApp, página link-in-bio y verificador de precios por código de barras. Monorepo desplegado en Cloudflare Workers, con backend en Hono sobre runtime Bun y frontend en React 19 + Tailwind CSS v4; persistencia y autenticación vía Supabase, más un panel de gestión de pedidos, productos, marcas y categorías.",
     stack: [
       "Cloudflare Workers",
       "Hono",
@@ -138,3 +139,15 @@ export const PROJECTS: ProjectEntry[] = [
     icon: Award,
   },
 ]
+
+/** Same curated set as `cv-senior-software-engineer.md`'s "Selected
+ * Projects" — a deliberate subset of the full `WorkLogModal` gallery, not
+ * every side project. Lives here (not in `ResumeProjects`) so the build-time
+ * `/resume` prerender (`src/seo/prerender.ts`) lists the exact same cards. */
+const RESUME_FEATURED_PROJECT_IDS = ["aquetienda", "point-party", "petsosciety", "aquetasa", "opencode-obsidian"]
+
+export function getResumeFeaturedProjects(): ProjectEntry[] {
+  return RESUME_FEATURED_PROJECT_IDS.map((id) => PROJECTS.find((project) => project.id === id)).filter(
+    (project) => project !== undefined
+  )
+}

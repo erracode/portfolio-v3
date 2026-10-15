@@ -1,12 +1,7 @@
 import { Card, CardContent } from "@/components/ui/8bit/card"
 import { ResumeSection } from "@/components/resume/resume-section"
-import { PROJECTS, type ProjectEntry } from "@/data/projects"
+import { getResumeFeaturedProjects, type ProjectEntry } from "@/data/projects"
 import { useResumeContent } from "@/lib/use-resume-content"
-
-/** Same curated set as `cv-senior-software-engineer.md`'s "Selected
- * Projects" — a deliberate subset of the full `WorkLogModal` gallery, not
- * every side project. */
-const FEATURED_IDS = ["aquetienda", "point-party", "petsosciety", "aquetasa", "opencode-obsidian"]
 
 function ProjectCard({ project, summary, visitLabel }: { project: ProjectEntry; summary: string; visitLabel: string }) {
   // Real screenshot as the thumbnail, not the logo — the logo is just a
@@ -62,9 +57,7 @@ function ProjectCard({ project, summary, visitLabel }: { project: ProjectEntry; 
 
 export function ResumeProjects() {
   const { locale, labels } = useResumeContent()
-  const projects = FEATURED_IDS.map((id) => PROJECTS.find((project) => project.id === id)).filter(
-    (project) => project !== undefined
-  )
+  const projects = getResumeFeaturedProjects()
 
   return (
     <ResumeSection title={labels.projects}>

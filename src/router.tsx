@@ -2,9 +2,15 @@ import { createRootRoute, createRoute, createRouter, redirect, Outlet } from "@t
 
 import { App } from "@/App"
 import { ResumePage } from "@/components/resume/resume-page"
+import { RouteHead } from "@/seo/route-head"
 
 const rootRoute = createRootRoute({
-  component: () => <Outlet />,
+  component: () => (
+    <>
+      <RouteHead />
+      <Outlet />
+    </>
+  ),
 })
 
 const indexRoute = createRoute({
