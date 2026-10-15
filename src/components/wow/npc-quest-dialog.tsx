@@ -64,13 +64,13 @@ export function NpcQuestDialog({
   const openQuest = (quest: NpcQuest) => {
     setSelectedQuest(quest)
     setViewState("quest_detail")
-    useLogStore.getState().addLog("quest", `Opened quest: "${quest.title}"`)
+    useLogStore.getState().addLog("quest", `Misión abierta: "${quest.title}"`)
   }
 
   const openInfo = (node: NpcInfoNode) => {
     setSelectedInfo(node)
     setViewState("info_detail")
-    useLogStore.getState().addLog("system", `Opened info: "${node.title}"`)
+    useLogStore.getState().addLog("system", `Información abierta: "${node.title}"`)
   }
 
   const backToGreeting = () => {
@@ -84,7 +84,7 @@ export function NpcQuestDialog({
       useQuestStore.getState().acceptQuest(selectedQuest.id)
       useLogStore
         .getState()
-        .addLog("quest", `Accepted quest: "${selectedQuest.title}"`)
+        .addLog("quest", `Misión aceptada: "${selectedQuest.title}"`)
       play("arrival")
     }
     backToGreeting()
@@ -95,7 +95,7 @@ export function NpcQuestDialog({
       useQuestStore.getState().turnInQuest(selectedQuest.id)
       useLogStore
         .getState()
-        .addLog("quest", `Completed quest: "${selectedQuest.title}"`)
+        .addLog("quest", `Misión completada: "${selectedQuest.title}"`)
     }
     backToGreeting()
   }

@@ -125,7 +125,7 @@ export const useWindowsStore = create<WindowsState>()((set, get) => ({
     }))
 
     if (!wasOpen) {
-      useLogStore.getState().addLog("system", `Opened window: ${current.title}`)
+      useLogStore.getState().addLog("system", `Ventana abierta: ${current.title}`)
 
       const objectiveId = WINDOW_OBJECTIVE_IDS[id]
       if (objectiveId) useQuestStore.getState().completeObjectiveIfAccepted(objectiveId)
@@ -152,7 +152,7 @@ export const useWindowsStore = create<WindowsState>()((set, get) => ({
       }
     })
 
-    useLogStore.getState().addLog("system", `Closed window: ${current.title}`)
+    useLogStore.getState().addLog("system", `Ventana cerrada: ${current.title}`)
   },
 
   toggleWindow: (id) => {

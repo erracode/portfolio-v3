@@ -5,9 +5,9 @@ export type LogChannel = "system" | "quest" | "loot"
 /** Shared between `ChatBox` and `MobileChatBox` — kept here since both
  * already import from this module. */
 export const CHANNEL_LABEL: Record<LogChannel, string> = {
-  system: "System",
-  quest: "Quest",
-  loot: "Loot",
+  system: "Sistema",
+  quest: "Misión",
+  loot: "Botín",
 }
 
 export const CHANNEL_COLOR: Record<LogChannel, string> = {
@@ -36,12 +36,12 @@ const INITIAL_LOGS: LogEntry[] = [
   {
     id: nextId++,
     channel: "system",
-    message: "Welcome to Jesús Portfolio v2.0",
+    message: "Bienvenido al portfolio de Jesús v2.0",
   },
   {
     id: nextId++,
     channel: "system",
-    message: "Press C / L / P / Y / J to open a panel",
+    message: "Presiona C / L / P / Y / J para abrir un panel",
   },
 ]
 
