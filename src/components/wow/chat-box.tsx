@@ -20,7 +20,7 @@ export function ChatBox() {
   return (
     <section
       aria-label="Registro del sistema"
-      className="fixed bottom-4 left-4 z-40 w-[min(320px,calc(100svw-2rem))] border-y-6 border-foreground bg-background/80 backdrop-blur-sm shadow-lg dark:border-ring"
+      className="fixed bottom-4 left-4 z-40 w-[min(320px,calc(100svw-2rem))] border-y-6 border-foreground bg-background/90 shadow-lg dark:border-ring"
     >
       <header className="flex items-center gap-2 border-b-4 border-border px-3 py-1.5">
         <div className="flex gap-1.5" aria-hidden="true">
