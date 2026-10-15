@@ -6,7 +6,9 @@ import { toast } from "@/components/ui/8bit/toast"
 import { SpriteAnimation } from "@/components/wow/sprite-animation"
 import { DUKE_SPRITE, FERRIS_SPRITE, GOPHER_SPRITE } from "@/data/guard-sprites"
 import type { SpriteSheetConfig } from "@/data/sprites"
-import { useResumeZergStore } from "@/lib/resume-zerg-store"
+import { useIsTouchDevice } from "@/lib/use-is-mobile"
+import { useResumeContent } from "@/lib/use-resume-content"
+import { useResumeZergStore, type ResumePoint } from "@/lib/resume-zerg-store"
 
 const SPRITES = [FERRIS_SPRITE, GOPHER_SPRITE, DUKE_SPRITE]
 const WAVE_SIZE = 12
@@ -21,8 +23,8 @@ const ARRIVE_EPSILON = 6
 // Player's attack — a thrown axe. Manually triggered (Space) rather than
 // auto-firing, so kiting is an actual input — move to reposition, press
 // to throw when you're ready — not just standing there while it fires
-// itself. Aimed at the cursor (desktop only — there's no pointer to aim
-// with on touch), not auto-targeted: it can miss.
+// itself. Aimed at the cursor (on touch: at the tapped invader, see
+// TOUCH_TARGET_RADIUS), not auto-targeted: it can miss.
 //
 // No fixed max range — it flies straight until it exits the viewport,
 // same as the wave itself having no timer: distance is now the cursor's
@@ -38,6 +40,10 @@ const ARRIVE_EPSILON = 6
 const AXE_SPEED = 1600 // px/second
 const ATTACK_COOLDOWN_MS = 400
 const HIT_RADIUS = 55 // how close the landing point needs to be to an enemy to connect
+// Touch aiming: a tap this close to an invader's center counts as "throw at
+// it" instead of "walk there". Wider than HIT_RADIUS since a fingertip is
+// far less precise than a cursor and the target keeps moving.
+const TOUCH_TARGET_RADIUS = HIT_RADIUS * 1.5
 const CONTACT_RADIUS = 40
 const PROJECTILE_SCALE = 0.15
 
@@ -194,6 +200,8 @@ export function ResumeZergRush() {
   const cursorRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
   const playerHp = useResumeZergStore((state) => state.playerHp)
   const maxPlayerHp = useResumeZergStore((state) => state.maxPlayerHp)
+  const { labels } = useResumeContent()
+  const isTouch = useIsTouchDevice()
 
   const addKill = () => {
     killsRef.current += 1
@@ -275,6 +283,54 @@ export function ResumeZergRush() {
     window.addEventListener("pointermove", handlePointerMove)
     return () => window.removeEventListener("pointermove", handlePointerMove)
   }, [])
+
+  // Touch counterpart of Space + mouse aim: `ResumeWalker` asks this on
+  // every touch pointerdown (via the store) before turning the tap into a
+  // walk order. A tap near a live invader aims there and queues a throw —
+  // the step loop still applies ATTACK_COOLDOWN_MS, exactly like Space.
+  useEffect(() => {
+    if (!running) return
+
+    const handleTouchAttack = (point: ResumePoint) => {
+      const onEnemy = enemiesRef.current.some(
+        (enemy) => Math.hypot(point.x - enemy.x, point.y - enemy.y) <= TOUCH_TARGET_RADIUS
+      )
+      if (!onEnemy) return false
+      cursorRef.current = point
+      attackRequestedRef.current = true
+      return true
+    }
+
+    const { registerTouchAttackHandler } = useResumeZergStore.getState()
+    registerTouchAttackHandler(handleTouchAttack)
+    return () => registerTouchAttackHandler(null)
+  }, [running])
+
+  // Rapid taps during a wave would otherwise trigger double-tap zoom and
+  // long-press text selection on mobile. `manipulation` still allows
+  // panning and pinch-zoom, and it's only applied while a wave runs.
+  useEffect(() => {
+    if (!running) return
+
+    const root = document.documentElement
+    const previous = {
+      touchAction: root.style.touchAction,
+      userSelect: root.style.userSelect,
+      webkitUserSelect: root.style.getPropertyValue("-webkit-user-select"),
+    }
+    root.style.touchAction = "manipulation"
+    root.style.userSelect = "none"
+    root.style.setProperty("-webkit-user-select", "none")
+    useResumeZergStore.getState().setWaveActive(true)
+    return () => {
+      useResumeZergStore.getState().setWaveActive(false)
+      root.style.touchAction = previous.touchAction
+      root.style.userSelect = previous.userSelect
+      // setProperty("", …) removes the declaration, so an inline value that
+      // wasn't there before doesn't linger.
+      root.style.setProperty("-webkit-user-select", previous.webkitUserSelect)
+    }
+  }, [running])
 
   useEffect(() => {
     if (!running) return
@@ -446,7 +502,8 @@ export function ResumeZergRush() {
   return (
     <>
       <p className="fixed top-16 left-1/2 z-30 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
-        Vida: {playerHp}/{maxPlayerHp} · Invasores derrotados: {kills}/{WAVE_SIZE} · Apuntá con el mouse, ESPACIO para lanzar
+        {labels.zergHp}: {playerHp}/{maxPlayerHp} · {labels.zergKills}: {kills}/{WAVE_SIZE} ·{" "}
+        {isTouch ? labels.zergHintTouch : labels.zergHintPointer}
       </p>
 
       {enemies.map((enemy) => (

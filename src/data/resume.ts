@@ -43,6 +43,10 @@ export const RESUME_LABELS = {
     openCommands: "Open commands",
     pressForCommands: "for commands",
     language: "Switch to Spanish",
+    zergHp: "HP",
+    zergKills: "Invaders defeated",
+    zergHintPointer: "Aim with the mouse, SPACE to throw",
+    zergHintTouch: "Tap an invader to throw the axe, tap anywhere else to move",
   },
   es: {
     summary: "Resumen",
@@ -62,6 +66,10 @@ export const RESUME_LABELS = {
     openCommands: "Abrir comandos",
     pressForCommands: "para abrir comandos",
     language: "Cambiar a inglés",
+    zergHp: "Vida",
+    zergKills: "Invasores derrotados",
+    zergHintPointer: "Apuntá con el mouse, ESPACIO para lanzar",
+    zergHintTouch: "Tocá un invasor para lanzar el hacha, tocá en otro lado para moverte",
   },
 } as const
 

@@ -50,7 +50,15 @@ export function ResumeWalker() {
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
       if (isInteractiveTarget(event.target)) return
-      targetRef.current = { x: event.clientX, y: event.clientY }
+      const point = { x: event.clientX, y: event.clientY }
+      // Touch only: a tap on an invader is the touch equivalent of Space
+      // (throw + plant in place, see below), so it must not also become a
+      // walk order. Mouse/pen keep walking on every click, as before.
+      if (event.pointerType === "touch" && useResumeZergStore.getState().requestTouchAttack(point)) {
+        targetRef.current = positionRef.current
+        return
+      }
+      targetRef.current = point
     }
 
     window.addEventListener("pointerdown", handlePointerDown)
