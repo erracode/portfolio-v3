@@ -2,13 +2,8 @@ import { useEffect, useRef, useState } from "react"
 import { useProgress } from "@react-three/drei"
 
 import LoadingScreen from "@/components/ui/8bit/blocks/loading-screen"
+import { GAME_LOADING_TIPS, GAME_LOADING_TITLE } from "@/data/game-loading"
 import { useOnboardingStore } from "@/lib/onboarding-store"
-
-const LOADING_TIPS = [
-  "Cargando el mundo...",
-  "Consejo: presiona E para interactuar con NPCs y objetos.",
-  "Derrota a los guardias para poder abrir el cofre.",
-]
 
 const FADE_OUT_MS = 400
 const LOADING_FALLBACK_MS = 7000
@@ -80,8 +75,8 @@ export function InitialLoadingScreen() {
   return (
     <LoadingScreen
       variant="fullscreen"
-      title="CARGANDO"
-      tips={LOADING_TIPS}
+      title={GAME_LOADING_TITLE}
+      tips={GAME_LOADING_TIPS}
       progress={progress}
       className={isDone ? "pointer-events-none" : undefined}
       style={

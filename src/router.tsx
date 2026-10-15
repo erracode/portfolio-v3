@@ -1,7 +1,7 @@
-import { createRootRoute, createRoute, createRouter, redirect, Outlet } from "@tanstack/react-router"
+import { createRootRoute, createRoute, createRouter, lazyRouteComponent, redirect, Outlet } from "@tanstack/react-router"
 
-import { App } from "@/App"
 import { ResumePage } from "@/components/resume/resume-page"
+import { GameRoutePending } from "@/components/wow/game-route-pending"
 import { RouteHead } from "@/seo/route-head"
 
 const rootRoute = createRootRoute({
@@ -31,7 +31,15 @@ const indexRoute = createRoute({
   beforeLoad: ({ search }) => {
     if (search.resume) throw redirect({ to: "/resume" })
   },
-  component: App,
+  // Lazy so the whole 3D game (three, r3f, drei, gsap…) lives in its own
+  // chunks and `/resume` never downloads it. The router loads the chunk
+  // while matching "/" and shows `GameRoutePending` meanwhile — right away
+  // (`pendingMs: 0`) so the first paint is the same loading screen the game
+  // then shows itself, with no blank frame and no artificial minimum time.
+  component: lazyRouteComponent(() => import("@/App"), "App"),
+  pendingComponent: GameRoutePending,
+  pendingMs: 0,
+  pendingMinMs: 0,
 })
 
 const resumeRoute = createRoute({
