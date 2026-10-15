@@ -26,6 +26,8 @@ export function ResumeCommandPalette() {
   const navigate = useNavigate()
   const { toggleLocale, labels } = useResumeContent()
   const startZergRush = useResumeZergStore((state) => state.start)
+  // The zerg HUD takes over this bottom-center slot while a wave runs.
+  const waveActive = useResumeZergStore((state) => state.waveActive)
 
   // Same "ready" cue every other window/dialog plays on open (see
   // `HelpModal`, `SocialModal`, etc.) — fires whether `open` was flipped by
@@ -82,7 +84,10 @@ export function ResumeCommandPalette() {
         </Button>
       </div>
 
-      <p className="fixed bottom-4 left-1/2 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
+      <p
+        hidden={waveActive}
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden"
+      >
         <CommandShortcut className="mx-1">Ctrl/Cmd + K</CommandShortcut> {labels.pressForCommands}
       </p>
 

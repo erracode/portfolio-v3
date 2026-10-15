@@ -58,7 +58,8 @@ function DialogContent({
   children,
   font,
   ...props
-}: BitDialogProps) {
+}: React.ComponentProps<typeof ShadcnDialogContent> &
+  VariantProps<typeof dialogContentVariants>) {
   return (
     <ShadcnDialogContent
       className={cn(

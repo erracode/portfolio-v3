@@ -47,6 +47,13 @@ export const RESUME_LABELS = {
     zergKills: "Invaders defeated",
     zergHintPointer: "Aim with the mouse, SPACE to throw",
     zergHintTouch: "Tap an invader to throw the axe, tap anywhere else to move",
+    zergHudTitle: "Zerg Rush",
+    zergVictoryTitle: "Portfolio defended!",
+    zergVictoryText: "Every invader is down. The resume is safe.",
+    zergDefeatTitle: "Defeated",
+    zergDefeatText: "The invaders reached you before you could stop them.",
+    zergPlayAgain: "Play again",
+    zergClose: "Close",
   },
   es: {
     summary: "Resumen",
@@ -70,6 +77,13 @@ export const RESUME_LABELS = {
     zergKills: "Invasores derrotados",
     zergHintPointer: "Apunta con el mouse, ESPACIO para lanzar",
     zergHintTouch: "Toca un invasor para lanzar el hacha, toca en otro lado para moverte",
+    zergHudTitle: "Zerg Rush",
+    zergVictoryTitle: "¡Portafolio defendido!",
+    zergVictoryText: "Todos los invasores han caído. El currículum está a salvo.",
+    zergDefeatTitle: "Derrotado",
+    zergDefeatText: "Los invasores te alcanzaron antes de que pudieras detenerlos.",
+    zergPlayAgain: "Jugar de nuevo",
+    zergClose: "Cerrar",
   },
 } as const
 

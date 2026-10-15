@@ -2,12 +2,11 @@ import { useEffect, useRef, useState } from "react"
 import { play } from "cuelume"
 
 import { HIT_BURST_DURATION_MS, HitBurst } from "@/components/resume/hit-burst"
-import { toast } from "@/components/ui/8bit/toast"
+import { ZergHud, ZergResultDialog, type ZergWaveResult } from "@/components/resume/resume-zerg-ui"
 import { SpriteAnimation } from "@/components/wow/sprite-animation"
 import { DUKE_SPRITE, FERRIS_SPRITE, GOPHER_SPRITE } from "@/data/guard-sprites"
 import type { SpriteSheetConfig } from "@/data/sprites"
 import { useIsTouchDevice } from "@/lib/use-is-mobile"
-import { useResumeContent } from "@/lib/use-resume-content"
 import { useResumeZergStore, type ResumePoint } from "@/lib/resume-zerg-store"
 
 const SPRITES = [FERRIS_SPRITE, GOPHER_SPRITE, DUKE_SPRITE]
@@ -184,6 +183,10 @@ export function ResumeZergRush() {
   const [hitBursts, setHitBursts] = useState<HitBurstState[]>([])
   const [kills, setKills] = useState(0)
   const [running, setRunning] = useState(false)
+  /** Kept after the dialog closes so its content doesn't empty out mid
+   * fade-out; `resultOpen` alone drives visibility. */
+  const [result, setResult] = useState<ZergWaveResult | null>(null)
+  const [resultOpen, setResultOpen] = useState(false)
   const enemiesRef = useRef<Enemy[]>([])
   const projectilesRef = useRef<Projectile[]>([])
   const hitBurstsRef = useRef<HitBurstState[]>([])
@@ -200,7 +203,7 @@ export function ResumeZergRush() {
   const cursorRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
   const playerHp = useResumeZergStore((state) => state.playerHp)
   const maxPlayerHp = useResumeZergStore((state) => state.maxPlayerHp)
-  const { labels } = useResumeContent()
+  const startWave = useResumeZergStore((state) => state.start)
   const isTouch = useIsTouchDevice()
 
   const addKill = () => {
@@ -218,11 +221,9 @@ export function ResumeZergRush() {
     setProjectiles([])
     setHitBursts([])
     setRunning(false)
-    toast(
-      reason === "defeated"
-        ? `Te alcanzaron los invasores — ${killsRef.current}/${WAVE_SIZE} derrotados antes de caer.`
-        : `¡Portafolio defendido! ${WAVE_SIZE}/${WAVE_SIZE} derrotados.`
-    )
+    const { playerHp: hpLeft, maxPlayerHp: maxHp } = useResumeZergStore.getState()
+    setResult({ outcome: reason, kills: killsRef.current, hpLeft, maxHp })
+    setResultOpen(true)
   }
 
   // Subscribed rather than selected + keyed off in a dependency array: both
@@ -247,6 +248,7 @@ export function ResumeZergRush() {
       setProjectiles([])
       setHitBursts([])
       setKills(0)
+      setResultOpen(false)
       setRunning(true)
     })
 
@@ -497,14 +499,18 @@ export function ResumeZergRush() {
     }
   }, [running])
 
-  if (enemies.length === 0) return null
-
   return (
     <>
-      <p className="fixed top-16 left-1/2 z-30 -translate-x-1/2 border-y-4 border-foreground bg-card px-3 py-1.5 font-sans text-xs text-muted-foreground dark:border-ring print:hidden">
-        {labels.zergHp}: {playerHp}/{maxPlayerHp} · {labels.zergKills}: {kills}/{WAVE_SIZE} ·{" "}
-        {isTouch ? labels.zergHintTouch : labels.zergHintPointer}
-      </p>
+      {running && <ZergHud hp={playerHp} maxHp={maxPlayerHp} kills={kills} waveSize={WAVE_SIZE} isTouch={isTouch} />}
+
+      {/* Portaled to <body> by Radix — outside ResumePage's inert wrapper. */}
+      <ZergResultDialog
+        result={result}
+        open={resultOpen}
+        waveSize={WAVE_SIZE}
+        onPlayAgain={startWave}
+        onClose={() => setResultOpen(false)}
+      />
 
       {enemies.map((enemy) => (
         <div
