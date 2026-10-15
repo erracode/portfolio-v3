@@ -3,6 +3,12 @@ import { play } from "cuelume"
 import { Menu } from "lucide-react"
 
 import { SECTIONS } from "@/data/sections"
+import {
+  HELP_SEEN_STORAGE_KEY,
+  hasSeen,
+  markSeen,
+  WELCOME_SEEN_STORAGE_KEY,
+} from "@/lib/onboarding-store"
 import { useIsMobile } from "@/lib/use-is-mobile"
 import { useOpenWindowIds, useWindowsStore } from "@/lib/windows-store"
 
@@ -37,10 +43,6 @@ function isEditableElement(element: EventTarget | null): boolean {
   )
 }
 
-/** First-visit gate for auto-opening the Help window — persists once the
- * visitor has seen (or manually closed) it, matching `ControlsHint`. */
-const HELP_SEEN_STORAGE_KEY = "wow-help-seen"
-
 /**
  * WoW-style micro menu fixed at the bottom-right corner — the single
  * integration point for all six main windows (Character, Work Log,
@@ -59,12 +61,14 @@ export function MicroBar() {
   const closeFocused = useWindowsStore((state) => state.closeFocused)
 
   // First visit only: open the Help window once so new visitors see the
-  // controls. Seen/dismissed visitors are remembered via localStorage, same
-  // persistence pattern as `ControlsHint`. Opening is fully in the windows
-  // store's hands afterward (H hotkey / micro-menu icon).
+  // controls. While the welcome dialog is still pending, it owns this
+  // instead (Help opens after "explore" is picked) so two auto-opened
+  // windows never stack. Opening is fully in the windows store's hands
+  // afterward (H hotkey / micro-menu icon).
   useEffect(() => {
-    if (window.localStorage.getItem(HELP_SEEN_STORAGE_KEY) === "true") return
-    window.localStorage.setItem(HELP_SEEN_STORAGE_KEY, "true")
+    if (!hasSeen(WELCOME_SEEN_STORAGE_KEY)) return
+    if (hasSeen(HELP_SEEN_STORAGE_KEY)) return
+    markSeen(HELP_SEEN_STORAGE_KEY)
     openWindow("help")
   }, [openWindow])
 

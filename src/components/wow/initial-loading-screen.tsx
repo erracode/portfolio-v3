@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useProgress } from "@react-three/drei"
 
 import LoadingScreen from "@/components/ui/8bit/blocks/loading-screen"
+import { useOnboardingStore } from "@/lib/onboarding-store"
 
 const LOADING_TIPS = [
   "Cargando el mundo...",
@@ -60,11 +61,19 @@ export function InitialLoadingScreen() {
     }
   }, [])
 
+  // Signals `WelcomeModal` only once the fade-out has finished, so the two
+  // never overlap. Reset on unmount: this overlay shows again every time
+  // the game route remounts (e.g. coming back from /resume).
   useEffect(() => {
     if (!isDone) return
-    const timeout = window.setTimeout(() => setIsVisible(false), FADE_OUT_MS)
+    const timeout = window.setTimeout(() => {
+      setIsVisible(false)
+      useOnboardingStore.getState().setWorldReady(true)
+    }, FADE_OUT_MS)
     return () => window.clearTimeout(timeout)
   }, [isDone])
+
+  useEffect(() => () => useOnboardingStore.getState().setWorldReady(false), [])
 
   if (!isVisible) return null
 

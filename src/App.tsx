@@ -13,6 +13,7 @@ import { PlayerUnitFrame } from "@/components/wow/player-unit-frame"
 import { QuestDialogueBanner } from "@/components/wow/quest-dialogue-banner"
 import { QuestTracker } from "@/components/wow/quest-tracker"
 import { TargetFrame } from "@/components/wow/target-frame"
+import { WelcomeModal } from "@/components/wow/welcome-modal"
 import { WorldScene } from "@/components/wow/world-scene"
 import { XpBarHud } from "@/components/wow/xp-bar-hud"
 import { useIsMobile } from "@/lib/use-is-mobile"
@@ -53,6 +54,7 @@ export function App() {
       <DamageVignette />
       <GameOverDialog />
       <InitialLoadingScreen />
+      <WelcomeModal />
     </div>
   )
 }
