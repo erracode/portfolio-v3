@@ -42,7 +42,11 @@ export const WORLD_CONFIG = {
     far: 30,
   },
   camera: {
-    /** Initial camera position (world space) before the user orbits it. */
+    /** Initial viewing direction: a point the camera looks from, relative
+     * to world origin, before the user orbits it. Only its DIRECTION from
+     * the orbit target matters — `getInitialCameraPosition()` rescales it so
+     * the camera starts at `maxDistance` (fully zoomed out). Zoom is not
+     * persisted anywhere, so every load starts there. */
     offset: { x: 0, y: 6, z: 9 },
     lookAtHeight: 1.2,
     dampingFactor: 0.1,
@@ -78,8 +82,8 @@ export const WORLD_CONFIG = {
    * (origin derived from the map's 48x41 footprint), picked on confirmed
    * '1' cells clear of the NPC (row 9, col 3), the other guard/chest
    * cluster (rows 8/15, cols 39-45), and the original flag/spawn (row 20,
-   * cols 24-27). The zeppelin roams at y=7 well above these, so no
-   * ground-level overlap to worry about there. */
+   * cols 24-27). The zeppelin flies above all of these (see `zeppelin`),
+   * so no ground-level overlap to worry about there. */
   flag: {
     positions: [
       { x: 1.5, y: 0, z: 0 }, // row 20, col 26 — original, near spawn
@@ -95,10 +99,19 @@ export const WORLD_CONFIG = {
    * the Social & Contact window (same purpose the `contact-sprite.png`
    * asset and v2's own click handler already implied). */
   zeppelin: {
-    startPosition: { x: 0, y: 7, z: -8 },
+    // Was y=7 roaming a 20x20 box (|x|,|z| <= 10): at y=7 it sat at or above
+    // the top edge of the default view, and on a portrait phone the wide box
+    // kept it off-screen most of the time. At y=4.5 the 5x2.5 sprite spans
+    // y 3.25-5.75 — still clearly airborne over the tallest props (flags
+    // ~2m, NPC + quest marker ~2.3m, guards/player 1.5m) — and the flight
+    // band below keeps it behind the spawn, crossing the view regularly.
+    startPosition: { x: 0, y: 4.5, z: -7 },
     speed: 0.2,
     turnInterval: 5,
-    boundarySize: 10,
+    /** Flight band (world units): |x| <= boundaryX, zMin <= z <= zMax. */
+    boundaryX: 6,
+    zMin: -10,
+    zMax: -4,
     scale: 1 / 60,
   },
   keyBindings: {
@@ -202,4 +215,15 @@ export const WORLD_CONFIG = {
      * `ActionBar`'s mobile branch, mirrored here so `XpBarHud` can match it. */
     actionBarWidth: "320px",
   },
+}
+
+/** Camera start position: `camera.offset`'s direction from the orbit
+ * target, pushed out to `camera.maxDistance` so the world loads fully
+ * zoomed out (wheel/pinch still zooms in down to `minDistance`). */
+export function getInitialCameraPosition(): [number, number, number] {
+  const { offset, lookAtHeight, maxDistance } = WORLD_CONFIG.camera
+  const dy = offset.y - lookAtHeight
+  const length = Math.hypot(offset.x, dy, offset.z)
+  const k = maxDistance / length
+  return [offset.x * k, lookAtHeight + dy * k, offset.z * k]
 }

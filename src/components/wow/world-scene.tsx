@@ -15,9 +15,10 @@ import { WorldPlayer } from "@/components/wow/world-player"
 import { WorldZeppelin } from "@/components/wow/world-zeppelin"
 import { sampleNpc } from "@/data/npc"
 import { DUKE_SPRITE, FERRIS_SPRITE, GOPHER_SPRITE } from "@/data/guard-sprites"
+import { useOnboardingStore } from "@/lib/onboarding-store"
 import { useIsTouchDevice } from "@/lib/use-is-mobile"
 import { useMovementInput } from "@/lib/use-movement-input"
-import { WORLD_CONFIG } from "@/lib/world-config"
+import { getInitialCameraPosition, WORLD_CONFIG } from "@/lib/world-config"
 
 /** Tracks the resolved (never "system") theme by watching the class
  * `theme-provider.tsx` already applies to `<html>` — simpler and more
@@ -83,17 +84,26 @@ export function WorldScene() {
   const [isNearNpc, setIsNearNpc] = useState(false)
   const [isNearChest, setIsNearChest] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const isWelcomeOpen = useOnboardingStore((state) => state.welcomeOpen)
 
-  const { offset } = WORLD_CONFIG.camera
   const fogColor = isDark ? WORLD_CONFIG.fog.colorDark : WORLD_CONFIG.fog.colorLight
 
   return (
     <>
       <div className="fixed inset-0 z-0">
         <Canvas
+          // Paused (render-on-demand) while the first-visit welcome dialog
+          // covers the world: the scene sits dimmed behind a modal that
+          // swallows game input, so rendering 60 fps underneath is pure
+          // waste. "demand" (not "never") still repaints on resize, so the
+          // canvas isn't left blank. Resuming is jump-free: R3F's
+          // `setFrameloop` restarts its clock, so the first `delta` after
+          // switching back to "always" is ~0, and nothing here reads
+          // `clock.elapsedTime` (which it resets).
+          frameloop={isWelcomeOpen ? "demand" : "always"}
           dpr={[1, 2]}
           gl={{ antialias: false }}
-          camera={{ position: [offset.x, offset.y, offset.z], fov: 50 }}
+          camera={{ position: getInitialCameraPosition(), fov: 50 }}
         >
           <color attach="background" args={[fogColor]} />
           <fog attach="fog" args={[fogColor, WORLD_CONFIG.fog.near, WORLD_CONFIG.fog.far]} />

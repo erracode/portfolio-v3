@@ -32,7 +32,7 @@ const UP = new THREE.Vector3(0, 1, 0)
  */
 export function WorldZeppelin() {
   const groupRef = useRef<THREE.Group>(null)
-  const { startPosition, speed, turnInterval, boundarySize, scale } = WORLD_CONFIG.zeppelin
+  const { startPosition, speed, turnInterval, boundaryX, zMin, zMax, scale } = WORLD_CONFIG.zeppelin
 
   const position = useRef(
     new THREE.Vector3(startPosition.x, startPosition.y, startPosition.z)
@@ -40,7 +40,10 @@ export function WorldZeppelin() {
   const direction = useRef(new THREE.Vector3(1, 0, 0))
   const turnTimer = useRef(0)
 
-  useFrame((_state, delta) => {
+  useFrame((_state, frameDelta) => {
+    // Clamped: while the world is paused (welcome dialog open) a resize
+    // still draws one frame whose delta spans the whole pause.
+    const delta = Math.min(frameDelta, 0.1)
     turnTimer.current += delta
     if (turnTimer.current >= turnInterval) {
       turnTimer.current = 0
@@ -50,8 +53,12 @@ export function WorldZeppelin() {
 
     position.current.addScaledVector(direction.current, speed * delta)
 
-    if (Math.abs(position.current.x) > boundarySize) direction.current.x *= -1
-    if (Math.abs(position.current.z) > boundarySize) direction.current.z *= -1
+    // Reflect only while heading further out, so a random turn right at the
+    // edge can't flip the direction back and forth every frame.
+    const { x, z } = position.current
+    const dir = direction.current
+    if ((x > boundaryX && dir.x > 0) || (x < -boundaryX && dir.x < 0)) dir.x *= -1
+    if ((z > zMax && dir.z > 0) || (z < zMin && dir.z < 0)) dir.z *= -1
 
     if (groupRef.current) {
       groupRef.current.position.copy(position.current)
