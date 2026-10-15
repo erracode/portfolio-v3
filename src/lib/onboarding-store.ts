@@ -32,6 +32,11 @@ interface OnboardingState {
    * dialog waits for it so it never renders underneath the loader. */
   worldReady: boolean
   setWorldReady: (ready: boolean) => void
+  /** True while `WelcomeModal` is on screen. `WorldScene` switches the R3F
+   * loop to `frameloop="demand"` meanwhile: the dimmed world behind the
+   * dialog doesn't need 60 fps, and nothing can move while it's open. */
+  welcomeOpen: boolean
+  setWelcomeOpen: (open: boolean) => void
 }
 
 /**
@@ -41,4 +46,6 @@ interface OnboardingState {
 export const useOnboardingStore = create<OnboardingState>()((set) => ({
   worldReady: false,
   setWorldReady: (ready) => set({ worldReady: ready }),
+  welcomeOpen: false,
+  setWelcomeOpen: (open) => set({ welcomeOpen: open }),
 }))
