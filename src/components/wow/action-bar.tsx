@@ -149,7 +149,7 @@ export function ActionBar() {
             : resumeSlot
               ? {
                   title: "Ver CV",
-                  description: "Salí del juego y mirá el currículum tradicional.",
+                  description: "Sal del juego y mira el currículum tradicional.",
                 }
               : {
                   title: `Ranura ${index}`,

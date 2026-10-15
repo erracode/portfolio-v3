@@ -91,8 +91,8 @@ function HelpBody() {
   return (
     <div className="flex flex-col gap-4 p-4">
       <p className="font-sans text-xs leading-relaxed text-muted-foreground">
-        Explora el mundo, hablá con el NPC y{" "}
-        <span className="text-foreground">derrotá a los guardias</span> para
+        Explora el mundo, habla con el NPC y{" "}
+        <span className="text-foreground">derrota a los guardias</span> para
         poder abrir el cofre y completar la misión.
       </p>
 
@@ -107,15 +107,15 @@ function HelpBody() {
         </h3>
         <p className="font-sans text-xs leading-relaxed text-muted-foreground">
           Hoja de Personaje (C), Registro de Proyectos (L), Stack & Talentos
-          (P), Logros (Y), Redes (J), esta Guía (H) y Opciones (O). Abrí varias
-          a la vez y arrastralas por la pantalla.
+          (P), Logros (Y), Redes (J), esta Guía (H) y Opciones (O). Abre varias
+          a la vez y arrástralas por la pantalla.
         </p>
       </div>
 
       <p className="font-sans text-xs text-muted-foreground">
-        ¿Preferís el CV tradicional?{" "}
+        ¿Prefieres el CV tradicional?{" "}
         <Link to="/resume" className="text-foreground hover:underline">
-          Vé directo al currículum
+          Ve directo al currículum
         </Link>
         .
       </p>

@@ -61,7 +61,7 @@ export const sampleNpc: NpcData = {
   title: "Guía del reino",
   portraitUrl: "/avatar/me.png",
   greeting:
-    "¡Saludos, aventurero! Bienvenido a mi portfolio. Acepta alguna misión y recorré el reino — cada objetivo se completa solo en cuanto hagas lo que pide. Volvé a hablarme cuando la tengas lista para entregarla.",
+    "¡Saludos, aventurero! Bienvenido a mi portfolio. Acepta alguna misión y recorre el reino — cada objetivo se completa solo en cuanto hagas lo que pide. Vuelve a hablarme cuando la tengas lista para entregarla.",
   options: [
     { type: "info", label: "¿Quién eres?", refId: "lore" },
     { type: "quest", label: "Conóceme", refId: "meet-jesus" },
@@ -86,7 +86,7 @@ export const sampleNpc: NpcData = {
       id: "explore-portfolio",
       title: "Recorre el Portafolio",
       description:
-        "Todo lo que construí está repartido en estas ventanas — dales una vuelta.",
+        "Todo lo que construí está repartido en estas ventanas — échales un vistazo.",
       objectives: [
         { id: "open-quests", label: "Abre el Registro de Misiones (tecla L)" },
         { id: "view-project", label: "Explora el detalle de un proyecto" },

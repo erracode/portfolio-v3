@@ -68,8 +68,8 @@ export const RESUME_LABELS = {
     language: "Cambiar a inglés",
     zergHp: "Vida",
     zergKills: "Invasores derrotados",
-    zergHintPointer: "Apuntá con el mouse, ESPACIO para lanzar",
-    zergHintTouch: "Tocá un invasor para lanzar el hacha, tocá en otro lado para moverte",
+    zergHintPointer: "Apunta con el mouse, ESPACIO para lanzar",
+    zergHintTouch: "Toca un invasor para lanzar el hacha, toca en otro lado para moverte",
   },
 } as const
 

@@ -149,7 +149,7 @@ export function ResumeWalker() {
           row={activeRow.row}
           fps={moving ? 6 : 2}
           scale={SCALE}
-          aria-label="Personaje del portfolio — hacé click en cualquier parte para que camine hasta ahí"
+          aria-label="Personaje del portfolio — haz clic en cualquier parte para que camine hasta ahí"
         />
       </div>
     </>
