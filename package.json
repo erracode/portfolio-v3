@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -64,6 +65,7 @@
     "globals": "^17",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "satori": "^0.33.5",
     "typescript": "~6",
     "typescript-eslint": "^8",
     "vite": "^8"

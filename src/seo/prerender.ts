@@ -1,7 +1,16 @@
 import { getResumeFeaturedProjects } from "../data/projects"
 import { getResumeContent, getResumeLabels } from "../data/resume"
 import { CONTACT_LINKS } from "../data/sections"
-import { canonicalUrl, OG_IMAGE, ROUTE_META, SITE_URL, type SeoPath } from "./route-meta"
+import {
+  canonicalUrl,
+  OG_IMAGE_HEIGHT,
+  OG_IMAGE_WIDTH,
+  OG_IMAGES,
+  ogImageUrl,
+  ROUTE_META,
+  SITE_URL,
+  type SeoPath,
+} from "./route-meta"
 
 /**
  * Build-time only (imported by `vite.config.ts`, never by the app): turns
@@ -53,6 +62,8 @@ export function renderSeoHead(path: SeoPath): string {
   const url = canonicalUrl(path)
   const social = escapeHtml(meta.socialDescription ?? meta.description)
   const title = escapeHtml(meta.title)
+  const image = ogImageUrl(path)
+  const imageAlt = escapeHtml(OG_IMAGES[path].alt)
 
   const tags = [
     `<title>${title}</title>`,
@@ -65,15 +76,16 @@ export function renderSeoHead(path: SeoPath): string {
     `<meta property="og:description" content="${social}" />`,
     `<meta property="og:locale" content="${meta.ogLocale}" />`,
     meta.ogLocaleAlternate && `<meta property="og:locale:alternate" content="${meta.ogLocaleAlternate}" />`,
-    `<meta property="og:image" content="${OG_IMAGE.url}" />`,
-    `<meta property="og:image:width" content="${OG_IMAGE.width}" />`,
-    `<meta property="og:image:height" content="${OG_IMAGE.height}" />`,
-    `<meta property="og:image:alt" content="${escapeHtml(OG_IMAGE.alt)}" />`,
+    `<meta property="og:image" content="${image}" />`,
+    `<meta property="og:image:type" content="image/png" />`,
+    `<meta property="og:image:width" content="${OG_IMAGE_WIDTH}" />`,
+    `<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}" />`,
+    `<meta property="og:image:alt" content="${imageAlt}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${title}" />`,
     `<meta name="twitter:description" content="${social}" />`,
-    `<meta name="twitter:image" content="${OG_IMAGE.url}" />`,
-    `<meta name="twitter:image:alt" content="${escapeHtml(OG_IMAGE.alt)}" />`,
+    `<meta name="twitter:image" content="${image}" />`,
+    `<meta name="twitter:image:alt" content="${imageAlt}" />`,
     renderPersonJsonLd(),
   ].filter(Boolean)
 

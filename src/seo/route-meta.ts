@@ -14,14 +14,44 @@ import { getResumeContent } from "../data/resume"
 
 export const SITE_URL = "https://erracode.pages.dev"
 
-export const OG_IMAGE = {
-  url: `${SITE_URL}/images/jesus-diaz.jpg`,
-  width: 800,
-  height: 800,
-  alt: "Retrato de Jesús Díaz",
+export type SeoPath = "/" | "/resume"
+
+/** Per-route social card. The PNGs are generated at build time by the
+ * `ogImages` plugin (`plugins/og-images.ts`) into `dist/og/` — `path` is
+ * both where it's emitted and what `og:image` points to. */
+export interface OgImageSpec {
+  path: string
+  alt: string
+  /** Pixel badge above the name. */
+  badge: string
+  tagline: string
+  /** Decorative XP bar fill, out of 20 cells. */
+  xpFilled: number
 }
 
-export type SeoPath = "/" | "/resume"
+export const OG_IMAGE_WIDTH = 1200
+export const OG_IMAGE_HEIGHT = 630
+
+export const OG_IMAGES: Record<SeoPath, OgImageSpec> = {
+  "/": {
+    path: "/og/og-home.png",
+    alt: "Jesús Díaz, Senior Full-Stack Engineer — portfolio interactivo estilo WoW en 3D",
+    badge: "PORTFOLIO",
+    tagline: "Portfolio interactivo estilo WoW en 3D",
+    xpFilled: 17,
+  },
+  "/resume": {
+    path: "/og/og-resume.png",
+    alt: "Jesús Díaz, Senior Full-Stack Engineer — resume",
+    badge: "RESUME",
+    tagline: "Resume · React, Next.js, Node.js/NestJS, TypeScript",
+    xpFilled: 20,
+  },
+}
+
+export function ogImageUrl(path: SeoPath): string {
+  return `${SITE_URL}${OG_IMAGES[path].path}`
+}
 
 export interface RouteMeta {
   title: string

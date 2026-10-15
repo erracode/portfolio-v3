@@ -2,7 +2,7 @@ import { useEffect } from "react"
 import { useRouterState } from "@tanstack/react-router"
 
 import { useResumeLocaleStore } from "@/lib/resume-locale-store"
-import { canonicalUrl, resolveSeoPath, ROUTE_META } from "@/seo/route-meta"
+import { canonicalUrl, OG_IMAGES, ogImageUrl, resolveSeoPath, ROUTE_META } from "@/seo/route-meta"
 
 function setAttr(selector: string, attribute: string, value: string) {
   document.head.querySelector(selector)?.setAttribute(attribute, value)
@@ -61,6 +61,10 @@ export function RouteHead() {
     syncLocaleAlternate(meta.ogLocaleAlternate)
     setAttr('meta[name="twitter:title"]', "content", meta.title)
     setAttr('meta[name="twitter:description"]', "content", social)
+    setAttr('meta[property="og:image"]', "content", ogImageUrl(path))
+    setAttr('meta[property="og:image:alt"]', "content", OG_IMAGES[path].alt)
+    setAttr('meta[name="twitter:image"]', "content", ogImageUrl(path))
+    setAttr('meta[name="twitter:image:alt"]', "content", OG_IMAGES[path].alt)
   }, [pathname, resumeLocale])
 
   return null

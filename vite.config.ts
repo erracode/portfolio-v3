@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type Plugin } from "vite"
 
+import { ogImages } from "./plugins/og-images"
 import { renderResumeStaticHtml, renderSeoHead, SEO_HEAD_END, SEO_HEAD_START } from "./src/seo/prerender"
 import { ROUTE_META } from "./src/seo/route-meta"
 
@@ -51,7 +52,29 @@ function seoPrerender(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), seoPrerender()],
+  plugins: [react(), tailwindcss(), seoPrerender(), ogImages()],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          // Without this, rolldown also drags every dependency of a matched
+          // module (react, scheduler, zustand…) into the group, and the entry
+          // chunk — i.e. `/resume` — ends up statically importing (and
+          // modulepreloading) the whole three-vendor chunk.
+          includeDependenciesRecursively: false,
+          // The 3D engine (three + r3f/drei and their satellites) changes far
+          // less often than the game code, so it gets its own long-cached
+          // chunk. Only the lazy "/" route imports it — `/resume` never does.
+          groups: [
+            {
+              name: "three-vendor",
+              test: /[\\/]node_modules[\\/](three|three-[\w-]+|@react-three[\\/][\w-]+|troika-[\w-]+|camera-controls|maath|meshline|stats-gl|@monogrid[\\/][\w-]+|detect-gpu|hls\.js|@use-gesture[\\/][\w-]+)[\\/]/,
+            },
+          ],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
