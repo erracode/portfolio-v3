@@ -19,8 +19,9 @@ const SLOT_COUNT = 9
 const AXE_SLOT_INDEX = 1
 /** A non-combat "ability" — jumps to the traditional resume escape hatch
  * (see `ResumePage`), for visitors who'd rather read a CV than fight
- * guards. */
-const RESUME_SLOT_INDEX = 2
+ * guards. Pinned to the last slot (key 9) so it sits apart from the combat
+ * abilities that fill the bar from the left. */
+const RESUME_SLOT_INDEX = SLOT_COUNT
 /** axe-sheet.png is 8 square frames (1760/220) in a single row. Sizing the
  * background as a percentage of the icon's OWN box keeps frame 0 exactly
  * filling that box — but the box itself must be pinned to an EXPLICIT
