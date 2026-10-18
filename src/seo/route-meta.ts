@@ -16,9 +16,8 @@ export const SITE_URL = "https://erracode.pages.dev"
 
 export type SeoPath = "/" | "/resume"
 
-/** Per-route social card. The PNGs are generated at build time by the
- * `ogImages` plugin (`plugins/og-images.ts`) into `dist/og/` — `path` is
- * both where it's emitted and what `og:image` points to. */
+/** Per-route social image served as a static asset from `public/og/`.
+ * It is intentionally independent from the portrait used by the resume. */
 export interface OgImageSpec {
   path: string
   alt: string
@@ -29,20 +28,20 @@ export interface OgImageSpec {
   xpFilled: number
 }
 
-export const OG_IMAGE_WIDTH = 1200
-export const OG_IMAGE_HEIGHT = 630
+export const OG_IMAGE_WIDTH = 250
+export const OG_IMAGE_HEIGHT = 250
 
 export const OG_IMAGES: Record<SeoPath, OgImageSpec> = {
   "/": {
-    path: "/og/og-home.png",
-    alt: "Jesús Díaz, Senior Full-Stack Engineer — portfolio interactivo estilo WoW en 3D",
+    path: "/og/me.png",
+    alt: "Ilustración pixel art de Jesús Díaz programando frente a un monitor",
     badge: "PORTFOLIO",
     tagline: "Portfolio interactivo estilo WoW en 3D",
     xpFilled: 17,
   },
   "/resume": {
-    path: "/og/og-resume.png",
-    alt: "Jesús Díaz, Senior Full-Stack Engineer — resume",
+    path: "/og/me.png",
+    alt: "Ilustración pixel art de Jesús Díaz programando frente a un monitor",
     badge: "RESUME",
     tagline: "Resume · React, Next.js, Node.js/NestJS, TypeScript",
     xpFilled: 20,

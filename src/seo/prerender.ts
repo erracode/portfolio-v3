@@ -81,7 +81,7 @@ export function renderSeoHead(path: SeoPath): string {
     `<meta property="og:image:width" content="${OG_IMAGE_WIDTH}" />`,
     `<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}" />`,
     `<meta property="og:image:alt" content="${imageAlt}" />`,
-    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:card" content="summary" />`,
     `<meta name="twitter:title" content="${title}" />`,
     `<meta name="twitter:description" content="${social}" />`,
     `<meta name="twitter:image" content="${image}" />`,

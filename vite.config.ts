@@ -4,7 +4,6 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type Plugin } from "vite"
 
-import { ogImages } from "./plugins/og-images"
 import { renderResumeStaticHtml, renderSeoHead, SEO_HEAD_END, SEO_HEAD_START } from "./src/seo/prerender"
 import { ROUTE_META } from "./src/seo/route-meta"
 
@@ -52,7 +51,7 @@ function seoPrerender(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), seoPrerender(), ogImages()],
+  plugins: [react(), tailwindcss(), seoPrerender()],
   build: {
     rolldownOptions: {
       output: {
